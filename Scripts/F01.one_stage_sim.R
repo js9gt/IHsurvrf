@@ -68,8 +68,8 @@ one_stage <- function(
     valid_failure_time = FALSE
     while (!valid_failure_time) {
       
-      # Generate state data from a normal distribution
-      state = rnorm(1, mean = 2, sd = 1)
+      # Generate state data from a uniform(0, 1) distribution to control values
+      state = runif(1, 0, 1)
       
       # Convert state to a data frame
       state_df = data.frame(state)

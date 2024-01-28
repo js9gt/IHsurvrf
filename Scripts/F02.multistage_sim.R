@@ -9,7 +9,7 @@ source("F01.one_stage_sim.R")
 
 # Function to simulate baseline covariates for stage 0
 simulate_baseline_covariates <- function(n.sample) {
-  state <- matrix(rnorm(n.sample, mean = 2, sd = 1), ncol = 1)
+  state <- matrix(runif(n.sample, min = 0, max = 1), ncol = 1)
   action <- matrix( replicate(n.sample, sample(c(0, 1), size = 1, replace = TRUE, prob = c(0.5, 0.5))), ncol = 1)
   return( data.frame(state, action))
 }
