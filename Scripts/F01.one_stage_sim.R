@@ -1,15 +1,13 @@
 
-
-
+# use this to generate propensity score
+source("C21.sim_params.R")
 
 ## Function starts with w/ these @return which shows what the function is supposed to output
 ## This serves as documentation fo the function
 
 #' @return event.time, "visit length"; X = min(Tk, Uk), earlier of time to death or time to next visit
 #' @return failure.time: Tk: failure time
-#' @return treatment.time: Uk: time to next visit (treatment time)
 #' @return gamma 1(T <= U); T = failure time, U = treatment time, which is a failure indicator. 1 means subject fails before next stage.
-#' @return treatment (1, 0) based on assigned treatment using propensity scores
 #' @return state; based on generated value from normal distribution
 #' @return delta: delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
 
@@ -18,7 +16,8 @@
 #' @return rate_time_next_visit: to track rate (mean) which generates the exponential distribution
 
 
-
+## no longer:
+# #' @return treatment.time: Uk: time to next visit (treatment time)
 
 
 #################
@@ -28,6 +27,7 @@
 # nstage = initialize at 0
 # cumulative_length = initialize at 0
 # terminal.stage
+# an at.risk marker (not at risk = NA values)
 
 # Parameters for the failure time distribution (Tk)
 #a1 <- -0.3
@@ -50,17 +50,19 @@ one_stage <- function(
   nstages = 0,
   cumulative_length = 0,
   at.risk = 1,
-  propensity_model = NULL,
+  #action = 0, #only used when we first generate prop scores for all stages at once, but this doesn't make sense
   terminal.stage = FALSE, 
   a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
   a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1,
-  tau = 50) {
+  tau = 50,
+  #dimensions of covariates for state vector generated
+  p = 1) {
   
   while (TRUE) {
     if (!at.risk) {
       # If not at risk, assign NA values to output variables
-      output = c(event.time = NA, gamma = NA, delta = NA, treatment = NA, 
-                 failure.time = NA, treatment.time = NA, state = NA, rate.failure = NA,
+      output = c(event.time = NA, gamma = NA, delta = NA,
+                 failure.time = NA, treatment.time = NA, action = NA, state = NA, rate.failure = NA,
                  rate.next.visit = NA)
       return(output)
     }
@@ -71,18 +73,15 @@ one_stage <- function(
       # Generate state data from a uniform(0, 1) distribution to control values
       state = runif(1, 0, 1)
       
-      # Convert state to a data frame
-      state_df = data.frame(state)
+      ## generates predicted probability of treatment for each patient as a vector, inputting generated state
+      propensity_scores <- propensity_function(state = state, p)
       
-      # Use Propensity Score Model to Predict Treatment
-      propensity_scores = predict(propensity_model, newdata = state_df, type = "response")
+      action <- rbinom(n = 1, size = 1, prob = propensity_scores)
       
-      # Assign Binary Treatment Based on Propensity Scores, by drawing 1 (treatment) with the predicted probability
-      Ak = sample(c(0, 1), size = 1, replace = T, prob = c( 1 - propensity_scores, propensity_scores))
       
       # Rate of failure time (Tk)
       rate_failure = exp(
-        a1 + b1 * state + z1 * nstages + p1 * cumulative_length + g1 * Ak + r1 * Ak * state * nstages * cumulative_length
+        a1 + b1 * state + z1 * nstages + p1 * cumulative_length + g1 * action + r1 * action * state * nstages * cumulative_length
       )
       
       # Ensure rate_failure is positive
@@ -90,7 +89,7 @@ one_stage <- function(
       
       # Rate of time to next visit (Uk)
       rate_time_next_visit = exp(
-        a2 + b2 * state + z2 * nstages + p2 * cumulative_length + g2 * Ak + r2 * Ak * state * nstages * cumulative_length
+        a2 + b2 * state + z2 * nstages + p2 * cumulative_length + g2 * action + r2 * action * state * nstages * cumulative_length
       )
       
       # Ensure rate_time_next_visit is positive
@@ -139,8 +138,8 @@ one_stage <- function(
     }
     
     # Construct output vector of relevant variables and their values
-    output = c(event.time = X, gamma = gamma, delta = delta, treatment = Ak, 
-               failure.time = failure.time, treatment.time = trt.time, state = state, rate.failure = rate_failure,
+    output = c(event.time = X, gamma = gamma, delta = delta,
+               failure.time = failure.time, treatment.time = trt.time, action = action,state = state, rate.failure = rate_failure,
                rate.next.visit = rate_time_next_visit)
     
     # Return a list containing statistics
