@@ -28,6 +28,7 @@ source("C21.sim_params.R")
 # cumulative_length = initialize at 0
 # terminal.stage
 # an at.risk marker (not at risk = NA values)
+# prior_vis_length = initialize at 0
 
 # Parameters for the failure time distribution (Tk)
 #a1 <- -0.3
@@ -49,11 +50,13 @@ one_stage <- function(
     ## nstages is number of previous stages
   nstages = 0,
   cumulative_length = 0,
+  ## length of of the prior visit (not cumulative)
+  prior.visit.length = 0,
   at.risk = 1,
   #action = 0, #only used when we first generate prop scores for all stages at once, but this doesn't make sense
   terminal.stage = FALSE, 
-  a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
-  a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1,
+  a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+  a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
   tau = 50,
   #dimensions of covariates for state vector generated
   p = 1) {
@@ -62,7 +65,7 @@ one_stage <- function(
     if (!at.risk) {
       # If not at risk, assign NA values to output variables
       output = c(event.time = NA, gamma = NA, delta = NA,
-                 failure.time = NA, treatment.time = NA, action = NA, state = NA, rate.failure = NA,
+                 failure.time = NA, treatment.time = NA, action = NA, state = NA, prior.visit.length = prior.visit.length, rate.failure = NA,
                  rate.next.visit = NA)
       return(output)
     }
@@ -81,7 +84,8 @@ one_stage <- function(
       
       # Rate of failure time (Tk)
       rate_failure = exp(
-        a1 + b1 * state + z1 * nstages + p1 * cumulative_length + g1 * action + r1 * action * state * nstages * cumulative_length
+        a1 + b1 * state + z1 * nstages + p1 * cumulative_length + g1 * action + h1*prior.visit.length + 
+          r1 * action * state * nstages * cumulative_length*prior.visit.length
       )
       
       # Ensure rate_failure is positive
@@ -89,7 +93,8 @@ one_stage <- function(
       
       # Rate of time to next visit (Uk)
       rate_time_next_visit = exp(
-        a2 + b2 * state + z2 * nstages + p2 * cumulative_length + g2 * action + r2 * action * state * nstages * cumulative_length
+        a2 + b2 * state + z2 * nstages + p2 * cumulative_length + g2 * action + h2*prior.visit.length +
+          r2 * action * state * nstages * cumulative_length*prior.visit.length
       )
       
       # Ensure rate_time_next_visit is positive
@@ -139,7 +144,7 @@ one_stage <- function(
     
     # Construct output vector of relevant variables and their values
     output = c(event.time = X, gamma = gamma, delta = delta,
-               failure.time = failure.time, treatment.time = trt.time, action = action,state = state, rate.failure = rate_failure,
+               failure.time = failure.time, treatment.time = trt.time, action = action, state = state, prior.visit.length = prior.visit.length, rate.failure = rate_failure,
                rate.next.visit = rate_time_next_visit)
     
     # Return a list containing statistics
@@ -148,7 +153,7 @@ one_stage <- function(
 }
 
 ## vectorizing the following arguments
-one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_length",  "at.risk"))
+one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_length", "at.risk", "prior.visit.length"))
 
 ### example code after fitting propensity model in F02.multistage_sim.R
 #dynamics.vec(nstages = rep(0, 5),

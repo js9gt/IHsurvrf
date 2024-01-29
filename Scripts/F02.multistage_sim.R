@@ -8,7 +8,10 @@ source("F01.one_stage_sim.R")
 # Function to simulate data for 10 patients with specified conditions
 ## test
 # n.sample = 10
-# max_stages = 10
+# max_stages = 5
+# tau = 100
+# p = 1
+
 
 
 
@@ -17,6 +20,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
                               at.risk = rep(1, n.sample),
                               ## Life so far lived at the beginning of the stage
                               cumulative.time = rep(0, n.sample),
+                              
+                              ## inital length of previous visits 
+                              prior.visit.length = rep(0, n.sample),
                               ## dimensions of the state vector generated at each stage
                               p = 1) {
   
@@ -25,6 +31,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
   
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(cumulative.time) == 1) cumulative.time = rep(cumulative.time, n.sample)
+  
+  ## if prior visit length is 0, then replicate the value until it matches the length of n.sample
+  if (length(prior.visit.length) == 1) prior.visit.length = rep(prior.visit.length, n.sample)
   
   require(dplyr)
   
@@ -46,11 +55,11 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ## uses the dynamics.vec() function to create an initial structure to set up an initial state for 
   ## later dynamics of the multi-stage
   tmp <- 
-    one_stage.vec(nstages = 0, cumulative_length = 0, at.risk = 1,
+    one_stage.vec(nstages = 0, cumulative_length = 0, prior.visit.length = 0, at.risk = 1,
                   ## using any action for now just to get column names for the structure
                   terminal.stage = F,
-                  a1 = -5, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
-                  a2 = -3, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1, tau = tau, p = p) %>% t
+                  a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+                  a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1, tau = tau, p = p) %>% t
   
   
   
@@ -107,15 +116,17 @@ simulate_patients <- function(n.sample, max_stages, tau,
     #output[, colnames(baseline_covariates), stage] <- as.matrix(baseline_covariates)
     
     
+    
     stage.output <- 
       
       ## generate values for current stage
       ##### why is this outputting 10 values of each of the rates instead of one?
-      one_stage.vec(nstages = stage - 1, cumulative_length = cumulative.time, at.risk = at.risk,
+      one_stage.vec(nstages = stage - 1, cumulative_length = cumulative.time, at.risk = at.risk, 
+                    prior.visit.length = prior.visit.length,
                     #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
                     terminal.stage = (stage == max_stages),
-                    a1 = -5, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
-                    a2 = -3, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1, tau = tau) %>% t
+                    a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+                    a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1, tau = tau) %>% t
     
     
       
@@ -153,6 +164,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
     
     ## update the cumulative to prepare for next state calculations by adding the current stage's event time
     cumulative.time <- cumulative.time + stage.output[, "event.time"] # updating for the next stage
+    
+    ## update the prior visit length column in the output array for the previous stage
+    prior.visit.length    <- stage.output[, "event.time"]
   }
   
   return(output)
@@ -160,10 +174,11 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-simulate_patients(n.sample=4, max_stages = 4, tau = 1000,
+simulate_patients(n.sample=10, max_stages = 3 , tau = 1000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
                   cumulative.time = 0,
+                  prior.visit.length = 0, 
                   p = 1) 
 
