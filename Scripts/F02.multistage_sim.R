@@ -24,7 +24,15 @@ simulate_patients <- function(n.sample, max_stages, tau,
                               ## inital length of previous visits 
                               prior.visit.length = rep(0, n.sample),
                               ## dimensions of the state vector generated at each stage
-                              p = 1) {
+                              p = 1,
+                              a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+                              a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
+                              ## "covariate" value for later state generation
+                              rho = 0.5,
+                              # action-specific effects 
+                              D0 = 0,
+                              D1 = 1,
+                              g = 1) {
   
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(at.risk) == 1) at.risk = rep(at.risk, n.sample)
@@ -57,7 +65,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
   tmp <- 
     one_stage.vec(nstages = 0, cumulative_length = 0, prior.visit.length = 0, at.risk = 1,
                   ## using any action for now just to get column names for the structure
-                  terminal.stage = F,
+                  terminal.stage = F, initial.stage = T, input.state.value = 0, 
                   a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
                   a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1, tau = tau, p = p) %>% t
   
@@ -98,6 +106,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
   output[, "rep.id", ] <- 0           # rep.id is reserved for later use (repeated random draws)
   
   
+  ## initialize an input.state vector of 0
+  input.state <- rep(0, n.sample)
+  
   ## iterate through each stage
   for (stage in 1:max_stages) {
     
@@ -124,9 +135,11 @@ simulate_patients <- function(n.sample, max_stages, tau,
       one_stage.vec(nstages = stage - 1, cumulative_length = cumulative.time, at.risk = at.risk, 
                     prior.visit.length = prior.visit.length,
                     #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                    terminal.stage = (stage == max_stages),
-                    a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
-                    a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1, tau = tau) %>% t
+                    terminal.stage = (stage == max_stages), input.state.value = input.state, 
+                    ## if initial stage is true (at stage 1), then use uniform(0, 1), otherwise, use the input
+                    initial.stage = (stage == 1), 
+                    a1 = a1, b1 = b1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+                    a2 = a2, b2 = b2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2, tau = tau) %>% t
     
     
       
@@ -167,6 +180,15 @@ simulate_patients <- function(n.sample, max_stages, tau,
     
     ## update the prior visit length column in the output array for the previous stage
     prior.visit.length    <- stage.output[, "event.time"]
+    
+
+      # if it's not the initial stage, input the value from the updated state (using the formulas)
+      # this will use values from the previous state
+      # NOTE: this lags behind by one iteration, that's why we can update the prior.visit.length like we do above 
+      input.state = rho*stage.output[, "state"] + ifelse(stage.output[, "state"] > 0.5, 1, 0)*(D0 + stage.output[, "action"]*D1) +
+        ifelse(stage.output[, "state"] < 0.5, 1, 0)*(D0^2 + stage.output[, "action"]*(D1)^2) +
+        0.5*g*(1-(rho)^2)^0.5 * replicate(n.sample, runif(n = 1, min = 0, max = 1))
+
   }
   
   return(output)
@@ -174,11 +196,18 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-simulate_patients(n.sample=10, max_stages = 3 , tau = 1000,
+simulate_patients(n.sample=10, max_stages = 10 , tau = 1000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
                   cumulative.time = 0,
                   prior.visit.length = 0, 
-                  p = 1) 
+                  p = 1, ## "covariate" value for later state generation,
+                  a1 = -1, b1 = -1, z1 = -0.003, p1 = -0.001, g1 = -2, h1 = -0.2, r1 = -0.005,
+                  a2 = -1, b2 = -1, z2 = -0.003, p2 = -0.001, g2 = -2, h2 = -0.2, r2 = -0.005, 
+                  rho = 0.5,
+                  # action-specific effects 
+                  D0 = 0,
+                  D1 = 1,
+                  g = 1) 
 

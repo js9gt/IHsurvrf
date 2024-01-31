@@ -8,7 +8,7 @@ source("C21.sim_params.R")
 #' @return event.time, "visit length"; X = min(Tk, Uk), earlier of time to death or time to next visit
 #' @return failure.time: Tk: failure time
 #' @return gamma 1(T <= U); T = failure time, U = treatment time, which is a failure indicator. 1 means subject fails before next stage.
-#' @return state; based on generated value from normal distribution
+#' @return state; based on generated value from a uniform distribution
 #' @return delta: delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
 
 
@@ -55,6 +55,8 @@ one_stage <- function(
   at.risk = 1,
   #action = 0, #only used when we first generate prop scores for all stages at once, but this doesn't make sense
   terminal.stage = FALSE, 
+  initial.stage = FALSE,
+  input.state.value = 0, 
   a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
   a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
   tau = 50,
@@ -72,9 +74,17 @@ one_stage <- function(
     
     valid_failure_time = FALSE
     while (!valid_failure_time) {
+
       
-      # Generate state data from a uniform(0, 1) distribution to control values
-      state = runif(1, 0, 1)
+      # Terminal stage (input) == T; simulation has reached the final phase, no further treatment
+      if (initial.stage) {
+        # Generate state data from a uniform(0, 1) distribution to control values
+        state = runif(1, 0, 1)
+        
+      } else {
+        # if it's not the initial stage, input the value from the updated state (using the formulas)
+        state = input.state.value
+      }
       
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
       propensity_scores <- propensity_function(state = state, p)
@@ -153,7 +163,7 @@ one_stage <- function(
 }
 
 ## vectorizing the following arguments
-one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_length", "at.risk", "prior.visit.length"))
+one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_length", "input.state.value", "at.risk", "prior.visit.length"))
 
 ### example code after fitting propensity model in F02.multistage_sim.R
 #dynamics.vec(nstages = rep(0, 5),
@@ -161,5 +171,8 @@ one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_
 #         at.risk = rep(1, 5),
 #         propensity_model = propensity_model,
 #         terminal.stage = FALSE, 
-#         a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
-#         a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1)
+#         initial.stage = FALSE,
+#         input.state.value = rep(0, 5), 
+#         a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+#         a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2, = 0.6, r2 = -1,
+#         p =1)
