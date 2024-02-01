@@ -111,10 +111,10 @@ one_stage <- function(
       #if (rate_time_next_visit <= 0) next
       
       # Generating failure time (Tk) using the rate from an exponential distribution
-      failure.time = rexp(n = 1, rate = rate_failure)
+      failure.time = rexp(n = 1, rate = rate_failure) 
       
       # Generating time to next visit (treatment.time) (Uk)using the rate from an exponential distribution
-      treatment.time = rexp(n = 1, rate = rate_time_next_visit)
+      treatment.time = rexp(n = 1, rate = rate_time_next_visit) 
       
       ## delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
       delta = (cumulative_length <= tau)

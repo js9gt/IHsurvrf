@@ -196,18 +196,23 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-simulate_patients(n.sample=10, max_stages = 10 , tau = 1000,
+pts <- simulate_patients(n.sample=10, max_stages = 20 , tau = 1000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
                   cumulative.time = 0,
                   prior.visit.length = 0, 
                   p = 1, ## "covariate" value for later state generation,
-                  a1 = -1, b1 = -1, z1 = -0.003, p1 = -0.001, g1 = -2, h1 = -0.2, r1 = -0.005,
-                  a2 = -1, b2 = -1, z2 = -0.003, p2 = -0.001, g2 = -2, h2 = -0.2, r2 = -0.005, 
+                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
+                  a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
+                  ## 2 for time to next visit
+                  a2 = -2.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005, 
                   rho = 0.5,
                   # action-specific effects 
                   D0 = 0,
                   D1 = 1,
                   g = 1) 
 
+## NOTE: works for -4.5, a2 = -3.9
+
+pts[,, 1:5]
