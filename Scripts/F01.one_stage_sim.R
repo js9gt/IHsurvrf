@@ -10,6 +10,7 @@ source("C21.sim_params.R")
 #' @return gamma 1(T <= U); T = failure time, U = treatment time, which is a failure indicator. 1 means subject fails before next stage.
 #' @return state; based on generated value from a uniform distribution
 #' @return delta: delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
+#                        this can also happen if a patient's generated censoring time happens first 
 
 
 #' @return rate_failure: to track rate (mean) which generates the exponential distribution failure time
@@ -59,6 +60,7 @@ one_stage <- function(
   input.state.value = 0, 
   a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
   a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
+  a3 = 1.2, b3 = -0.05, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
   tau = 50,
   #dimensions of covariates for state vector generated
   p = 1) {
@@ -67,8 +69,9 @@ one_stage <- function(
     if (!at.risk) {
       # If not at risk, assign NA values to output variables
       output = c(event.time = NA, gamma = NA, delta = NA,
-                 failure.time = NA, treatment.time = NA, action = NA, state = NA, prior.visit.length = prior.visit.length, rate.failure = NA,
-                 rate.next.visit = NA)
+                 failure.time = NA, treatment.time = NA, censor.time = NA, 
+                 action = NA, state = NA, prior.visit.length = prior.visit.length, rate.failure = NA,
+                 rate.next.visit = NA, rate.censoring = NA)
       return(output)
     }
     
@@ -98,8 +101,6 @@ one_stage <- function(
           r1 * action * state * nstages * cumulative_length*prior.visit.length
       )
       
-      # Ensure rate_failure is positive
-      #if (rate_failure <= 0) next
       
       # Rate of time to next visit (Uk)
       rate_time_next_visit = exp(
@@ -107,21 +108,28 @@ one_stage <- function(
           r2 * action * state * nstages * cumulative_length*prior.visit.length
       )
       
-      # Ensure rate_time_next_visit is positive
-      #if (rate_time_next_visit <= 0) next
+      
+      # Rate of time to censoring (Ck)
+      #delta is 1 if a patient is not censored, 0 if a patient is censored
+      rate_censoring = exp(
+        a3 + b3 * state + z3 * nstages + p3 * cumulative_length + g3 * action + h3*prior.visit.length +
+          r3 * action * state * nstages * cumulative_length*prior.visit.length
+      )
+
       
       # Generating failure time (Tk) using the rate from an exponential distribution
       failure.time = rexp(n = 1, rate = rate_failure) 
       
-      # Generating time to next visit (treatment.time) (Uk)using the rate from an exponential distribution
+      # Generating time to next visit (treatment.time) (Uk) using the rate from an exponential distribution
       treatment.time = rexp(n = 1, rate = rate_time_next_visit) 
       
+      # Generating time to censoring (censor.time) (Ck) using the rate from an exponential distribution
+      censor.time = rexp(n = 1, rate = rate_censoring) 
+      
       ## delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
-      delta = (cumulative_length <= tau)
+      ## delta is also 1 if censoring time is smaller than the treatment.time and failure.time
+      delta = (censor.time > min(failure.time, treatment.time) & cumulative_length <= tau)
       
-      
-      # Check if failure.time and treatment.time are NA or non-positive
-      #if (is.na(failure.time) || failure.time <= 0 || is.na(treatment.time) || treatment.time <= 0) next
       
       ### this while loop with the conditions of bounds is what causes the process to take a long time
       if (!is.na(failure.time) && !is.na(treatment.time) &&  failure.time < 100 && treatment.time < 100) {
@@ -154,8 +162,9 @@ one_stage <- function(
     
     # Construct output vector of relevant variables and their values
     output = c(event.time = X, gamma = gamma, delta = delta,
-               failure.time = failure.time, treatment.time = trt.time, action = action, state = state, prior.visit.length = prior.visit.length, rate.failure = rate_failure,
-               rate.next.visit = rate_time_next_visit)
+               failure.time = failure.time, treatment.time = trt.time, censor.time = censor.time,
+               action = action, state = state, prior.visit.length = prior.visit.length, rate.failure = rate_failure,
+               rate.next.visit = rate_time_next_visit, rate.censoring = rate_censoring)
     
     # Return a list containing statistics
     return(output)
@@ -174,5 +183,6 @@ one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_
 #         initial.stage = FALSE,
 #         input.state.value = rep(0, 5), 
 #         a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
-#         a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2, = 0.6, r2 = -1,
-#         p =1)
+#         a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
+#         a3 = 1.2, b3 = -0.05, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
+#         p =1, tau = 70)

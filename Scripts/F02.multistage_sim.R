@@ -27,6 +27,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
                               p = 1,
                               a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
                               a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
+                              a3 = -4.5, b3 = -1, z3 = -2.5, p3 = -0.1, g3 = 0.2, h3 = -0.6, r3 = -1,
                               ## "covariate" value for later state generation
                               rho = 0.5,
                               # action-specific effects 
@@ -63,11 +64,15 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ## uses the dynamics.vec() function to create an initial structure to set up an initial state for 
   ## later dynamics of the multi-stage
   tmp <- 
+  
     one_stage.vec(nstages = 0, cumulative_length = 0, prior.visit.length = 0, at.risk = 1,
                   ## using any action for now just to get column names for the structure
                   terminal.stage = F, initial.stage = T, input.state.value = 0, 
-                  a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
-                  a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1, tau = tau, p = p) %>% t
+                  a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
+                  ## 2 for time to next visit
+                  a2 = -3.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005, 
+                  a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
+                  tau = tau, p = p) %>% t
   
   
   
@@ -139,7 +144,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
                     ## if initial stage is true (at stage 1), then use uniform(0, 1), otherwise, use the input
                     initial.stage = (stage == 1), 
                     a1 = a1, b1 = b1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                    a2 = a2, b2 = b2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2, tau = tau) %>% t
+                    a2 = a2, b2 = b2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2, 
+                    a3 = a3, b3 = b3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau) %>% t
     
     
       
@@ -196,7 +202,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-pts <- simulate_patients(n.sample=10, max_stages = 20 , tau = 1000,
+pts <- simulate_patients(n.sample=10, max_stages = 10, tau = 10000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
@@ -204,9 +210,12 @@ pts <- simulate_patients(n.sample=10, max_stages = 20 , tau = 1000,
                   prior.visit.length = 0, 
                   p = 1, ## "covariate" value for later state generation,
                   ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
+                  
+                  #### Failure rate parameters get really small fairly quickly-- try changing Z1 to have one more 0, and then try G1 = -0.7 to see what changes
                   a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
                   ## 2 for time to next visit
-                  a2 = -2.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005, 
+                  a2 = -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005, 
+                  a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
                   rho = 0.5,
                   # action-specific effects 
                   D0 = 0,
