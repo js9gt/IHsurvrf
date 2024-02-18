@@ -126,6 +126,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
     
     
     ## update the cumulative time column in the output array for the current stage using the cumulative vector
+    ## to avoid it being overly large, have this be a proportion of tau
     output[, "cumulative.time", stage]     <- cumulative.time
     
     ## updates corresponding matching column names of the baseline covariates with the values in there
@@ -136,8 +137,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
     stage.output <- 
       
       ## generate values for current stage
-      ##### why is this outputting 10 values of each of the rates instead of one?
-      one_stage.vec(nstages = stage - 1, cumulative_length = cumulative.time, at.risk = at.risk, 
+      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
+      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative_length = cumulative.time, at.risk = at.risk, 
                     prior.visit.length = prior.visit.length,
                     #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
                     terminal.stage = (stage == max_stages), input.state.value = input.state, 
@@ -182,7 +183,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
     ##
     
     ## update the cumulative to prepare for next state calculations by adding the current stage's event time
-    cumulative.time <- cumulative.time + stage.output[, "event.time"] # updating for the next stage
+    ## to avoid it being overly large, have this be a proportion of tau
+    cumulative.time <- (cumulative.time*tau + stage.output[, "event.time"]) / tau # updating for the next stage
     
     ## update the prior visit length column in the output array for the previous stage
     prior.visit.length    <- stage.output[, "event.time"]
@@ -194,15 +196,30 @@ simulate_patients <- function(n.sample, max_stages, tau,
       input.state = rho*stage.output[, "state"] + ifelse(stage.output[, "state"] > 0.5, 1, 0)*(D0 + stage.output[, "action"]*D1) +
         ifelse(stage.output[, "state"] < 0.5, 1, 0)*(D0^2 + stage.output[, "action"]*(D1)^2) +
         0.5*g*(1-(rho)^2)^0.5 * replicate(n.sample, runif(n = 1, min = 0, max = 1))
+      
+      
+    ## if the cumulative.time >1, we reset it to 0 and use that to plug in to the next stage
+      ## we also need to subtract the difference from the previous stage's event.time
+      
+      #if (any(!is.na(cumulative.time) & cumulative.time > 1)) {
+        
+        
+      #  cumulative.time[cumulative.time > 1] <- 1
+        
+        
+      #}
+    
+      
 
   }
+  
   
   return(output)
 }
 
 
 set.seed(123)
-pts <- simulate_patients(n.sample=10, max_stages = 10, tau = 10000,
+pts <- simulate_patients(n.sample = 100, max_stages = 50, tau = 10000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
@@ -211,17 +228,43 @@ pts <- simulate_patients(n.sample=10, max_stages = 10, tau = 10000,
                   p = 1, ## "covariate" value for later state generation,
                   ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
                   
-                  #### Failure rate parameters get really small fairly quickly-- try changing Z1 to have one more 0, and then try G1 = -0.7 to see what changes
-                  a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
+                  #### Failure rate parameters get really small fairly quickly
+                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
+                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
+                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
+                  
+                  ## -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
+                  
+                  a1 = -6, b1 = -0.3, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
                   ## 2 for time to next visit
-                  a2 = -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005, 
-                  a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
-                  rho = 0.5,
+                  
+                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
+                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
+                  ## I wonder if due to this, there should be less variation?
+                  
+                  a2 = -3, b2 = -0.3, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01, 
+                  a3 = -8, b3 = -0.3, z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
+                  rho = 0.75,
                   # action-specific effects 
                   D0 = 0,
                   D1 = 1,
-                  g = 1) 
+                  g = 0.25) 
 
 ## NOTE: works for -4.5, a2 = -3.9
 
 pts[,, 1:5]
+
+
+##### recovering the betas from propensity scores
+
+a <- matrix(pts[, "action", ], ncol = 1)
+s <- matrix(pts[, "state", ], ncol = 1)
+
+as_df <- as.data.frame(cbind(a, s))
+names(as_df) <- c("a", "s")
+
+glm(a ~ s, data = as_df, family = "binomial")
+
+
+
+
