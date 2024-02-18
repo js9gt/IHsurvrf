@@ -20,7 +20,6 @@ simulate_baseline_covariates <- function(n.sample,
 ## p will be the dimensions of the initial state vector that we use to fit the model
 beta.propensity = function(p) c(0, -rep(0.5, p))
 
-
 propensity_function <- function(state, p = 1) {
   beta_values <- beta.propensity(p)  # Get the beta values as a numeric vector
   ##prepare baseline state data to turn into a matrix
