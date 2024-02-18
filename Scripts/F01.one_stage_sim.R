@@ -128,14 +128,20 @@ one_stage <- function(
       
       ## delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
       ## delta is also 1 if censoring time is smaller than the treatment.time and failure.time
-      delta = (censor.time > min(failure.time, treatment.time) & cumulative_length <= tau)
+      
+      ## cumualative length < 1 since it's a proportion of tau
+      delta = (censor.time > min(failure.time, treatment.time) & cumulative_length < 1)
+      
       
       
       ### this while loop with the conditions of bounds is what causes the process to take a long time
-      if (!is.na(failure.time) && !is.na(treatment.time) &&  failure.time < 100 && treatment.time < 100) {
+      if (!is.na(failure.time) && failure.time!= 0 && !is.na(treatment.time) && treatment.time != 0 && !is.na(censor.time)
+          && censor.time !=0){
         valid_failure_time = TRUE
-      }
+      } 
     }
+  
+    
     
     # Terminal stage (input) == T; simulation has reached the final phase, no further treatment
     if (terminal.stage) {
@@ -151,9 +157,12 @@ one_stage <- function(
     X = min(failure.time, trt.time)
     gamma = failure.time <= trt.time
     
+    
     # if the patient is censored (delta == 0), then their gamma is UNKNOWN, so it should be NA
+    ## we also need to change their event.time to be either be 0, or tau - x (they cannot go beyond tau)
     if (!delta) {
       gamma = NA
+      
       
     } else {
       # otherwise, make no change to gamma
