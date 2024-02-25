@@ -196,12 +196,12 @@ simulate_patients <- function(n.sample, max_stages, tau,
       # NOTE: this lags behind by one iteration, that's why we can update the prior.visit.length like we do above 
     
         ## we have first D1 term with the I() be opposite effects to find optimal rule immediately 
-      input.state = rho*stage.output[, "state"] + ifelse(stage.output[, "state"] > 0.5, 1, 0)*(D0 - stage.output[, "action"]*D1) +
+      input.state = (rho*stage.output[, "state"] + ifelse(stage.output[, "state"] > 0.5, 1, 0)*(D0 - stage.output[, "action"]*D1) +
         ifelse(stage.output[, "state"] < 0.5, 1, 0)*(D0^2 + stage.output[, "action"]*(D1)^2) +
-        0.5*g*(1-(rho)^2)^0.5 * replicate(n.sample, runif(n = 1, min = 0, max = 1) - 
+        0.5*g*(1-(rho)^2)^0.5 * replicate(n.sample, runif(n = 1, min = 0, max = 1))- 
                                             
                                             ## subtracting a constant value to get an average 
-                                            0.5)
+                                            0)
       
       
     ## if the cumulative.time >1, we reset it to 0 and use that to plug in to the next stage
@@ -225,7 +225,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-pts <- simulate_patients(n.sample = 30, max_stages = 20, tau = 1000,
+pts <- simulate_patients(n.sample = 100, max_stages = 50, tau = 1000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
@@ -258,7 +258,7 @@ pts <- simulate_patients(n.sample = 30, max_stages = 20, tau = 1000,
 
 ## NOTE: works for -4.5, a2 = -3.9
 
-pts[,, 1:5]
+pts[,, 6]
 
 
 ######### generating visualizations
