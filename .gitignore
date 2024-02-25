@@ -1,6 +1,11 @@
 
 Scripts/.Rhistory
 
-Figures/.png
+# ignore all .png figure outputs
+Figures/*.png
 
-Outputs/.xlsx
+# ignore subfolders
+Figures/**
+
+# ignore all excel outputs
+Outputs/*.xlsx
