@@ -9,3 +9,4 @@ Figures/**
 
 # ignore all excel outputs
 Outputs/*.xlsx
+.Rproj.user
