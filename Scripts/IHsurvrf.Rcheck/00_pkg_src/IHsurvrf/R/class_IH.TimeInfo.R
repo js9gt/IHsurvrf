@@ -43,6 +43,7 @@ setClass(Class = "TimeInfo",
 #-------------------------------------------------------------------------------
 
 source("R/IH.VerifyTimePoints.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyTimePoints.R")
 
 
 

@@ -25,3 +25,4 @@ NeedsCompilation: yes
 Packaged: 2024-03-05 00:32:23 UTC; js9gt
 Author: First Last [aut, cre] (YOUR-ORCID-ID)
 Maintainer: First Last <first.last@example.com>
+Built: R 4.1.0; x86_64-pc-linux-gnu; 2024-03-05 00:32:31 UTC; unix

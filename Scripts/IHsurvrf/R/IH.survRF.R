@@ -3,8 +3,11 @@
 
 
 source("R/class_IH.Parameters.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
 source("R/class_IH.CriticalValue.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
 source("R/class_IH.SurvRF.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
 
 
 

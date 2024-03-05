@@ -5,7 +5,9 @@
 #   .Predict(object, newdata, ...) {new; not allowed}
 
 source("R/IH.predictSurvTree.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.predictSurvTree.R")
 source("R/class_IH.TimeInfo.R")
+#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TimeInfo.R")
 
 
 ## create a new, virtual class called "SurvRFObject"

@@ -18,7 +18,9 @@
 #
 
 source("R/class_IH.TimeInfo.R")
+#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TimeInfo.R")
 source("R/class_IH.CriticalValue.R")
+#source("~/survrf/Scripts/IHsurvrf/R/class_IH.CriticalValue.R")
 
 ## defines a new function .predictSurvTree used for predicting outcomes from a survival tree
 .predictSurvTree <- function(...,

@@ -18,7 +18,7 @@ Collate:
     'IH.VerifySplitRule.R'
     'IH.VerifySurvivalTime.R'
     'IH.VerifyTieMethod.R'
-    'IH.VerifyTimepoints.R'
+    'IH.VerifyTimePoints.R'
     'IH.VerifyUniformSplit.R'
     'class_IH.CriticalValue.R'
     'IH.criticalValue.R'

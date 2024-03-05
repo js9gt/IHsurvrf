@@ -27,11 +27,17 @@
 
 
 source("R/IH.VerifyERT.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
 source("R/IH.VerifyRandomSplit.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyRandomSplit.R")
 source("R/IH.VerifyUniformSplit.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyUniformSplit.R")
 source("R/IH.VerifyReplace.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyReplace.R")
 source("R/IH.VerifySplitRule.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifySplitRule.R")
 source("R/IH.VerifyTieMethod.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyTieMethod.R")
 
 
 ## create a new S4 class called "TreeType"

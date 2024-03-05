@@ -27,8 +27,11 @@
 
 library(stats)
 source("R/IH.survRF.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.survRF.R")
 source("R/class_IH.Optimal.R")
+#source("~/survrf/Scripts/IHsurvrf/R/class_IH.Optimal.R")
 source("R/IH.shiftMat.R")
+#source("~/survrf/Scripts/IHsurvrf/R/IH.shiftMat.R")
 
 ## defines a new S4 class called DTRSurvStep for storing a single stage of Q-learning survival analysis
 setClass(
