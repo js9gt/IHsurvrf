@@ -24,8 +24,6 @@ source("R/class_IH.TreeType.R")
 #source("~/survrf/Scripts/IHsurvrf/R/class_IH.TreeType.R")
 source("R/class_IH.TreeConditions.R")
 #source("~/survrf/Scripts/IHsurvrf/R/"class_IH.TreeConditions.R)
-source("R/class_IH.TreeType.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TreeType.R")
 
 #
 #-------------------------------------------------------------------------------

@@ -150,6 +150,7 @@ by <- 3
     ## calculate the change in survival probability at each consecutive pait of time points
     ## subtracting each row of survShifted from the row above it
     ## append a row of 0s at the end to align with matrix dimensions
+    ## probability mass vector representing the change in survival probabilities at each time point
     survShifted <- survShifted - rbind(survShifted[-1L,], 0.0)
   }
 

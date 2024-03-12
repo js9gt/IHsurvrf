@@ -714,6 +714,7 @@ setMethod(f = ".PredictAll",
   if (tieMethod == "first") return( ind[1L] )
 
   ## if tieMethod == random, randomly select an index from those tied for the maximum value
+  ## resample defined below
 
   if (tieMethod == "random") return( resample(x = ind, size = 1L) )
 
@@ -721,3 +722,9 @@ setMethod(f = ".PredictAll",
 
   return( NA )
 }
+
+
+## input: a vector x and an optional set of arguments (...)
+## resamples the elements of x using sample.int to generate sample indices from 1:x
+## uses indices to reorder the elements in x
+resample <- function(x, ...) x[sample.int(n = length(x = x), ...)]

@@ -23,6 +23,8 @@
 #   .timeInfo(timePoints, nTimes, response)
 #
 
+source("R/IH.VerifyTimePoints.R")
+
 ## define a new S4 class called "TimeInfo"
 setClass(Class = "TimeInfo",
 
@@ -37,66 +39,31 @@ setClass(Class = "TimeInfo",
 
 
 #-------------------------------------------------------------------------------
-# Function to verify inputs and create a TimeInfo object
+# Method to retrieve the difference in timepoints
 #-------------------------------------------------------------------------------
-# Function returns a TimeInfo object
+# Method returns the vector of the differences in timepoints used for the analysis
 #-------------------------------------------------------------------------------
 
-source("R/IH.VerifyTimePoints.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyTimePoints.R")
+## create a new generic function called .TimeDiff
+
+setGeneric(name = ".TimeDiff",
+           def = function(object, ...) { standardGeneric(".TimeDiff") })
+
+## establish a new method for .TimeDiff() that prevents function from being used to object without specific class
+
+setMethod(f = ".TimeDiff",
+          signature = c(object = "ANY"),
+          definition = function(object, ...) { stop("not allowed") })
 
 
+## establish a new method for .TimeDiff working on objects of class Timeinfo
 
-## defines a new function called .timeInfo that creates & returns a "TimeInfo" object
+setMethod(f = ".TimeDiff",
+          signature = c(object = "TimeInfo"),
 
-.timeInfo <- function(timePoints, nTimes, tau, response) {
+          ## returns the value from the timeDiff slot of the "TimeInfo" object
 
-  ## defined in.VerifyTimePoints.R
-
-
-  # ensure that timePoints and nTimes are appropriate. Methods return a vector
-  # of unique time points that are sorted in ascending order.
-  ## return a list containing the timePoints and tau
-  timePoints <- .VerifyTimePoints(timePoints = timePoints,
-                                  tau = tau,
-                                  nTimes = nTimes,
-                                  response = response)
-
-  ## update tau and timePoints based on the output from .VertifyTimePoints
-
-  tau <- timePoints$tau
-  timePoints <- timePoints$timePoints
-
-  # the total number of times points
-  nTimes <- length(x = timePoints)
-
-  # deltaT; T_{i} - T_{i-1} i = 1:nTimes with T_0 = 0
-  # timeDiff <- c(timePoints[-1L] - timePoints[-nTimes], 0)
-  # this is used for the truncated mean calculation in which it is
-  # assumed that all t > tau equals tau to t(nTimes+1)-t(nTimes) = 0
-
-  ## computes differences between consecutive time points to capture their intervals
-
-  timeDiff <- timePoints[-1L] - timePoints[-nTimes]
-
-  ## append difference after the last time point to 0
-  timeDiff[nTimes] <- 0.0
-
-  ## construct & return a new timeInfo object
-
-  return( new(Class = "TimeInfo",
-
-              ## assign tau to the "tau" slot
-              "tau" = tau,
-
-              ## assign timePoints to the "timePoints" slot
-              "timePoints" = timePoints,
-
-              ## assign calculated differences to "timeDiff" slot
-              "timeDiff" = timeDiff) )
-
-}
-
+          definition = function(object, ...) { return( object@timeDiff ) })
 
 
 #-------------------------------------------------------------------------------
@@ -182,4 +149,62 @@ setMethod(f = ".NTimes",
             ## AKA retrieves the number of time points
             return( length(x = object@timePoints) )
           })
+
+
+#-------------------------------------------------------------------------------
+# Function to verify inputs and create a TimeInfo object
+#-------------------------------------------------------------------------------
+# Function returns a TimeInfo object
+#-------------------------------------------------------------------------------
+
+
+## defines a new function called .timeInfo that creates & returns a "TimeInfo" object
+
+.timeInfo <- function(timePoints, nTimes, tau, response) {
+
+  ## defined in.VerifyTimePoints.R
+
+
+  # ensure that timePoints and nTimes are appropriate. Methods return a vector
+  # of unique time points that are sorted in ascending order.
+  ## return a list containing the timePoints and tau
+  timePoints <- .VerifyTimePoints(timePoints = timePoints,
+                                  tau = tau,
+                                  nTimes = nTimes,
+                                  response = response)
+
+  ## update tau and timePoints based on the output from .VertifyTimePoints
+
+  tau <- timePoints$tau
+  timePoints <- timePoints$timePoints
+
+  # the total number of times points
+  nTimes <- length(x = timePoints)
+
+  # deltaT; T_{i} - T_{i-1} i = 1:nTimes with T_0 = 0
+  # timeDiff <- c(timePoints[-1L] - timePoints[-nTimes], 0)
+  # this is used for the truncated mean calculation in which it is
+  # assumed that all t > tau equals tau to t(nTimes+1)-t(nTimes) = 0
+
+  ## computes differences between consecutive time points to capture their intervals
+
+  timeDiff <- timePoints[-1L] - timePoints[-nTimes]
+
+  ## append difference after the last time point to 0
+  timeDiff[nTimes] <- 0.0
+
+  ## construct & return a new timeInfo object
+
+  return( new(Class = "TimeInfo",
+
+              ## assign tau to the "tau" slot
+              "tau" = tau,
+
+              ## assign timePoints to the "timePoints" slot
+              "timePoints" = timePoints,
+
+              ## assign calculated differences to "timeDiff" slot
+              "timeDiff" = timeDiff) )
+
+}
 

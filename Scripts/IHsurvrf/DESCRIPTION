@@ -35,3 +35,10 @@ Collate:
     'IH.shiftMat.R'
     'class_IH.DTRSurvStep.R'
     'class_IH.Optimal.R'
+    'IH.VerifyData.R'
+    'IH.VerifyModels.R'
+    'IH.VerifyTxName.R'
+    'IH.VerifyUsePrevTime.R'
+    'IH.VerifySampleSize.R'
+    'class_IH.DTRSurv.R'
+    

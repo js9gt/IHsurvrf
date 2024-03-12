@@ -20,8 +20,11 @@ Collate: 'IH.VerifyCriticalValue.R' 'IH.VerifyERT.R'
         'class_IH.Parameters.R' 'class_IH.SurvRF.R'
         'class_IH.TimeInfo.R' 'class_IH.TreeConditions.R'
         'class_IH.TreeType.R' 'IH.predictSurvTree.R' 'IH.shiftMat.R'
-        'class_IH.DTRSurvStep.R' 'class_IH.Optimal.R'
+        'class_IH.DTRSurvStep.R' 'class_IH.Optimal.R' 'IH.VerifyData.R'
+        'IH.VerifyModels.R' 'IH.VerifyTxName.R'
+        'IH.VerifyUsePrevTime.R' 'IH.VerifySampleSize.R'
+        'class_IH.DTRSurv.R'
 NeedsCompilation: yes
-Packaged: 2024-03-05 00:32:23 UTC; js9gt
+Packaged: 2024-03-08 17:09:27 UTC; js9gt
 Author: First Last [aut, cre] (YOUR-ORCID-ID)
 Maintainer: First Last <first.last@example.com>

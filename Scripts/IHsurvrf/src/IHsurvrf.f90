@@ -78,6 +78,10 @@ MODULE IH_INNERS
 
     ! -------------------------------------------------------!
 
+      ! used in setUpBasics
+      ! TRUE = time differences vector has been allocated
+  LOGICAL, SAVE :: dtAllocated = .FALSE.
+
       ! used in setUpInners
     ! TRUE = all other allocatables have been allocated
   LOGICAL, SAVE :: isAllocated = .FALSE.
@@ -2187,6 +2191,101 @@ SUBROUTINE predictSurvTree(n, np, xt, nCat, nt, nNodes, tsurvFunc, mean, &
   predSurvProb = survProb(stat)
 
 END SUBROUTINE
+
+  ! ***************************** subroutine: setUpBasics *********************************** !
+
+
+  ! ** not in module IH_INNERS
+
+! set up basic information for the module
+! t_nt, integer, the number of time points
+! t_dt, real(:), the time differences between time points
+! t_rs, real, the probability for a random split
+! t_ERT, integer, the indicator of extremely randomized trees
+! t_uniformSplit, integer, the indicator of method for determining cut-off
+!   when using ERT
+! t_nodeSize, integer, the minimum number of cases in each node
+! t_minEvent, integer, the minimum number of events in each node
+! t_rule, integer, 0 = mean, 1 = logrank
+! t_sIndex, integer, the indices of time points that is closest to the
+!   requested survival time
+! t_sFraction, real, the fractional distance between time points the the
+!   requested survival time
+! t_stratifiedSplit, real, the coefficient for determining stratification
+! t_replace, integer, indicator of sampling with replacement
+
+
+SUBROUTINE setUpBasics(t_nt, t_dt, t_rs, t_ERT, t_uniformSplit, t_nodeSize, &
+                     & t_minEvent, t_rule, t_sIndex, t_sFraction, &
+                     & t_stratifiedSplit, t_replace)
+
+  ! using the inners module
+  ! this allows you to have access to the "INNERS" subroutines, variables,types, etc
+
+  USE IH_INNERS
+
+  ! input variables must be explicitly defined
+
+  IMPLICIT NONE
+
+  ! declare input and output parameters
+
+  INTEGER, INTENT(IN) :: t_nt
+  REAL(dp), DIMENSION(1:t_nt), INTENT(IN) :: t_dt
+  REAL(dp), INTENT(IN) :: t_rs
+  INTEGER, INTENT(IN) :: t_ERT
+  INTEGER, INTENT(IN) :: t_uniformSplit
+  INTEGER, INTENT(IN) :: t_nodeSize
+  INTEGER, INTENT(IN) :: t_minEvent
+  INTEGER, INTENT(IN) :: t_rule
+  INTEGER, INTENT(IN) :: t_sIndex
+  REAL(dp), INTENT(IN) :: t_sFraction
+  REAL(dp), INTENT(IN) :: t_stratifiedSplit
+  INTEGER, INTENT(IN) :: t_replace
+
+  ! assign value of input nt = t_nt (the number of time points)
+  nt = t_nt
+
+  ! assign value of input sIndex = t_sIndex (indices of time points closest to requested survival time)
+  sIndex = t_sIndex
+
+  ! assign value of input sFraction = t_sFraction (fractional distance between time pts & requested survival time)
+  sFraction = t_sFraction
+
+  ! sets "isSurvival" to TRUE it sIndex > 0 (AKA there are indices for itme points closest to survival time)
+  ! this would be false if there are no time points, invalid survival time?
+  isSurvival = sIndex > 0
+
+  ! deallocates the "dt" array if it has been previously allocated to free up memory before reallocation
+  ! this will hold the time differences between the time points
+
+  IF (dtAllocated) DEALLOCATE(dt)
+
+  ! allocate memory for the "dt" array with size "nt" (number of time points)
+
+  ALLOCATE(dt(1:nt))
+
+  ! update a boolean flag to indicate that "dt" array has been allocated
+
+  dtAllocated = .TRUE.
+
+
+  ! assign value of input dt = t_dt (time differences between time points)
+  dt = t_dt
+
+  ! assign other values ot input parameters to corresponding variables in "INNERS" module
+
+  rs = t_rs
+  ERT = t_ERT
+  uniformSplit = t_uniformSplit
+  nodeSize = t_nodeSize
+  minEvent = t_minEvent
+  rule = t_rule
+  stratifiedSplit = t_stratifiedSplit
+  replace = t_replace
+
+END SUBROUTINE setUpBasics
+
 
 
   ! *********************************** subroutine: setUpInners ***************************** !

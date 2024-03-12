@@ -8,118 +8,22 @@
 * package encoding: UTF-8
 * checking package namespace information ... OK
 * checking package dependencies ... OK
-* checking if this is a source package ... OK
+* checking if this is a source package ... WARNING
+Subdirectory ‘src’ contains:
+  .nfs000000006d70a3570002dfb5
+These are unlikely file names for src files.
 * checking if there is a namespace ... OK
 * checking for executable files ... OK
-* checking for hidden files and directories ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  src/.nfs000000006d70a3570002dfb5
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
 * checking for portable file names ... OK
 * checking for sufficient/correct file permissions ... OK
 * checking serialization versions ... OK
-* checking whether package ‘IHsurvrf’ can be installed ... OK
-* checking installed package size ... OK
-* checking package directory ... OK
-* checking for future file timestamps ... OK
-* checking DESCRIPTION meta-information ... WARNING
-Non-standard license specification:
-  `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-  license
-Standardizable: FALSE
-* checking top-level files ... OK
-* checking for left-over files ... OK
-* checking index information ... OK
-* checking package subdirectories ... OK
-* checking R files for non-ASCII characters ... OK
-* checking R files for syntax errors ... OK
-* checking whether the package can be loaded ... OK
-* checking whether the package can be loaded with stated dependencies ... OK
-* checking whether the package can be unloaded cleanly ... OK
-* checking whether the namespace can be loaded with stated dependencies ... OK
-* checking whether the namespace can be unloaded cleanly ... WARNING
----- unloading
-Error in .mergeMethodsTable(generic, mtable, tt, attach) : 
-  trying to get slot "defined" from an object of a basic class ("environment") with no slots
-Calls: unloadNamespace ... <Anonymous> -> .updateMethodsInTable -> .mergeMethodsTable
-Execution halted
-* checking loading without being on the library search path ... OK
-* checking dependencies in R code ... NOTE
-package 'methods' is used but not declared
-* checking S3 generic/method consistency ... OK
-* checking replacement functions ... OK
-* checking foreign function calls ... OK
-* checking R code for possible problems ... NOTE
-.criticalValueMean: no visible global function definition for ‘new’
-.criticalValueSurvival: no visible global function definition for ‘new’
-.dtrSurvStep: no visible binding for global variable ‘na.pass’
-.dtrSurvStep: no visible global function definition for ‘terms’
-.dtrSurvStep: no visible global function definition for ‘.Pooled’
-.dtrSurvStep: no visible global function definition for ‘new’
-.optimal: no visible global function definition for ‘new’
-.parameters: no visible global function definition for ‘is’
-.parameters: no visible global function definition for ‘new’
-.survRF: no visible global function definition for ‘new’
-.timeInfo: no visible global function definition for ‘new’
-.treeConditions: no visible global function definition for ‘new’
-.treeType: no visible global function definition for ‘new’
-.whichMax: no visible global function definition for ‘resample’
-commonFormula: no visible global function definition for ‘terms’
-dtrSurv: no visible binding for global variable ‘response’
-.PredictAll,SurvRF: no visible global function definition for ‘terms’
-.PredictAll,SurvRFStratified: no visible global function definition for
-  ‘terms’
-.VerifyModels,formula: no visible global function definition for
-  ‘model.frame’
-.VerifyModels,formula: no visible binding for global variable ‘na.pass’
-.VerifyModels,formula: no visible global function definition for ‘is’
-.VerifyModels,formula: no visible global function definition for
-  ‘model.response’
-initialize,CriticalValueSurvival : <anonymous>: no visible global
-  function definition for ‘is’
-initialize,CriticalValueSurvival: no visible binding for global
-  variable ‘is’
-Undefined global functions or variables:
-  .Pooled is model.frame model.response na.pass new resample response
-  terms
-Consider adding
-  importFrom("methods", "is", "new")
-  importFrom("stats", "model.frame", "model.response", "na.pass",
-             "terms")
-to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
-contains 'methods').
-* checking Rd files ... OK
-* checking Rd metadata ... OK
-* checking Rd line widths ... OK
-* checking Rd cross-references ... OK
-* checking for missing documentation entries ... OK
-* checking for code/documentation mismatches ... OK
-* checking Rd \usage sections ... WARNING
-Undocumented arguments in documentation object '.VerifyTimePoints'
-  ‘timePoints’ ‘nTimes’ ‘...’
-
-Undocumented arguments in documentation object '.parameters'
-  ‘timePoints’ ‘tau’ ‘nTimes’ ‘response’ ‘nTree’ ‘ERT’ ‘uniformSplit’
-  ‘randomSplit’ ‘splitRule’ ‘replace’ ‘nodeSize’ ‘minEvent’ ‘tieMethod’
-  ‘criticalValue’ ‘survivalTime’ ‘nSamples’ ‘pooled’ ‘stratifiedSplit’
-
-Functions with \usage entries need to have the appropriate \alias
-entries, and all their arguments documented.
-The \usage entries must correspond to syntactically valid R code.
-See chapter ‘Writing R documentation files’ in the ‘Writing R
-Extensions’ manual.
-* checking Rd contents ... OK
-* checking for unstated dependencies in examples ... OK
-* checking line endings in C/C++/Fortran sources/headers ... OK
-* checking pragmas in C/C++ headers and code ... OK
-* checking compilation flags used ... OK
-* checking compiled code ... NOTE
-File ‘IHsurvrf/libs/IHsurvrf.so’:
-  Found no calls to: ‘R_registerRoutines’, ‘R_useDynamicSymbols’
-
-It is good practice to register native routines and to disable symbol
-search.
-
-See ‘Writing portable packages’ in the ‘Writing R Extensions’ manual.
-* checking examples ... NONE
-* checking for non-standard things in the check directory ... OK
-* checking for detritus in the temp directory ... OK
+* checking whether package ‘IHsurvrf’ can be installed ... ERROR
+Installation failed.
+See ‘/nas/longleaf/home/js9gt/survrf/Scripts/IHsurvrf.Rcheck/00install.out’ for details.
 * DONE
-Status: 3 WARNINGs, 3 NOTEs
+Status: 1 ERROR, 1 WARNING, 1 NOTE

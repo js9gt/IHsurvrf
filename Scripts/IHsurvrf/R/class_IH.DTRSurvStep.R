@@ -143,8 +143,7 @@ setClass(
   ## prepares model frame using the formula (input) and the data (input)
   ## missing values are not specifically handled (not omitted)
 
-  x <-
-    stats::model.frame(formula = mod,
+  x <- stats::model.frame(formula = mod,
                        data = data,
                        na.action = na.pass)
 
@@ -527,7 +526,45 @@ setClass(
 
 }
 
+#-------------------------------------------------------------------------------
+# Internal function to find the mean values of maximum expected survival times across treatment levels
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
+## defines an internal function .meanValue
+## returns mean values of expected survival times and survival probabilities
+## used in dtrSurv.R
+
+.meanValue <- function(object, ...) {
+  ## initializes empty list
+  res <- list()
+
+  ## find the mean of maximum expected survival times across treatment levels
+  # returns the mean of the expected survival times & adds them to the result in a new element "Et"
+  res[[ "Et" ]] <-  mean(x = apply(
+
+    ## access "mean" component of the valueAllTx slot which stores value of each tree for each treatment level
+    X = object@valueAllTx$mean,
+
+    ##apply the "max" function across the margin of the mean matrix/array to apply across rows
+    ## AKA for each row (individual),take maximum value across all columns (treatment options), then calculate the mean
+    MARGIN = 1L,
+    FUN = max))
+
+  ## if survival probabilities are available,
+  ## checks the "survProb" comonent of the valueAllTx slot
+
+  if (!is.null(object@valueAllTx$survProb)) {
+
+    ## also calculate their means
+    res[[ "St" ]] <-  mean(x = apply(X = object@valueAllTx$survProb,
+                                     MARGIN = 1L,
+                                     FUN = max))
+  }
+
+  ## return results as a list
+  return( res )
+}
 
 
 
