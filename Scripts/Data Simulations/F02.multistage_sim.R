@@ -89,9 +89,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ##        number of samples being simulated (input)
   ##        dim(tmp)[2]: number of columns in the tmp opject (AKA the output variables from dynamics.vec)
   ##        n.stages: number of stages (input) in simulation
-  output <-  array(NA, dim = c(n.sample, 2 + dim(tmp)[2] + 2 + 2, max_stages),
+  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2, max_stages),
                    ## row and column names for the array
-                   dimnames = list(1:n.sample, c("subj.id", "rep.id", colnames(tmp), "at.risk",
+                   dimnames = list(1:n.sample, c("subj.id", "rep.id", "baseline1", "baseline2", colnames(tmp), "at.risk",
                                                  ## new column to track number of each treatment
                                                  "action_1_count",
                                                  "action_0_count",
@@ -114,6 +114,13 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ## initialize action counts as 0's
   action_1_count <- rep(0, n.sample)
   action_0_count <- rep(0, n.sample)
+
+
+  ## initialize a value of baseline that's drawn from a U(0, 1) distribution
+  output[, "baseline1", ] <- runif(n.sample)
+
+  ## initialize a second with random draw from a binomial distribution
+  output[, "baseline2", ] <- rbinom(n.sample, size = 1, prob = 0.5)
 
   ## initialize time.max as a vector with the value being tau at the first stage
   time.max <- rep(tau,n.sample)
@@ -142,9 +149,6 @@ simulate_patients <- function(n.sample, max_stages, tau,
     output[,"action_1_count", stage] <- action_1_count
     output[, "action_0_count", stage] <- action_0_count
 
-
-    ## updates corresponding matching column names of the baseline covariates with the values in there
-    #output[, colnames(baseline_covariates), stage] <- as.matrix(baseline_covariates)
 
 
 
@@ -190,10 +194,6 @@ simulate_patients <- function(n.sample, max_stages, tau,
     ## replaces NA values in at.risk with 0 (not at risk)
     at.risk[is.na(at.risk)] = 0
 
-    ##
-    ### replace not at risk with NA in action
-    ##
-    ##
 
     ## update the cumulative to prepare for next state calculations by adding the current stage's event time
     ## to avoid it being overly large, have this be a proportion of tau
@@ -211,6 +211,17 @@ simulate_patients <- function(n.sample, max_stages, tau,
     # Update action count vectors for action 0
     action_0_count <- action_0_count + (stage.output[, "action"] == 0)
 
+    ### if pt is no longer at risk, write their baseline as NA
+
+#   # Iterate through each element of at.risk
+#   for (i in seq_along(at.risk)) {
+#     # Check if the element is not at risk (equal to 0)
+#     if (at.risk[i]) {
+#       # Set corresponding elements in output[, "baseline1", stage] and output[, "baseline2", stage] to NA
+#       output[i, "baseline1", stage] <- NA
+#       output[i, "baseline2", stage] <- NA
+#     }
+#   }
 
 
 
@@ -226,19 +237,6 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
                                             ## subtracting a constant value to get an average
                                             0)
-
-
-    ## if the cumulative.time >1, we reset it to 0 and use that to plug in to the next stage
-      ## we also need to subtract the difference from the previous stage's event.time
-
-      #if (any(!is.na(cumulative.time) & cumulative.time > 1)) {
-
-
-      #  cumulative.time[cumulative.time > 1] <- 1
-
-
-      #}
-
 
 
   }
