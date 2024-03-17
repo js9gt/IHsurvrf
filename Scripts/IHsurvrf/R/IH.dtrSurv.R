@@ -10,14 +10,13 @@ source("R/class_IH.TimeInfo.R")
 source("R/class_IH.TreeConditions.R")
 source("R/IH.VerifySampleSize.R")
 source("R/class_IH.Parameters.R")
-source("R/class_IH.DTRSurvStep.R")
 source("R/class_IH.DTRSurv.R")
 
 
 library(survival)
-#library(IHsurvrf)
+library(IHsurvrf)
 
-#dyn.load("src/IHsurvrf.so")
+dyn.load("src/IHsurvrf.so")
 
 
 dtrSurv <- function(data,
@@ -378,14 +377,14 @@ dtrSurv <- function(data,
 ### examples:
 
 ### simulate data for 5 stages
-#dt <- data.frame("Y.1" = sample(1:100,100,TRUE), "Y.2" = sample(1:100,100,TRUE), "Y.3" = sample(1:100,100,TRUE),
-#                 "Y.4" = sample(1:100,100,TRUE), "Y.5" = sample(1:100,100,TRUE),
-#                 "D.1" = rbinom(100, 1, 0.9), "D.2" = rbinom(100,1,0.9), "D.3" = rbinom(100,1,0.9),
-#                 "D.4" = rbinom(100,1,0.9), "D.5" = rbinom(100,1,0.9),
-#                 "A.1" = rbinom(100, 1, 0.5), "A.2" = rbinom(100,1,0.5), "A.3" = rbinom(100,1,0.5),
-#                 "A.4" = rbinom(100,1,0.5), "A.5" = rbinom(100,1,0.5),
-#                 "X.1" = rnorm(100), "X.2" = rnorm(100), "X.3" = rnorm(100), "X.4" = rnorm(100), "X.5" = rnorm(100))
-#
+dt <- data.frame("Y.1" = sample(1:100,100,TRUE), "Y.2" = sample(1:100,100,TRUE), "Y.3" = sample(1:100,100,TRUE),
+                 "Y.4" = sample(1:100,100,TRUE), "Y.5" = sample(1:100,100,TRUE),
+                 "D.1" = rbinom(100, 1, 0.9), "D.2" = rbinom(100,1,0.9), "D.3" = rbinom(100,1,0.9),
+                 "D.4" = rbinom(100,1,0.9), "D.5" = rbinom(100,1,0.9),
+                 "A.1" = rbinom(100, 1, 0.5), "A.2" = rbinom(100,1,0.5), "A.3" = rbinom(100,1,0.5),
+                 "A.4" = rbinom(100,1,0.5), "A.5" = rbinom(100,1,0.5),
+                 "X.1" = rnorm(100), "X.2" = rnorm(100), "X.3" = rnorm(100), "X.4" = rnorm(100), "X.5" = rnorm(100))
+
 #
 #results <- dtrSurv(data = dt,
 #       txName = c("A.1", "A.2", "A.3", "A.4", "A.5"),
@@ -399,4 +398,18 @@ dtrSurv <- function(data,
 #str(results)
 #
 #results@stageResults[[2]]
+
+### checking that HC code works on my generated data
+
+a <- output2observable(pts)
+
+results <- dtrSurv(data = a,
+       txName = paste0("A_", seq(1, 50)),
+       ## using a common formula
+       models = Surv(T, delta) ~ baseline1 + baseline2 + state + prior.visit.length + cumulative.time + nstages + action_1_count + action_0_count,
+       ## pooled analysis (why we include A in formula)
+       pooled = FALSE,
+       usePrevTime = TRUE,
+       stageLabel = "_")
+
 

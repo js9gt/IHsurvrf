@@ -41,7 +41,7 @@ source("~/survrf/Scripts/Data Simulations/C21.sim_params.R")
 #################
 
 # nstage = initialize at 0
-# cumulative_length = initialize at 0
+# cumulative.length = initialize at 0
 # terminal.stage
 # an at.risk marker (not at risk = NA values)
 # prior_vis_length = initialize at 0
@@ -65,7 +65,7 @@ source("~/survrf/Scripts/Data Simulations/C21.sim_params.R")
 one_stage <- function(
     ## nstages is number of previous stages
   nstages = 0,
-  cumulative_length = 0,
+  cumulative.length = 0,
   ## length of of the prior visit (not cumulative)
   prior.visit.length = 0,
   at.risk = 1,
@@ -79,7 +79,19 @@ one_stage <- function(
   a3 = 1.2, b3 = -0.05, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
   tau = 50,
   #dimensions of covariates for state vector generated
-  p = 1) {
+  p = 1,
+  ## a logical for if we want to include censoring (besides administrative censoring)
+  ## this is used as an input into multistage sims
+  censoringyesno = TRUE,
+
+  ## a logical for if we want to use propensity scores (FALSE), or use a policy (TRUE)
+  ## this is used as an input into multistage sims
+  ## this is used as an input into multistage sims
+  policyTF = FALSE,
+
+  ## should be a vector of actions to take at the current stage
+  ## the actions to take are decided based on the optimal policy
+  input.policy.action = NA) {
 
   while (TRUE) {
     if (!at.risk) {
@@ -105,32 +117,50 @@ one_stage <- function(
         state = input.state.value
       }
 
+      ### if policy is NULL, we just generate propensity scores from the state
+      if (policyTF == FALSE) {
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
-      propensity_scores <- propensity_function(state = state, p)
+      propensity_scores = propensity_function(state = state, p)
 
-      action <- rbinom(n = 1, size = 1, prob = propensity_scores)
+      action = rbinom(n = 1, size = 1, prob = propensity_scores)
+
+      ### if policy is NOT null, we use the input action
+      } else{
+
+        action = input.policy.action
+
+      }
 
 
       # Rate of failure time (Tk)
       rate_failure = exp(
-        a1 + b1 * state + z1 * nstages + p1 * cumulative_length + g1 * action + h1*prior.visit.length +
-          r1 * action * state * nstages * cumulative_length*prior.visit.length
+        a1 + b1 * state + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
+          r1 * action * state * nstages * cumulative.length*prior.visit.length
       )
 
 
       # Rate of time to next visit (Uk)
       rate_time_next_visit = exp(
-        a2 + b2 * state + z2 * nstages + p2 * cumulative_length + g2 * action + h2*prior.visit.length +
-          r2 * action * state * nstages * cumulative_length*prior.visit.length
+        a2 + b2 * state + z2 * nstages + p2 * cumulative.length + g2 * action + h2*prior.visit.length +
+          r2 * action * state * nstages * cumulative.length*prior.visit.length
       )
 
+
+      if (censoringyesno) {
 
       # Rate of time to censoring (Ck)
       #delta is 1 if a patient is not censored, 0 if a patient is censored
       rate_censoring = exp(
-        a3 + b3 * state + z3 * nstages + p3 * cumulative_length + g3 * action + h3*prior.visit.length +
-          r3 * action * state * nstages * cumulative_length*prior.visit.length
+        a3 + b3 * state + z3 * nstages + p3 * cumulative.length + g3 * action + h3*prior.visit.length +
+          r3 * action * state * nstages * cumulative.length*prior.visit.length
       )
+
+      # Generating time to censoring (censor.time) (Ck) using the rate from an exponential distribution
+      censor.time = rexp(n = 1, rate = rate_censoring)
+      } else {
+        rate_censoring = NA
+        censor.time = Inf
+      }
 
 
       # Generating failure time (Tk) using the rate from an exponential distribution
@@ -139,14 +169,12 @@ one_stage <- function(
       # Generating time to next visit (treatment.time) (Uk) using the rate from an exponential distribution
       treatment.time = rexp(n = 1, rate = rate_time_next_visit)
 
-      # Generating time to censoring (censor.time) (Ck) using the rate from an exponential distribution
-      censor.time = rexp(n = 1, rate = rate_censoring)
 
       ## delta is 1 if a patient is not censored, 0 if a patient is censored AKA their cumulative time is greater than tau
       ## delta is also 1 if censoring time is smaller than the treatment.time and failure.time
 
       ## cumualative length < 1 since it's a proportion of tau
-      delta = (censor.time > min(failure.time, treatment.time) & cumulative_length < 1)
+      delta = (censor.time > min(failure.time, treatment.time) & cumulative.length < 1)
 
 
 
@@ -176,6 +204,7 @@ one_stage <- function(
     X = ifelse(X > time.max, time.max, X)
 
     ## if we truncate the value of X at time.max, delta would also need to be 0
+    #### this is for administrative censoring
     delta = ifelse(X == time.max, 0, delta)
 
     gamma = failure.time <= trt.time
@@ -204,11 +233,12 @@ one_stage <- function(
 }
 
 ## vectorizing the following arguments
-one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative_length", "input.state.value", "at.risk", "prior.visit.length", "time.max"))
+one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative.length", "input.state.value", "at.risk",
+                                                         "prior.visit.length", "time.max", "input.policy.action"))
 
 ### example code after fitting propensity model in F02.multistage_sim.R
 #dynamics.vec(nstages = rep(0, 5),
-#         cumulative_length = rep(0, 5),
+#         cumulative.length = rep(0, 5),
 #         at.risk = rep(1, 5),
 #         propensity_model = propensity_model,
 #         terminal.stage = FALSE,

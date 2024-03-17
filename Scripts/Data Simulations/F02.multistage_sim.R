@@ -3,6 +3,7 @@
 source("~/survrf/Scripts/Data Simulations/F01.one_stage_sim.R")
 #source("F03.Figs.R")
 source("~/survrf/Scripts/Data Simulations/F03.Figs.R")
+source("~/survrf/Scripts/Data Simulations/F00.generic.R")
 #~/survrf/Scripts/F01.one_stage_sim.R
 #~/survrf/Scripts/F03.Figs.R
 
@@ -10,8 +11,8 @@ source("~/survrf/Scripts/Data Simulations/F03.Figs.R")
 
 # Function to simulate data for 10 patients with specified conditions
 ## test
-# n.sample = 10
-# max_stages = 5
+# n.sample = 100
+# max_stages = 50
 # tau = 100
 # p = 1
 
@@ -36,7 +37,14 @@ simulate_patients <- function(n.sample, max_stages, tau,
                               # action-specific effects
                               D0 = 0,
                               D1 = 1,
-                              g = 1) {
+                              g = 1,
+
+                              ## a logical for if we want to include censoring (besides administrative censoring)
+                              censoringyesno = TRUE,
+
+                              ## for inputting dif policies used to generate data
+                              ## this is a DTRSurv object
+                              policy = NULL) {
 
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(at.risk) == 1) at.risk = rep(at.risk, n.sample)
@@ -47,6 +55,15 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ## if prior visit length is 0, then replicate the value until it matches the length of n.sample
   if (length(prior.visit.length) == 1) prior.visit.length = rep(prior.visit.length, n.sample)
 
+  #### create TF variable for usage of policy to be plugged into single stage sims
+  ## this tells us whether or not to use propensity score to generate action vs one that's input
+  ## input meaning the optimal policy from a method:
+  ## if a policy is null, then policyTF == FALSE
+  ## if a policy is input, then policyTF == TRUE
+
+  policyTF <- !is.null(policy)
+
+
 
   require(dplyr)
 
@@ -55,35 +72,17 @@ simulate_patients <- function(n.sample, max_stages, tau,
   # skeleton
   ## uses the dynamics.vec() function to create an initial structure to set up an initial state for
   ## later dynamics of the multi-stage
-  tmp <-
-
-    one_stage.vec(nstages = 0, cumulative_length = 0, prior.visit.length = 0, at.risk = 1, time.max = 1000,
+  tmp <- one_stage.vec(nstages = 0, cumulative.length = 0, prior.visit.length = 0, at.risk = 1, time.max = 1000,
                   ## using any action for now just to get column names for the structure
                   terminal.stage = F, initial.stage = T, input.state.value = 0,
                   a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
                   ## 2 for time to next visit
                   a2 = -3.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005,
                   a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
-                  tau = tau, p = p) %>% t
+                  tau = tau, p = p, censoringyesno = TRUE, policyTF = FALSE, input.policy.action = NA) %>% t
 
 
 
-  ### test
-  #n.sample = 10
-
-  # n.stages for HC, max_stages for JS
-  #n.stages = 5
-
-  #max_stages = 5
-  # number of covariates
-  #p = 6
-
-  ####### COMPARING #####
-  # HC generate covariate matrix
-  #covariate = mvrnorm(n.sample, rep(0, p), diag(p) + 0.2 - diag(p) * 0.2)
-  #colnames(covariate) = paste0("Z", 1:p)
-  ###
-  ######################
 
   ## initializes an array called "output" filled with NA values with dimensions:
   ##        number of samples being simulated (input)
@@ -93,8 +92,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
                    ## row and column names for the array
                    dimnames = list(1:n.sample, c("subj.id", "rep.id", "baseline1", "baseline2", colnames(tmp), "at.risk",
                                                  ## new column to track number of each treatment
-                                                 "action_1_count",
-                                                 "action_0_count",
+                                                 "action.1.count",
+                                                 "action.0.count",
                                                  "cumulative.time"),
                                                  #colnames(baseline_covariates)),
                                    1:max_stages))
@@ -112,8 +111,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
   input.state <- rep(0, n.sample)
 
   ## initialize action counts as 0's
-  action_1_count <- rep(0, n.sample)
-  action_0_count <- rep(0, n.sample)
+  action.1.count <- rep(0, n.sample)
+  action.0.count <- rep(0, n.sample)
 
 
   ## initialize a value of baseline that's drawn from a U(0, 1) distribution
@@ -124,6 +123,9 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
   ## initialize time.max as a vector with the value being tau at the first stage
   time.max <- rep(tau,n.sample)
+
+  ## initialize an input action vector with NA values, with the same length as number of samples
+  input.policy.action = rep(NA, n.sample)
 
   ## iterate through each stage
   for (stage in 1:max_stages) {
@@ -146,9 +148,76 @@ simulate_patients <- function(n.sample, max_stages, tau,
     output[, "time.max", stage] = time.max
 
     ## initialize the counts of actions with 0's
-    output[,"action_1_count", stage] <- action_1_count
-    output[, "action_0_count", stage] <- action_0_count
+    output[,"action.1.count", stage] <- action.1.count
+    output[, "action.0.count", stage] <- action.0.count
 
+    ## for each stage, initialize an inpu
+
+
+    ## we run this chunk if there was a policy input
+
+    if (!is.null(policy)) {
+
+      ### if policy == DTRSurv object, then we get the optimal policy for ppl at risk in this stage
+      ## the extracted actions are then input into the one_stage.vec
+
+      if (attr(policy, "class") %in% c("DTRSurv")) {
+
+      ## puts output data into a specific format by setting specific columns to dummy values
+      ## uses output2observable() function from F00.generic.R which rearranges data into each row is subject,
+      ##     columns have time, delta, action covariate info for each stage
+      ##     also computes new delta column representing censoring based on values of 0 in each stage's delta column
+
+      x = output[as.logical(at.risk),,] %>% output2observable()
+
+      ## selects columns in x  by concatenating T_ and delta_ with stage:
+      ### ex) T_1, delta_1
+      ### then assign these to 0
+      ## NOTE: we are looping across each stage
+      x[, paste0(c("T_", "delta_"), stage)] = 0  # dummy values in order for the package not to drop the NA rows.
+
+      ## recall that the input "policy" is a DTRSurv object from the completed RF output
+      ## now, we retrieve the model used at each stage (the current stage from the loop): Surv(T_1, delta_1) ~ Z1_1 + Z2_1 + Z3_1 + Z4_1 + Z5_1
+      ## get_all_vars() retrieves all the variables from this stage's model, then updates the dataframe to only include these
+      x = get_all_vars(policy@stageResults[[stage]]@model, x)
+
+
+      ## constructs argument to use in the predict() function in the DTRSurv policy
+      ## new data is the observed data generated (pts have not yet been fed through the forest)
+      ## policy is the optimal estimated policy (DTRSurv Object), with a stage
+      args <- list(policy, newdata = x, stage = stage)
+
+      ## for at.risk != 0 (pt still at risk), retrieve the optimal treatment after feeding this new data into the trained forest
+      ## feeds this into predict() function which is defined in class_DTRSurv.R
+      ## acts on objects of class DTRSurv
+      ## this then subsets to objects of class DTRSurvStep, and calls .Predict() in class_IH.DTRSurv.R
+      ## .Predict() on objects of DTRSurvStep is defined in class_IH.DTRSurvStep.R
+      ## this subsets to the "SurvRF" object to act on which is defined in class_IH.SurvRF.R
+
+      ###### NOTE we have errors here
+      ################################
+      ################################
+      ################################
+
+
+
+      input.policy.action[at.risk != 0] <- do.call(predict, args)$optimal@optimalTx
+
+      ### TEST: the input for predict() is of class DTRSurvStep
+      class(results@stageResults[[1]])
+
+
+      ################################
+      ################################
+      ################################
+
+      }
+      ## for people who aren't at risk anymore, this is set to NA
+      input.policy.action[at.risk == 0] <- NA
+    }else{
+      # otherwise, it remains as NA
+      input.policy.action <- input.policy.action
+      }
 
 
 
@@ -156,7 +225,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
       ## generate values for current stage
       ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative_length = cumulative.time, at.risk = at.risk,time.max = time.max,
+      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
                     prior.visit.length = prior.visit.length,
                     #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
                     terminal.stage = (stage == max_stages), input.state.value = input.state,
@@ -164,22 +233,11 @@ simulate_patients <- function(n.sample, max_stages, tau,
                     initial.stage = (stage == 1),
                     a1 = a1, b1 = b1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
                     a2 = a2, b2 = b2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                    a3 = a3, b3 = b3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau) %>% t
+                    a3 = a3, b3 = b3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+                    policyTF = policyTF,
+                    input.policy.action = input.policy.action) %>% t
 
 
-
-      ## generate values for current stage
-      #one_stage.vec(nstages = 2,
-      #              # each patient's cumulative time is 0
-      #              cumulative_length = cumulative.time,
-      #              # each patient is at.risk at first
-      #              at.risk = at.risk,
-      #              ## for action vector use the one generated in the "action" column earlier
-      #              ## these are different actions FOR EACH PATIENT, so we need to pull the values across each stage
-      #              action = rep(1, n.sample),
-      #              terminal.stage = F,
-      #              a1 = -7, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, r1 = -0.8,
-      #              a2 = -0.1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, r2 = -1, tau = tau) %>% t
 
 
     ## combining data from the stage.output with "action" and "at.risk" into a matrix format
@@ -206,22 +264,10 @@ simulate_patients <- function(n.sample, max_stages, tau,
     prior.visit.length    <- stage.output[, "event.time"]
 
     # Update action count vectors for action 1
-    action_1_count <- action_1_count + (stage.output[, "action"] == 1)
+    action.1.count <- action.1.count + (stage.output[, "action"] == 1)
 
     # Update action count vectors for action 0
-    action_0_count <- action_0_count + (stage.output[, "action"] == 0)
-
-    ### if pt is no longer at risk, write their baseline as NA
-
-#   # Iterate through each element of at.risk
-#   for (i in seq_along(at.risk)) {
-#     # Check if the element is not at risk (equal to 0)
-#     if (at.risk[i]) {
-#       # Set corresponding elements in output[, "baseline1", stage] and output[, "baseline2", stage] to NA
-#       output[i, "baseline1", stage] <- NA
-#       output[i, "baseline2", stage] <- NA
-#     }
-#   }
+    action.0.count <- action.0.count + (stage.output[, "action"] == 0)
 
 
 
@@ -247,7 +293,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
 
 set.seed(123)
-pts <- simulate_patients(n.sample = 10, max_stages = 50, tau = 100,
+pts <- simulate_patients(n.sample = 100, max_stages = 30, tau = 1000,
                   ## initially all patients are at risk
                   at.risk = 1,
                   ## Life so far lived at the beginning of the stage
@@ -276,7 +322,10 @@ pts <- simulate_patients(n.sample = 10, max_stages = 50, tau = 100,
                   # action-specific effects
                   D0 = 0,
                   D1 = 1,
-                  g = 0.25)
+                  g = 0.25,
+                  censoringyesno = FALSE,
+                  policy = NULL)
+
 
 ## NOTE: works for -4.5, a2 = -3.9
 

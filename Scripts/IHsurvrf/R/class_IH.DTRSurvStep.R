@@ -32,6 +32,8 @@ source("R/class_IH.Optimal.R")
 #source("~/survrf/Scripts/IHsurvrf/R/class_IH.Optimal.R")
 source("R/IH.shiftMat.R")
 #source("~/survrf/Scripts/IHsurvrf/R/IH.shiftMat.R")
+## For policy evaluation:
+source("R/class_IH.SurvRF.R")
 
 ## defines a new S4 class called DTRSurvStep for storing a single stage of Q-learning survival analysis
 setClass(
@@ -565,6 +567,91 @@ setClass(
   ## return results as a list
   return( res )
 }
+
+
+
+
+#-------------------------------------------------------------------------------
+# method to retrieve predicted values: used in policy evaluation step
+#-------------------------------------------------------------------------------
+# if findOptimal is TRUE, method stops with error
+# if findOptimal is FALSE, method returns a Value object
+#-------------------------------------------------------------------------------
+
+## .Predict() on these object classes (survRF or survRFStratified) are defined in class_IHSurvRF.R
+
+setMethod(f = ".Predict",
+          signature = c(object = "DTRSurvStep",
+                        newdata = NULL),
+          definition = function(object, newdata, ...) {
+
+            ## the code that's executed when the function is called
+            ## method returns the contents of the "forest" slot from the SurvRF object
+
+            return( .Predict(object = object@survRF, newdata = NULL, ...) )
+
+          })
+
+#-------------------------------------------------------------------------------
+# method to predict value for new data
+#-------------------------------------------------------------------------------
+# if findOptimal is TRUE, method returns a list containing a Value object and
+#   an Optimal object
+# if findOptimal is FALSE, method returns a Value object
+#-------------------------------------------------------------------------------
+
+setMethod(f = ".Predict",
+          signature = c(object = "DTRSurvStep",
+                        newdata = "data.frame"),
+          definition = function(object,
+                                newdata,
+                                ...,
+                                params,
+                                findOptimal) {
+
+            # update model to remove response
+            mod <- update(object@model, NULL ~ .)
+
+            # ensure data contains all model covariates
+            x <- tryCatch(expr = stats::model.frame(formula = mod,
+                                                    data = newdata),
+                          error = function(e) {
+                            stop("variables in the training data missing in newdata",
+                                 call. = FALSE)
+                          })
+
+            # remove response from x
+            # this should no longer happen, but keeping anyway
+            if (attr(x = terms(x = mod), which = "response") == 1L) {
+              x <- x[,-1L,drop = FALSE]
+            }
+
+            ## if findOptimal = TRUE, return the optimal predictions
+
+            if (findOptimal) {
+              # if optimal is requested make predictions for all possible
+              # treatment options-- go through each treatment ant see what the patient's estimated survival would have been
+
+              resV <- .PredictAll(object = object@survRF,
+                                  newdata = newdata,
+                                  params = params,
+                                  model = mod,
+                                  txName = object@txName,
+                                  txLevels = object@txLevels)
+
+              ## return a list containing the predictions for each treatment level and the optimal treatment decision
+
+              return( list("value" = resV$predicted, "optimal" = resV$optimal) )
+
+            } else {
+
+              ## otherwise, calculate the estimatated survival values that the patient receives using the actions they already got
+              return( .Predict(object = object@survRF,
+                               newdata = x,
+                               params = params, ...) )
+            }
+          })
+
 
 
 

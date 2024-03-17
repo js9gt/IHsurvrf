@@ -27,7 +27,7 @@ output2observable <- function(output, stage = NULL) {
   nm = dimnames(output)[[2]]
 
   ## names of the covariates
-  nm.covar = c("baseline1", "baseline2", "state", "prior.visit.length", "cumulative.time", "nstages", "action_1_count", "action_0_count")
+  nm.covar = c("baseline1", "baseline2", "state", "prior.visit.length", "cumulative.time", "nstages", "action.1.count", "action.0.count")
   nm.stage =  c("event.time", "delta", "action", nm.covar)
 
   # initializes empty DF with subject ID column for the first stage, taken from "output"

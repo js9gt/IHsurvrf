@@ -10,6 +10,7 @@ source("R/class_IH.TimeInfo.R")
 #source("~/survrf/Scripts/IHsurvrf/R/class_IH.TimeInfo.R")
 
 
+
 ## create a new, virtual class called "SurvRFObject"
 ## since it's virtual, you cannot create objects of this class, used as a base class from which other classes inherit
 setClass(Class = "SurvRFObject",
