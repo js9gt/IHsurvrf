@@ -1,7 +1,7 @@
 
 # use this to generate propensity score
 #source("C21.sim_params.R")
-source("~/survrf/Scripts/Data Simulations/C21.sim_params.R")
+### UPDATE: 20Mar2024, propensity score is now generated as a global variable in the simulation_run.R setting
 
 ## Function starts with w/ these @return which shows what the function is supposed to output
 ## This serves as documentation fo the function
@@ -70,16 +70,14 @@ one_stage <- function(
   prior.visit.length = 0,
   at.risk = 1,
   time.max = 10000,
-  #action = 0, #only used when we first generate prop scores for all stages at once, but this doesn't make sense
   terminal.stage = FALSE,
-  initial.stage = FALSE,
   input.state.value = 0,
   a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
   a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
   a3 = 1.2, b3 = -0.05, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
   tau = 50,
-  #dimensions of covariates for state vector generated
-  p = 1,
+  #dimensions of covariates for state vector generated-- 20MAR2024 not needed bc p is a global variable now
+  #p = 1,
   ## a logical for if we want to include censoring (besides administrative censoring)
   ## this is used as an input into multistage sims
   censoringyesno = TRUE,
@@ -107,20 +105,16 @@ one_stage <- function(
     while (!valid_failure_time) {
 
 
-      # Terminal stage (input) == T; simulation has reached the final phase, no further treatment
-      if (initial.stage) {
-        # Generate state data from a uniform(0, 1) distribution to control values
-        state = runif(1, 0, 1)
+        ## we input values for the state. For the first state, the value is generated from U(0, 1) distribution
+        ## this is input here for single stage data generation, then will be updated based on depepdency in the next stage
+      ## then, the updates state values from the dependency will be input here
+       state = input.state.value
 
-      } else {
-        # if it's not the initial stage, input the value from the updated state (using the formulas)
-        state = input.state.value
-      }
 
       ### if policy is NULL, we just generate propensity scores from the state
       if (policyTF == FALSE) {
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
-      propensity_scores = propensity_function(state = state, p)
+      propensity_scores = predictedPropensity(state = state)
 
       action = rbinom(n = 1, size = 1, prob = propensity_scores)
 

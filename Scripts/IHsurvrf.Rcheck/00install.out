@@ -7,8 +7,11 @@ gcc -shared -L/nas/longleaf/rhel8/apps/r/4.1.0/lib64/R/lib -L/usr/local/lib64 -o
 installing to /nas/longleaf/home/js9gt/survrf/Scripts/IHsurvrf.Rcheck/00LOCK-IHsurvrf/00new/IHsurvrf/libs
 ** R
 ** byte-compile and prepare package for lazy loading
-Error in library(survival) : there is no package called ‘survival’
-Error: unable to load R code in package ‘IHsurvrf’
-Execution halted
-ERROR: lazy loading failed for package ‘IHsurvrf’
-* removing ‘/nas/longleaf/home/js9gt/survrf/Scripts/IHsurvrf.Rcheck/IHsurvrf’
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (IHsurvrf)

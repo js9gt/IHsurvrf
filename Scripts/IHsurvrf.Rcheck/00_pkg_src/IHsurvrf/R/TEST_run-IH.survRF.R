@@ -3,7 +3,7 @@
 
 
 #set.seed(123)
-#source("R/SCRATCH_VerifyModels.R")
+#source("R/IH.VerifyModels.R")
 #source("R/class_IH.Parameters.R")
 #source("R/IH.survRF.R")
 #source("R/IH.predictSurvTree.R")
@@ -93,7 +93,7 @@
 #                      nodeSize = 6L,
 #                      minEvent = 2L,
 #                      tieMethod = "random",
-#                      criticalValue = "surv.mean",
+#                      criticalValue = "surv.prob",
 #                      survivalTime = NULL,
 #                      nSamples = nSamples,
 #                      pooled = TRUE,
@@ -406,6 +406,7 @@
 #  txName = txName,
 #  txLevels = txLevels
 #)
+#
 #
 #
 #

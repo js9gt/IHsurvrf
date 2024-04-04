@@ -12,8 +12,15 @@ setClass(Class = "DTRSurv",
            ## slot named call & has type call
            "call" = "call",
 
-           ## slot named stageResults that stores a list
+           ## slot named stageResults that stores a list. This is the results from HC's Q-learning 2 steps
            "stageResults" = "list",
+
+           ## this stores the lists of results from Jane's IH steps
+           ## refer to class_IH.pool1.R to see what is contained in each item of the list
+           "IHstageResults" = "list",
+
+           ## the results of the finalized, overall pooled forest from each of the stages
+           "FinalForest" = "ANY",
 
            ## slot named value that stores ANY type
            "value" = "ANY",
@@ -73,6 +80,18 @@ setMethod(f = "predict",
             if (stage > length(x = object@stageResults)) {
               stop("requested stage not present in analysis", call. = FALSE)
             }
+
+
+            ### troubleshooting adding print
+            ########
+            ########
+
+            #print(newdata)
+            #print(findOptimal) == TRUE == DTRSurvStep
+            #print(class(object@stageResults[[ stage ]]))
+
+            ########
+            ########
 
             ## if there's no new data (it's null), jusr retrieve the fitted values
             ## method returns the contents of the "forest" slot from the SurvRF object

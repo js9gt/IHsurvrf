@@ -53,3 +53,40 @@ output2observable <- function(output, stage = NULL) {
     apply(1, function(s) 1 - any(s == 0, na.rm = TRUE))
   df
 }
+
+
+# time calculator
+tt <- function(s, reset = FALSE, units = "auto"){
+  if (s==1) {time.tmp <<- Sys.time() # record time
+  } else if (s==2) { # calculate time
+    result <- data.frame(begin = time.tmp, end = Sys.time(), elapsed = difftime(Sys.time(), time.tmp, units = units))
+    if (reset) time.tmp <<- Sys.time()
+    return(result)
+  }
+}
+
+
+flowchart <- function(outputData) {
+  n.stages = dim(outputData)[3]
+  n.sample = dim(outputData)[1]
+  result <- data.frame(stage = c(1:n.stages, "Total", "Percent"),
+                       total = rep(NA, n.stages + 2), percentage = NA,
+                       censored = NA, died = NA, nextStage = NA)
+  for (stage in 1:n.stages) {
+    result[stage, "total"]  = dim(outputData)[1]
+    result[stage, "percentage"]  = round(result[stage, "total"] / n.sample,2)
+    cens <- outputData[, "delta", stage] == 0
+    # drop those censored
+    outputData <- outputData[!cens,,, drop = FALSE]
+    died <- outputData[, "gamma", stage] == 1
+    # drop those died
+    outputData <- outputData[!died,,, drop = FALSE]
+    result[stage, "censored"]  = sum(cens, na.rm = TRUE)
+    result[stage, "died"]      = sum(died, na.rm = TRUE)
+    result[stage, "nextStage"] = sum(!died, na.rm = TRUE)
+  }
+  result[n.stages + 1, c("censored", "died")] <- apply(result[, c("censored", "died")], 2, sum, na.rm = TRUE)
+  result[n.stages + 2, c("censored", "died")] <- round(result[n.stages + 1, c("censored", "died")]/n.sample, 2)
+  # result[c("Total", "Percent"), 1:2]
+  result
+}

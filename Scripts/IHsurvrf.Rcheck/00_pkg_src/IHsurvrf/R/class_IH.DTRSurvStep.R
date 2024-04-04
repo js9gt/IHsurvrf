@@ -32,6 +32,8 @@ source("R/class_IH.Optimal.R")
 #source("~/survrf/Scripts/IHsurvrf/R/class_IH.Optimal.R")
 source("R/IH.shiftMat.R")
 #source("~/survrf/Scripts/IHsurvrf/R/IH.shiftMat.R")
+## For policy evaluation:
+#source("R/class_IH.SurvRF.R")
 
 ## defines a new S4 class called DTRSurvStep for storing a single stage of Q-learning survival analysis
 setClass(
@@ -59,9 +61,110 @@ setClass(
     "valueAllTx" = "list",
 
     ## contains estimated optimal treatment and its value
-    "optimal" = "Optimal"
+    "optimal" = "Optimal",
+
+    ## stores each patient's shifted probabilities from appending
+    "stageappend" = "matrix"
   )
 )
+
+# generic defined in class_Optimal.R
+setMethod(f = ".OptimalAsList",
+          signature = c(object = "DTRSurvStep"),
+          definition = function(object, ...) {
+            return( .OptimalAsList(object = object@optimal) )
+          })
+
+
+#-------------------------------------------------------------------------------
+# method to retrieve predicted values: used in policy evaluation step
+#-------------------------------------------------------------------------------
+# if findOptimal is TRUE, method stops with error
+# if findOptimal is FALSE, method returns a Value object
+#-------------------------------------------------------------------------------
+
+## .Predict() on these object classes (survRF or survRFStratified) are defined in class_IHSurvRF.R
+
+setMethod(f = ".Predict",
+          signature = c(object = "DTRSurvStep",
+                        newdata = NULL),
+          definition = function(object, newdata, ...) {
+
+            ## the code that's executed when the function is called
+            ## method returns the contents of the "forest" slot from the SurvRF object
+
+            return( .Predict(object = object@survRF, newdata = NULL, ...) )
+
+          })
+
+#-------------------------------------------------------------------------------
+# method to predict value for new data
+#-------------------------------------------------------------------------------
+# if findOptimal is TRUE, method returns a list containing a Value object and
+#   an Optimal object
+# if findOptimal is FALSE, method returns a Value object
+#-------------------------------------------------------------------------------
+
+
+setMethod(f = ".Predict",
+          signature = c(object = "DTRSurvStep",
+                        newdata = "data.frame"),
+          definition = function(object,
+                                newdata,
+                                ...,
+                                params,
+                                findOptimal) {
+
+            # update model to remove response
+            mod <- update(object@model, NULL ~ .)
+
+
+          # ensure data contains all model covariates
+          x <- tryCatch(expr = stats::model.frame(formula = mod,
+                                                  data = newdata),
+                        error = function(e) {
+                          stop("variables in the training data missing in newdata",
+                               call. = FALSE)
+                        })
+
+          # remove response from x
+          # this should no longer happen, but keeping anyway
+          if (attr(x = terms(x = mod), which = "response") == 1L) {
+            x <- x[,-1L,drop = FALSE]
+          }
+
+
+
+
+          ## if findOptimal = TRUE, return the optimal predictions
+
+           if (findOptimal) {
+             # if optimal is requested make predictions for all possible
+             # treatment options-- go through each treatment ant see what the patient's estimated survival would have been
+
+             resV <- .PredictAll(object = object@survRF,
+                                 newdata = newdata,
+                                 params = params,
+                                 model = mod,
+                                 txName = object@txName,
+                                 txLevels = object@txLevels)
+
+
+
+             ## return a list containing the predictions for each treatment level and the optimal treatment decision
+
+             return( list("value" = resV$predicted, "optimal" = resV$optimal) )
+
+           } else {
+
+
+             ## otherwise, calculate the estimatated survival values that the patient receives using the actions they already got
+             return( .Predict(object = object@survRF,
+                              newdata = x,
+                              params = params, ...) )
+           }          })
+
+
 
 
 #-------------------------------------------------------------------------------
@@ -91,6 +194,7 @@ setClass(
 #
 # @params: sampleSize An integer object. The number of samples to draw for each
 #    tree
+# @params: pool1: A logical which defaults to FALSE. FALSE meaning we are not in the first step of pooling data for the overall RF after fitting HC method
 
 
 ## specify that certain functions from a package should be imported into namespace of package
@@ -110,7 +214,10 @@ setClass(
                          params,
                          txName,
                          mTry,
-                         sampleSize) {
+                         sampleSize,
+                         pool1 = FALSE,
+                         appendstep1 = FALSE,
+                         inputpr = NULL) {
   # model is input
   mod <- model
 
@@ -142,6 +249,8 @@ setClass(
 
   ## prepares model frame using the formula (input) and the data (input)
   ## missing values are not specifically handled (not omitted)
+  ## only include the variables that are used in the model formula mod
+  ## If there are variables in your data that are not used in the formula, they won't be included in the resulting x.
 
   x <- stats::model.frame(formula = mod,
                        data = data,
@@ -221,114 +330,110 @@ setClass(
   }
 
 
+  # If appendstep1 is FALSE, execute the code block
+  if (!appendstep1) {
+    if (is.null(x = priorStep)) {
+      # PriorStep is NULL for the first step of the analysis.
+      # Transform the time variable to a probability mass vector
 
-  ## if priorStep (input) is null, AKA there was no previous step
-  ##       this means we are currently in the last stage
+      ## applies function FUN to each element of X which checks if each survival time (s) is less than each time point
+      ## .TimePoints() part specifies an additional argument to be passed to fun
+      ## .TimePoints() defined in class_TimeInfo.R
 
-  if (is.null(x = priorStep)) {
-    # priorStep is NULL for first step of the analysis.
-    # transform the time variable to a probability mass vector
+      # Identify time points <= response
+      tSurv <- sapply(
+        X = response[elig],
+        # Results in a logical integer (0 = FALSE)
+        FUN = function(s, tp) {
+          as.integer(x = {
+            s < tp
+          })
+        },
+        tp = .TimePoints(object = params)
+      )
 
-    ## applies function FUN to each element of X which checks if each survival time (s) is less than each time point
-    ## .TimePoints() part specifies an additional argument to be passed to fun
-    ## .TimePoints() defined in class_TimeInfo.R
+      # Time point nearest the response without going over
+      # {nTimes x nElig}
+      pr <- rbind(tSurv[-1L,], 1) - tSurv
 
-    # identify time points <= response
-    tSurv <- sapply(
-      X = response[elig],
+    } else {
+      # PriorStep is not NULL when q < Q
+      ### priorStep is of class DTRSurvStep AKA the results from the prior step of the analysis
+      #
+      # the number of timepoints
+      # .NTimes() is a getter method defined for Parameters objects
 
-      # results in a logical integer (0 = FALSE)
-      FUN = function(s, tp) {
-        as.integer(x = {
-          s < tp
-        })
-      },
-      tp = .TimePoints(object = params)
-    )
+      ## retrieve the number of timepoints from the params object
+      ## defined in class_TimeInfo.R
 
-    # time point nearest the response without going over
-    # {nTimes x nElig}
+      nTimes <- .NTimes(object = params)
 
-    ## pr: probability mass vector which binds transformed survival times (1, 0) (excluding first row) w values with a row of 1s
-    ## for tSurv,each element is 1 if the survival time < corresponding time point. Otherwise, it's 0
-    ## then subtract the transformed survival times to create a probability mass vector
-    ## this calculates the difference between successive elements in each row of tSurv by translating binary indicators into p.survival until each time point
-    ## there's now mass 1 at time point where each survival time is censored or an event, and 0 for all other time points
+      # create an empty matrix for all previously eligible cases
 
-    pr <- {
-      rbind(tSurv[-1L,], 1) - tSurv
+      ## initializes a survival matrix called "survMatrix" with 0's
+
+      survMatrix <- matrix(data = 0.0,
+                           nrow = nTimes,
+                           ncol = nrow(x = x))
+
+      ## sets the first row to 1.0
+
+      survMatrix[1L,] <- 1.0
+
+      ## updates survMatrix with survival functions estimated from the previous step
+      ## priorStep: A DTRSurvStep object. The analysis from a previous step
+
+      # retrieve estimated OPTIMAL survival function from previous step
+      ## then accesses the "eligibility" slot (logical) to select only the columns where the patient is still eligible
+      ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
+      ## transpose the output of .OptimalY to align with the structure: AKA number of rows = timepoints
+      ## when it’s retrieved with .OptimalY shows up as rows = pts, and columns = timepoints, so we just transpose it back to its normal shape
+      ## .OptimalY defined in class_Optimal.R
+      ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
+      ## optimal slot is  object of class optimal
+      ## .OptimalY acts to return the optimalY slot
+
+      survMatrix[, priorStep@eligibility] <-
+        t(.OptimalY(object = priorStep@optimal))
+
+      # shift the survival function down in time (T_i - Tq) and
+      # transform to a probability mass vector for only those
+      # eligible for this stage
+      # .shiftMat is an internal function defined in shiftMat.R
+
+      ## transforms the survival functions in survMatrix to probability mass format for the current stage
+      ## shifts the survival function based on the observed survival times
+      ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
+
+      pr <- .shiftMat(
+        timePoints = .TimePoints(object = params),
+
+        ## extracts columns from survMatrix corresponding to cases that are eligible
+        ## this is a matrix matrix where each column represents survival function for an individual
+        survMatrix = survMatrix[, elig, drop = FALSE],
+
+        ## extracts survival times corresponding to eligible cases
+        ## this is how much to shift survival function for each individual
+        shiftVector = response[elig],
+
+        ## probably transforming survival times into probabilities?
+        surv2prob = TRUE
+      )
+
+      ## sets very small values in pr to 0
+
+      pr[abs(pr) < 1e-8] <- 0.0
+
     }
-
-    ## if priorStep isn't null,
-
   } else {
-    # priorStep is not NULL when q < Q
-    ### priorStep is of class DTRSurvStep AKA the results from the prior step of the analysis
-    #
-    # the number of timepoints
-    # .NTimes() is a getter method defined for Parameters objects
+    # Use the input value of "pr" for further calculations
 
-    ## retrieve the number of timepoints from the params object
-    ## defined in class_TimeInfo.R
-
-    nTimes <- .NTimes(object = params)
-
-    # create an empty matrix for all previously eligible cases
-
-    ## initializes a survival matrix called "survMatrix" with 0's
-
-    survMatrix <- matrix(data = 0.0,
-                         nrow = nTimes,
-                         ncol = nrow(x = x))
-
-    ## sets the first row to 1.0
-
-    survMatrix[1L,] <- 1.0
-
-    ## updates survMatrix with survival functions estimated from the previous step
-    ## priorStep: A DTRSurvStep object. The analysis from a previous step
-
-    # retrieve estimated OPTIMAL survival function from previous step
-    ## then accesses the "eligibility" slot (logical) to select only the columns where the patient is still eligible
-    ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
-    ## transpose the output of .OptimalY to align with the structure
-    ## .OptimalY defined in class_Optimal.R
-    ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
-    ## optimal slot is  object of class optimal
-    ## .OptimalY acts to return the optimalY slot
-
-    survMatrix[, priorStep@eligibility] <-
-      t(.OptimalY(object = priorStep@optimal))
-
-    # shift the survival function down in time (T_i - Tq) and
-    # transform to a probability mass vector for only those
-    # eligible for this stage
-    # .shiftMat is an internal function defined in shiftMat.R
-
-    ## transforms the survival functions in survMatrix to probability mass format for the current stage
-    ## shifts the survival function based on the observed survival times
-    ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
-
-    pr <- .shiftMat(
-      timePoints = .TimePoints(object = params),
-
-      ## extracts columns from survMatrix corresponding to cases that are eligible
-      ## this is a matrix matrix where each column represents survival function for an individual
-      survMatrix = survMatrix[, elig, drop = FALSE],
-
-      ## extracts survival times corresponding to eligible cases
-      ## this is how much to shift survival function for each individual
-      shiftVector = response[elig],
-
-      ## probably transforming survival times into probabilities?
-      surv2prob = TRUE
-    )
-
-    ## sets very small values in pr to 0
-
-    pr[abs(pr) < 1e-8] <- 0.0
-
+    pr <- inputpr
+    if (is.null(inputpr)) {
+      stop("Input value for 'pr' is required when 'appendstep1' is TRUE.")
+    }
   }
+
 
 
   ## if there are any NA values in the matrix, stop function execution and display error message
@@ -346,12 +451,17 @@ setClass(
   ## if txName variable is a factor,
 
   # identify tx levels in limited data
-  if (is.factor(x = data[, txName])) {
+  if (is.factor(x = data[, txName]) & !pool1) {
     ## extract levels of the factor treatment variable for eligible cases
     txLevels <- levels(x = factor(x = data[elig, txName]))
-  } else {
-    ## if txName is not a factor, fines unique values of the treatment for eligible cases & sort them to use as treatment levels
+  } else if ( !is.factor(x = data[, txName]) & !pool1) {  # Add condition to execute else block only if pool1 is FALSE
+
+    ## if txName is not a factor and pool1 is FALSE, find unique values of the treatment for eligible cases & sort them to use as treatment levels
     txLevels <- sort(x = unique(x = data[elig, txName]))
+  }else  if (pool1) {  # If pool1 is TRUE
+    ## if pool1 is TRUE, sort unique values of A.opt.HC for eligible cases
+    txLevels <- sort(x = as.numeric(unlist(unique(data[elig, txName]))))
+
   }
 
   ## checks if there's only one treatment level in the data
@@ -517,7 +627,10 @@ setClass(
     "valueAllTx" = resV$predicted,
 
     ## optimal treatment recommendations extracted
-    "optimal" = resV$optimal
+    "optimal" = resV$optimal,
+
+    ## adding a new slot to retrieve the appending probabilities for each stage
+    "stageappend" = pr
   )
 
   ## return newly created "DTRSurvStep" object
@@ -565,6 +678,11 @@ setClass(
   ## return results as a list
   return( res )
 }
+
+
+
+
+
 
 
 

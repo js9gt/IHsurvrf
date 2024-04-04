@@ -10,6 +10,11 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
+Imports:
+    survival,
+    methods,
+    tidyr,
+    dplyr
 Collate: 
     'IH.VerifyCriticalValue.R'
     'IH.VerifyERT.R'
@@ -22,9 +27,9 @@ Collate:
     'IH.VerifyUniformSplit.R'
     'class_IH.CriticalValue.R'
     'IH.criticalValue.R'
+    'class_IH.DTRSurvStep.R'
     'IH.dtrSurv.R'
     'IH.survRF.R'
-    'SCRATCH_VerifyModels.R'
     'TEST_run-IH.survRF.R'
     'class_IH.Parameters.R'
     'class_IH.SurvRF.R'
@@ -33,7 +38,6 @@ Collate:
     'class_IH.TreeType.R'
     'IH.predictSurvTree.R'
     'IH.shiftMat.R'
-    'class_IH.DTRSurvStep.R'
     'class_IH.Optimal.R'
     'IH.VerifyData.R'
     'IH.VerifyModels.R'
@@ -41,4 +45,6 @@ Collate:
     'IH.VerifyUsePrevTime.R'
     'IH.VerifySampleSize.R'
     'class_IH.DTRSurv.R'
+    'IH.pool1.R'
+    'class_IH.pool1.R'
     

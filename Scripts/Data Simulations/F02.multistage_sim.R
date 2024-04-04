@@ -27,8 +27,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
                               ## inital length of previous visits
                               prior.visit.length = rep(0, n.sample),
-                              ## dimensions of the state vector generated at each stage
-                              p = 1,
+                              ## dimensions of the state vector generated at each stage-- 20MAR2024 this is a global variable now
+                              #p = 1,
                               a1 = -2, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
                               a2 = -1, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
                               a3 = -4.5, b3 = -1, z3 = -2.5, p3 = -0.1, g3 = 0.2, h3 = -0.6, r3 = -1,
@@ -44,7 +44,8 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
                               ## for inputting dif policies used to generate data
                               ## this is a DTRSurv object
-                              policy = NULL) {
+                              policy = NULL,
+                              summary = TRUE) {
 
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(at.risk) == 1) at.risk = rep(at.risk, n.sample)
@@ -74,12 +75,12 @@ simulate_patients <- function(n.sample, max_stages, tau,
   ## later dynamics of the multi-stage
   tmp <- one_stage.vec(nstages = 0, cumulative.length = 0, prior.visit.length = 0, at.risk = 1, time.max = 1000,
                   ## using any action for now just to get column names for the structure
-                  terminal.stage = F, initial.stage = T, input.state.value = 0,
+                  terminal.stage = F, input.state.value = 0,
                   a1 = -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05,
                   ## 2 for time to next visit
                   a2 = -3.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005,
                   a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
-                  tau = tau, p = p, censoringyesno = TRUE, policyTF = FALSE, input.policy.action = NA) %>% t
+                  tau = tau, censoringyesno = TRUE, policyTF = FALSE, input.policy.action = NA) %>% t
 
 
 
@@ -106,17 +107,18 @@ simulate_patients <- function(n.sample, max_stages, tau,
   output[, "rep.id", ] <- 0           # rep.id is reserved for later use (repeated random draws)
 
 
-
   ## initialize an input.state vector of 0
-  input.state <- rep(0, n.sample)
+  input.state <- runif(n.sample, 0, 1)
 
   ## initialize action counts as 0's
   action.1.count <- rep(0, n.sample)
   action.0.count <- rep(0, n.sample)
 
+  ### note: we need to generate all the covariates used in the model before inputting these into the policy
+
 
   ## initialize a value of baseline that's drawn from a U(0, 1) distribution
-  output[, "baseline1", ] <- runif(n.sample)
+  output[, "baseline1", ] <- runif(n.sample,0, 1)
 
   ## initialize a second with random draw from a binomial distribution
   output[, "baseline2", ] <- rbinom(n.sample, size = 1, prob = 0.5)
@@ -151,10 +153,14 @@ simulate_patients <- function(n.sample, max_stages, tau,
     output[,"action.1.count", stage] <- action.1.count
     output[, "action.0.count", stage] <- action.0.count
 
-    ## for each stage, initialize an inpu
+    ## initialize state, prior.visit.length, nstages as 0
+    output[, "state", stage] <- input.state
+    output[, "prior.visit.length", stage] <- prior.visit.length
+    output[, "nstages", stage] <- rep(0,n.sample)
 
 
     ## we run this chunk if there was a policy input
+    #########################
 
     if (!is.null(policy)) {
 
@@ -190,26 +196,15 @@ simulate_patients <- function(n.sample, max_stages, tau,
       ## for at.risk != 0 (pt still at risk), retrieve the optimal treatment after feeding this new data into the trained forest
       ## feeds this into predict() function which is defined in class_DTRSurv.R
       ## acts on objects of class DTRSurv
+      ## the new data we are feeding through the forest is the covariates at the current stage
+
+
       ## this then subsets to objects of class DTRSurvStep, and calls .Predict() in class_IH.DTRSurv.R
       ## .Predict() on objects of DTRSurvStep is defined in class_IH.DTRSurvStep.R
       ## this subsets to the "SurvRF" object to act on which is defined in class_IH.SurvRF.R
 
-      ###### NOTE we have errors here
-      ################################
-      ################################
-      ################################
-
-
 
       input.policy.action[at.risk != 0] <- do.call(predict, args)$optimal@optimalTx
-
-      ### TEST: the input for predict() is of class DTRSurvStep
-      class(results@stageResults[[1]])
-
-
-      ################################
-      ################################
-      ################################
 
       }
       ## for people who aren't at risk anymore, this is set to NA
@@ -219,6 +214,7 @@ simulate_patients <- function(n.sample, max_stages, tau,
       input.policy.action <- input.policy.action
       }
 
+    #########################
 
 
     stage.output <-
@@ -229,8 +225,6 @@ simulate_patients <- function(n.sample, max_stages, tau,
                     prior.visit.length = prior.visit.length,
                     #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
                     terminal.stage = (stage == max_stages), input.state.value = input.state,
-                    ## if initial stage is true (at stage 1), then use uniform(0, 1), otherwise, use the input
-                    initial.stage = (stage == 1),
                     a1 = a1, b1 = b1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
                     a2 = a2, b2 = b2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
                     a3 = a3, b3 = b3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
@@ -287,66 +281,82 @@ simulate_patients <- function(n.sample, max_stages, tau,
 
   }
 
-
-  return(output)
+  if (summary) {
+    cum.event.time = apply(output[, "event.time",], 1, cumsum) %>% t
+    output.summary <-
+      tibble(subj.id = output[, "subj.id", 1],
+             rep.id = output[, "rep.id", 1],
+             terminal.stage = apply(output[, "at.risk", ], 1, sum),
+             cumulative.event.time = cum.event.time[cbind(1:n.sample, terminal.stage)],
+             censor.status = output[cbind(1:n.sample, "delta", terminal.stage)],
+             actions       = apply(output[, "action", ], 1,
+                                   function(s) gsub("NA", "*", paste0(s, collapse = ""))))
+    return(list(output = output, summary = output.summary))
+  } else {
+    return(output)
+  }
 }
 
 
-set.seed(123)
-pts <- simulate_patients(n.sample = 100, max_stages = 30, tau = 1000,
-                  ## initially all patients are at risk
-                  at.risk = 1,
-                  ## Life so far lived at the beginning of the stage
-                  cumulative.time = 0,
-                  prior.visit.length = 0,
-                  p = 1, ## "covariate" value for later state generation,
-                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
+#set.seed(123)
+#pts <- simulate_patients(n.sample = 100, max_stages = 50, tau = 1000,
+#                  ## initially all patients are at risk
+#                  at.risk = 1,
+#                  ## Life so far lived at the beginning of the stage
+#                  cumulative.time = 0,
+#                  prior.visit.length = 0,
+#                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
+#
+#                  #### Failure rate parameters get really small fairly quickly
+#                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
+#                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
+#                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
+#
+#                  ## -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
+#
+#                  a1 = -6, b1 = -0.3, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
+#                  ## 2 for time to next visit
+#
+#                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
+#                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
+#                  ## I wonder if due to this, there should be less variation?
+#
+#                  a2 = -3, b2 = -0.3, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01,
+#                  a3 = -8, b3 = -0.3, z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
+#                  rho = 0.75,
+#                  # action-specific effects
+#                  D0 = 0,
+#                  D1 = 1,
+#                  g = 0.25,
+#                  ## FALSE means we only have administrative censoring
+#                  censoringyesno = FALSE,
+#                  policy = NULL,
+#                  summary = TRUE)
 
-                  #### Failure rate parameters get really small fairly quickly
-                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
-                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
-                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
 
-                  ## -4.5, b1 = -1, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
 
-                  a1 = -6, b1 = -0.3, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
-                  ## 2 for time to next visit
-
-                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
-                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
-                  ## I wonder if due to this, there should be less variation?
-
-                  a2 = -3, b2 = -0.3, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01,
-                  a3 = -8, b3 = -0.3, z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
-                  rho = 0.75,
-                  # action-specific effects
-                  D0 = 0,
-                  D1 = 1,
-                  g = 0.25,
-                  censoringyesno = FALSE,
-                  policy = NULL)
+### showMethods(".Predict")
 
 
 ## NOTE: works for -4.5, a2 = -3.9
 
-pts[,, 1:5]
 
 
 ######### generating visualizations
 
-generate_plots_and_summary(pts = pts, num_patients = "30", num_stages = "20", other_text = "tau1000")
+#generate_plots_and_summary(pts = pts, num_patients = "30", num_stages = "20", other_text = "tau1000")
 
 
 ##### recovering the betas from propensity scores
 
-a <- matrix(pts[, "action", ], ncol = 1)
-s <- matrix(pts[, "state", ], ncol = 1)
-
-as_df <- as.data.frame(cbind(a, s))
-names(as_df) <- c("a", "s")
-
-glm(a ~ s, data = as_df, family = "binomial")
-
+#a <- matrix(pts[, "action", ], ncol = 1)
+#s <- matrix(pts[, "state", ], ncol = 1)
+#
+#as_df <- as.data.frame(cbind(a, s))
+#names(as_df) <- c("a", "s")
+#
+#glm(a ~ s, data = as_df, family = "binomial")
+#
 
 
 

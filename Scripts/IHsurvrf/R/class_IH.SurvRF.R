@@ -17,37 +17,6 @@ setClass(Class = "SurvRFObject",
          contains = c("VIRTUAL"))
 
 
-## defines a new S4 class called "SurvRF"
-
-setClass(Class = "SurvRF",
-         slots = c(
-
-           ## A list object. The results of the tree building algorithm for
-           ##    each tree in the forest
-           "trees" = "list",
-
-           ## A list object. The values averaged across all trees in the
-           ##    forest
-           "forest" = "list",
-
-           ## A character vector. The variables considered in the
-           ##    analysis
-           "variables" = "character",
-
-           ## An integer. The maximum number of covariates considered for
-           #    splitting
-           "mTry" = "integer",
-
-           ## An integer vector. The number of categories for each covariate
-           #    considered. >=2 unordered factor, 1 ordered factor, 0 continuous
-           "nCat" = "integer",
-
-           ## A list object. The categories in each covariate considered.
-           "xLevels" = "list"),
-
-         ## SurvRF will inherit from SurvRFObject (virtual class)
-
-         contains = c("SurvRFObject"))
 
 
 #-------------------------------------------------------------------------------
@@ -89,6 +58,38 @@ setMethod(f = ".PredictAll",
           ## ------------------------------------------------ ##
           ##   For SurvRF objects: .Predict and .PredictAll   ##
           ## ------------------------------------------------ ##
+
+## defines a new S4 class called "SurvRF"
+
+setClass(Class = "SurvRF",
+         slots = c(
+
+           ## A list object. The results of the tree building algorithm for
+           ##    each tree in the forest
+           "trees" = "list",
+
+           ## A list object. The values averaged across all trees in the
+           ##    forest
+           "forest" = "list",
+
+           ## A character vector. The variables considered in the
+           ##    analysis
+           "variables" = "character",
+
+           ## An integer. The maximum number of covariates considered for
+           #    splitting
+           "mTry" = "integer",
+
+           ## An integer vector. The number of categories for each covariate
+           #    considered. >=2 unordered factor, 1 ordered factor, 0 continuous
+           "nCat" = "integer",
+
+           ## A list object. The categories in each covariate considered.
+           "xLevels" = "list"),
+
+         ## SurvRF will inherit from SurvRFObject (virtual class)
+
+         contains = c("SurvRFObject"))
 
 
 #-------------------------------------------------------------------------------
@@ -143,6 +144,8 @@ setMethod(f = ".Predict",
             ## extract levels of all factors in "newdata" to make sure the categorical variables match those used for model training
             xLevels <- lapply(X = newdata, FUN = levels)
 
+            #browser()
+
             ## iterate over each variable
 
             for (i in length(x = xLevels)) {
@@ -157,6 +160,8 @@ setMethod(f = ".Predict",
               if (any(! {xLevels[[ i ]] %in% object@xLevels[[ i ]]})) {
                 stop("new factor levels not present in the training data",
                      call. = FALSE)
+
+                #browser()
               }
             }
 
@@ -194,6 +199,8 @@ setMethod(f = ".Predict",
             # predict for first tree
             # .predictSurvTree() is an internal function defined in predictSurvTree.R
 
+            #browser()
+
             newResult <- .predictSurvTree(x = newdata,
                                           params = params,
                                           nCat = nCat,
@@ -203,6 +210,8 @@ setMethod(f = ".Predict",
 
 
                                           nodes = object@trees[[ 1L ]])
+
+            #browser()
 
             ## create counter to set tree index to 2
             ## loop through the rest of the trees

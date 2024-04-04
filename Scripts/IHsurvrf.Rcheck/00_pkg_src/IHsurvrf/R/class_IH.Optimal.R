@@ -54,3 +54,24 @@ setMethod(f = ".OptimalY",
 setMethod(f = ".OptimalY",
           signature = c(object = "Optimal"),
           definition = function(object, ...) { return( object@optimalY ) })
+
+
+#-------------------------------------------------------------------------------
+# Method to return an Optimal object as a list (used for printing)
+#-------------------------------------------------------------------------------
+# Method returns a list object
+#-------------------------------------------------------------------------------
+setGeneric(name = ".OptimalAsList",
+           def = function(object, ...) { standardGeneric(".OptimalAsList") })
+
+setMethod(f = ".OptimalAsList",
+          signature = c(object = "ANY"),
+          definition = function(object, ...) { stop("not allowed") })
+
+setMethod(f = ".OptimalAsList",
+          signature = c(object = "Optimal"),
+          definition = function(object, ...) {
+            return( list("optimalTx" = object@optimalTx,
+                         "optimalY" = object@optimalY,
+                         "type" = object@type ) )
+          })

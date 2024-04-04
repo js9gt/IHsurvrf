@@ -1,6 +1,6 @@
 
 
-
+source("R/class_IH.DTRSurv.R")
 source("R/IH.VerifyData.R")
 source("R/IH.VerifyTxName.R")
 source("R/IH.VerifyUsePrevTime.R")
@@ -10,22 +10,22 @@ source("R/class_IH.TimeInfo.R")
 source("R/class_IH.TreeConditions.R")
 source("R/IH.VerifySampleSize.R")
 source("R/class_IH.Parameters.R")
-source("R/class_IH.DTRSurvStep.R")
-source("R/class_IH.DTRSurv.R")
+source("R/IH.pool1.R")
 
-
+library(tidyr)
+library(dplyr)
 library(survival)
 #library(IHsurvrf)
 
 #dyn.load("src/IHsurvrf.so")
 
 
-dtrSurv <- function(data,
+IHdtrSurv <- function(data,
                     txName,
                     models,
                     ...,
                     usePrevTime = TRUE,
-                    timePoints = "quad",
+                    timePoints = "uni",
                     nTimes = 100L,
                     tau = NULL,
                     criticalValue = "mean",
@@ -91,7 +91,7 @@ dtrSurv <- function(data,
   ## used in script VerifyModels.R
   ## this can be input as a list ofmodels, or a single formula (in which we probably assume common formula across all stages)
 
-  models <- .VerifyModels(
+  stagemodels <- .VerifyModels(
     models = models,
     nDP = nDP,
     data = data,
@@ -102,20 +102,20 @@ dtrSurv <- function(data,
 
   ## extracts the "response variable": matrix of survival response variables
   ## these were output from the .VerifyModels object
-  response <- models$response
+  response <- stagemodels$response
 
   ## extracts the "delta" variable
-  del <- models$delta
+  del <- stagemodels$delta
 
   ## only including the models themselves & discarding "response" and "delta" components
-  models <- models$models
+  stagemodels <- stagemodels$models
 
   ## if models isn't a list already, wraps "models" in a list
   ## ensures uniform handling of "models" whether there is one or multiple decision points in an analysis
 
   # convert to list for single decision analyses for convenience
-  if (!is.list(x = models))
-    models <- list(models)
+  if (!is.list(x = stagemodels))
+    stagemodels <- list(stagemodels)
 
 
   params <- .parameters(
@@ -256,7 +256,7 @@ dtrSurv <- function(data,
          call. = FALSE)
   }
 
-  # Q-learning algorithm
+  # Q-learning algorithm-- HC
 
   ## initialize an empty lis to store results of the analysis to hold output from each decision point
   stageResults <- list()
@@ -266,21 +266,22 @@ dtrSurv <- function(data,
   ## prints message to the console indicating the current stage being analyzed
   ## nDP: total number of decision points in the analysis (helps tracks progress of the algorithm)
 
-  message("Stage ", nDP)
+  message("Stage HC ", nDP)
 
-  ## calls the .dtrSurvStep() function for the final dedicion point (stage nDP)
+  ## calls the .dtrSurvStep() function for the final decision point (stage nDP)
   ## defined in class_DTRSurvStep.R
   ## use model from last time point
   ## returns object of class"DTRSurvStep" with the predicted survival curves for each treatment & also the one that's the optimal (based on whatever criteria of interest)
 
   stageResults[[nDP]] <- .dtrSurvStep(
-    model = models[[nDP]],
+    model = stagemodels[[nDP]],
     data = data,
     priorStep = NULL,
     params = params,
     txName = txName[nDP],
     mTry = mTry[nDP],
-    sampleSize = sampleSize[nDP]
+    sampleSize = sampleSize[nDP],
+    pool1 = FALSE
   )
 
 
@@ -291,19 +292,20 @@ dtrSurv <- function(data,
 
   # backward recursion
 
-  ## looking through the rest of the stages , stopping after reaching stage 1
+  ## looking through the rest of the stages , stopping after reaching stage 3 from the last point
+  ### this is to "initialize" our RF estimates which are consistent
 
-  while (q >= 1L) {
+  while (q >= (nDP - 2L) ) {
     ## display the current stage number to the user to track progress
 
-    message("Stage ", q)
+    message("Stage HC ", q)
 
     ## calls the .dtrSurvStep() function for the current stage
     ## defined in class_DTRSurvStep.R
     ## use model at q-th stage
 
     stageResults[[q]] <- .dtrSurvStep(
-      model = models[[q]],
+      model = stagemodels[[q]],
       data = data,
       ## use the results from the next stage
       ## has survival function estimated from next stage, S_(t+1)
@@ -317,20 +319,610 @@ dtrSurv <- function(data,
       params = params,
       txName = txName[q],
       mTry = mTry[q],
-      sampleSize = sampleSize[q]
+      sampleSize = sampleSize[q],
+      pool1 = FALSE
     )
 
     ## decrease the counter
 
     q <- q - 1L
 
-
-    ############# mean value results
-    ## mean of maximum expected survival times across treatment levels & mean of maximum expeced survival probabilities
-    ## these are returned (not calculated) based on the maximum value for whatever the best treatment is
-    ## ex) mean 1 (for trt1), mean2 (for trt2); we identify which the maximum is
   }
 
+  #########################################################
+  ################# pool 1 alg ############################
+  #########################################################
+
+  ## initialize an empty lis to store results of the analysis to hold output from each decision point
+  IHstageResults <- list()
+
+  ### now we need to pool the data together from the results. Inputs:
+  ## model
+  ## data: changed with whole data with all patients and all stages reformatted
+  ## priorStep shifted probabilities: does each patient need to have their own matrix (nTime rows, 1 column)
+  ## same params
+  ## txName will just be "A"-- as we no longer separate things by stage
+  ## mTry: calculated based on covariates
+  ## sampleSIze == 1 to use all the pooled patients
+
+
+  # Extract variable names from the data frame and remove "subj.id" and "rep.id" if they exist in the setdiff()
+  ## then, extract all the unique portions before the underscore to be used as the common variable name
+  variables <- unique(sub("_(\\d+)", "", setdiff(colnames(data), c("subj.id", "rep.id"))))
+
+
+    ## reformatting the data in long form
+  # Convert from wide to long format
+  ## pivot_longer is function from tidyr
+
+
+  long_data <- data %>%
+    pivot_longer(cols = starts_with(variables),
+                 names_to = c(".value", "stage"),
+                 ## the + allows capturing of more than one numeric
+                 names_pattern = "(\\w)_(\\d+)") %>%
+    mutate(stage = as.integer(stage)) %>%
+    mutate(A.original = A) %>%
+    arrange(subj.id, stage) %>%
+
+    ## create a column called "A.opt.HC" to hold the optimal actions calculated from HC's method
+    mutate(A.opt.HC = NA)
+
+
+
+  ## the stage results: use this to assign optimal treatment to A.opt.HC
+  # Iterate over each stage of interest
+  for (stage in (nDP - 2):nDP) {
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- stageResults[[stage]]@optimal@optimalTx
+
+    # Update A.opt.HC column for patients in the current stage for tracking
+    long_data$A.opt.HC[long_data$stage == stage] <- optimal_treatments[long_data$subj.id[long_data$stage == stage]]
+
+    # also update "A" column
+    long_data$A[long_data$stage == stage] <- optimal_treatments[long_data$subj.id[long_data$stage == stage]]
+  }
+
+  ## now, we use the model formula that was originally input, and edit it to take action A.opt.HC instead of "A"
+  ### pool1_model <- as.formula(paste0(deparse(models[[2]]), " ~ ", paste0(c("X", "A.opt.HC"), collapse = " + ")))
+
+  ## now, we fit a survival RF with all data together as if it's the last stage in HC's paper, where each patient has optimized actions already
+  ## no prior step to append survival functions, we calculate the probability mass vector for each patient for each stage separately
+  ## then use this to grow a surv rf
+  ## then for each patient for each stage, predict results for all treatment levels, then calculate the optimal treatment
+  ## results have:
+  ## - Results are in stageResults[[nDP]] which contain:
+  ## -     "txName" = txName,
+  ## -     "txLevels" = txLevels,
+  ## -     "model" = mod,
+  ## -     "survRF" = result,
+  ## -     "eligibility" = elig,
+  ## -     ## predicted values for all treatment levels
+  ## -     "valueAllTx" = resV$predicted,
+  ## -     ## optimal treatment recommendations extracted
+  ## -     "optimal" = resV$optimal
+
+  # final stage analysis
+
+  ## prints message to the console indicating the current stage being analyzed
+  ## nDP: total number of decision points in the analysis (helps tracks progress of the algorithm)
+  ### NOTE: this is like we're in loop nDP - 3 (next one for for loop is nDP -)
+
+  message("Pooling Data 1st round ")
+
+  ## retrieve all the estimated optimal survival curves from previous stages:
+  ## first nDP - 2, nDP - 1, nDP and repeat for each patient
+
+  # Determine the total number of columns
+  num_cols <- sum(sapply(stageResults[(nDP - 2):nDP], function(x) ncol(t(x@optimal@optimalY))))
+
+  # Determine the number of rows: this is the number of time points
+  num_rows <- nTimes
+
+  # Initialize the pr_HC matrix
+  pr_HC <- matrix(NA, nrow = num_rows, ncol = num_cols)
+
+  # Alternate columns from each matrix
+  pr_HC[, seq(1, num_cols, by = 3)] <- t(stageResults[[nDP - 2]]@optimal@optimalY)
+  pr_HC[, seq(2, num_cols, by = 3)] <- t(stageResults[[nDP - 1]]@optimal@optimalY)
+  pr_HC[, seq(3, num_cols, by = 3)] <- t(stageResults[[nDP]]@optimal@optimalY)
+
+  ## above is essentially survMatrix[, priorStep@eligibility] <- t(.OptimalY(object = priorStep@optimal))
+  ##
+
+  ## calculate the change in survival probability at each consecutive pair of time points
+  ## subtracting each row of survShifted from the row above it
+  ## append a row of 0s at the end to align with matrix dimensions
+  ## probability mass vector representing the change in survival probabilities at each time point
+  pr_HC <- pr_HC - rbind(pr_HC[-1L,], 0.0)
+
+  ## sets very small values in pr to 0
+
+  pr_HC[abs(pr_HC) < 1e-8] <- 0.0
+
+
+
+  ## calls the .dtrSurvStep() function for the pooled data, only on stages ndp - 2, ndp -1, ndp
+  ## defined in class_DTRSurvStep.R
+  ## use model from last time point
+  ## returns object of class"DTRSurvStep" with the predicted survival curves for each treatment & also the one that's the optimal (based on whatever criteria of interest)
+  ## input the HC optimal survival probabilities
+
+  pool1_results <- .dtrSurvStep(
+    ## use the model for pooled data
+    model = models,
+    ## only include the data where the stage >= nDP - 2
+    data = long_data[long_data$stage >= (nDP - 2), ],
+    priorStep = NULL,
+    params = params,
+    txName = "A",
+    ## set to the same as the input ((NOTE THIS GETS CHANGED EARLIER IN THE CODE, so we temporarily set it to null))
+    mTry = NULL,
+    ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
+    sampleSize = 1,
+    ## we are in the first step of pooling patient data after running HC code
+    pool1 = TRUE,
+    appendstep1 = TRUE,
+    inputpr = pr_HC
+  )
+
+
+  ## now, we want to retrieve the optimal actions for each patient for stages nDP - 2, nDP - 1, nDP from the first pooling
+  # pool1_results@optimal@optimalTx
+
+  # Initialize the iteration counter for the cycle iterations
+  iter_counter <- 1
+
+  # Generate column name dynamically based on iteration counter: this will be called A.pool1 for first iteration
+  column_name1 <- paste("A.pool", iter_counter, sep = "")
+
+  # Set the column name in long_data
+  long_data[[column_name1]] <- NA
+
+
+  # Step 2: Identify indices for stages 3, 4, and 5
+  stage_indices <- which(long_data$stage %in% (nDP - 2):nDP)
+
+  # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
+  ## also update the "A" column
+  long_data$A.pool1[stage_indices] <- pool1_results@optimal@optimalTx
+  long_data$A[stage_indices] <- pool1_results@optimal@optimalTx
+
+  ## retrieve matrix of optimal only for stage nDP - 2:
+  ## this has a column for every patient & every stage. We only want first (pt 1 stage 3), fourth (pt2 stage 3), etc. AKA every 3
+  ## as generalization, we want every nDP - 2
+
+  # Calculate the indices of the columns you want to retrieve-- note this matrix needs to be transposed to get to our dimensions
+  ## when retrieved for some reason it has patients for rows, instead of columns
+  pool1pr_indices <- seq(1, ncol(t(pool1_results@optimal@optimalY)), by = (nDP - (nDP - 3) ))
+
+
+  # Retrieve the columns of optimal survival probabilities using the calculated indices
+  ## this is equivalent to class_IH.DTRSurvStep.R: t(.OptimalY(object = priorStep@optimal))
+
+  shiftedprob1 <- t(pool1_results@optimal@optimalY)[, pool1pr_indices]
+
+  #########################################################
+  ################# append 1 alg ############################
+  #########################################################
+
+  ### to do: only do this for eligible patients for the new stage nDP - 3, and then perform shifting
+
+  # identify individuals with complete data in new stage nDP - 3
+
+  ## prepares model frame using the formula (input) and the data (input)-- NOTE we use the original model input
+  ## models = Surv(Y,D)~X + A
+  ## missing values are not specifically handled (not omitted)
+  ## only include the variables that are used in the model formula mod
+  ## If there are variables in your data that are not used in the formula, they won't be included in the resulting x.
+
+  x_append1 <- stats::model.frame(formula = models,
+                          ## ## we want to exclude the A.opt.HC column and A.pool1 column, and only consider data from the prev timepoint
+                          data = long_data %>% filter(stage == (nDP -3)) %>% select(-matches("^A\\.")),
+                          na.action = na.pass)
+
+
+  ## we want to exclude the A.opt.HC column and A.pool1 column
+  elig_append1 <- stats::complete.cases(x_append1)
+
+  # extract response and delta from model frame
+
+  ## extract survival response
+  response_append1 <- stats::model.response(data = x_append1)
+
+  ## extract censoring indicator (delta) from the second column of the "response" data
+  ## "L" is used to indicate that 2 is an integer
+  delta_append1 <- response_append1[, 2L]
+
+  ## updates the "response" variable to only include the first column of the original "response" data which represents survival times
+  response_append1 <- response_append1[, 1L]
+
+  # remove response from x
+
+  ## if first column of the model frame (x) is the response variable, remove this column
+  ## probablhy to construct predicte response from the predictors, since the response has nothing to do with the prediction itself
+  if (attr(x = terms(x = models), which = "response") == 1L) {
+    x_append1 <- x_append1[,-1L, drop = FALSE]
+  }
+
+  ## marks zeroed survival times and updates eligibility
+
+  # responses that are zero (effectively) indicate censored at a previous stage
+
+  ## 1e-8 is the tolerance, if these responses are smaller than a very small number, this is marked as TRUE
+  zeroed <- abs(x = response_append1) < 1e-8
+
+  ## update eligibiity vector so that cases that are eligible can't have been marked as zeroed
+
+  elig_append1 <- elig_append1 & !zeroed
+
+  ## if there are no eligible cases, output an error message
+
+  if (sum(elig_append1) == 0L)
+    stop("no cases have complete data", call. = FALSE)
+
+  ## displays message indicating the number of cases that are still eligible for analysis at this stage
+
+  message("cases in stage: ", sum(elig_append1))
+
+
+  ## retrieve the number of timepoints from the params object
+  ## defined in class_TimeInfo.R
+
+  nTimes <- .NTimes(object = params)
+
+  # create an empty matrix for all previously eligible cases
+
+  ## initializes a survival matrix called "survMatrix" with 0's
+
+  survMatrix <- matrix(data = 0.0,
+                       nrow = nTimes,
+                       ncol = nrow(x = x_append1))
+
+  ## sets the first row to 1.0
+
+  survMatrix[1L,] <- 1.0
+
+  ## updates survMatrix with survival functions estimated from the previous step
+  ## priorStep: A DTRSurvStep object. The analysis from a previous step
+
+  # retrieve estimated OPTIMAL survival function from previous step
+  ## then accesses the "eligibility" slot (logical) to select only the columns where the patient was still eligible from the previous time
+  ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
+  ## transpose the output of .OptimalY to align with the structure
+  ## .OptimalY defined in class_Optimal.R
+  ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
+  ## optimal slot is  object of class optimal
+  ## .OptimalY acts to return the optimalY slot
+
+  ## this is in pool1_results@eligibility-- we need to select every 4 columns to only get the eligibility for pts for stage nDP - 2
+  priorStep_elig <- pool1_results@eligibility[seq(1, length(pool1_results@eligibility), by = (nDP - (nDP - 3) ))]
+
+  ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
+  ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
+  survMatrix[, priorStep_elig] <- shiftedprob1
+
+
+  # shift the survival function down in time (T_i - Tq) and
+  # transform to a probability mass vector for only those
+  # eligible for this stage
+  # .shiftMat is an internal function defined in shiftMat.R
+
+  ## transforms the survival functions in survMatrix to probability mass format for the current stage
+  ## shifts the survival function based on the observed survival times
+  ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
+
+  append1_pr <- .shiftMat(
+    timePoints = .TimePoints(object = params),
+
+    ## extracts columns from survMatrix corresponding to cases that are eligible
+    ## this is a matrix matrix where each column represents survival function for an individual
+    survMatrix = survMatrix[, elig_append1, drop = FALSE],
+
+    ## extracts survival times corresponding to eligible cases
+    ## this is how much to shift survival function for each individual
+    shiftVector = response_append1[elig_append1],
+
+    ## probably transforming survival times into probabilities?
+    surv2prob = TRUE
+  )
+
+  ## sets very small values in pr to 0
+
+  append1_pr[abs(append1_pr) < 1e-8] <- 0.0
+
+  ##### NOTE: this step is equivalent to shifting by 0, essentially we just transform the optimal survival probabilities into probability mass vectors
+  ## this step is essential to match with the probabilities that we've just computed
+  ####################
+  ####################
+  ####################
+  ####################
+  prev.op1 <- t(pool1_results@optimal@optimalY)
+  ## calculate the change in survival probability at each consecutive pait of time points
+  ## subtracting each row of survShifted from the row above it
+  ## append a row of 0s at the end to align with matrix dimensions
+  ## probability mass vector representing the change in survival probabilities at each time point
+  prev.op1 <- prev.op1 - rbind(prev.op1[-1L,], 0.0)
+  ####################
+  ####################
+  ####################
+  ####################
+
+
+  ## now, we need to add append1_pr into the pool1_results@optimal as an input-- adding the shifted optimals basically into the pooled optimals
+
+  # Initialize a matrix to store the combined results, with a matrix of NAs
+  pr_poolappend <- matrix(NA, nrow = nTimes, ncol = ncol(prev.op1) + ncol(append1_pr))
+
+
+  # Define the index to insert columns from append1_pr
+  insert_index <- seq(from = 1, to = ncol(pr_poolappend), by = 4)
+
+  # Initialize a counter for columns from append1_pr
+  col_counter <- 1
+
+  # Loop over each index to insert columns from append1_pr into combined_results
+  for (i in seq_along(insert_index)) {
+    # Insert columns from append1_pr into combined_results
+    pr_poolappend[, (insert_index[i] ):(insert_index[i] + 3)] <-
+      cbind(append1_pr[, col_counter], prev.op1[, ((i - 1) * 3 + 1):(i * 3)])
+
+    # Increment the counter for columns from append1_pr
+    col_counter <- col_counter + 1
+  }
+
+
+  ## after appending, we fit another pooled random forest, including the data from nDP - 3
+
+  append1_results <- .dtrSurvStep(
+    ## use the model for pooled data
+    model = models,
+    ## only include the data where the stage >= nDP - 2
+    data = long_data[long_data$stage >= (nDP - 3), ],
+    priorStep = NULL,
+    params = params,
+    txName = "A",
+    ## set to the same as the input
+    mTry = mTry,
+    ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
+    sampleSize = 1,
+    ## this is used as TRUE for processing the treatment levels
+    pool1 = TRUE,
+    appendstep1 = TRUE,
+    inputpr = pr_poolappend
+  )
+
+  ## retrieve the optimal treatments: these are for all 400 "patients" with 4 stages-- we add this to a column called "A_append1"
+  ## we want to only retrieve the optimal for stages nDP - 2, nDP - 1, nDP as well as the optimal survival curves
+  ## therefore, starting from index 2, 6, 10, etc
+
+
+  # Step 1: Create a new column "A_append" in long_data
+  column_name2 <- paste("A.append", iter_counter, sep = "")
+
+  # Set the column name in long_data
+  long_data[[column_name2]] <- NA
+
+  # Step 2: Identify indices for stages 3, 4, and 5
+  stage_indices <- which(long_data$stage %in% (nDP - 2):nDP)
+
+  # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5-- we want to NOT select column 1, 5, etc.
+  ### AKA we select all indices except for these
+  ## also update the "A" column
+  long_data[[column_name2]][stage_indices] <- append1_results@optimal@optimalTx[!(1:length(append1_results@optimal@optimalTx) %% 4 %in% 1)]
+  long_data$A[stage_indices] <- append1_results@optimal@optimalTx[!(1:length(append1_results@optimal@optimalTx) %% 4 %in% 1)]
+
+  ## retrieve the optimal probabilities again at the last stage (nDP - 2)
+  # Retrieve the columns of optimal survival probabilities using the calculated indices
+
+  shiftedprob2 <- t(append1_results@optimal@optimalY)[, seq(2, nrow(append1_results@optimal@optimalY), by = 4)]
+
+  #########################################################
+  ################# append 2 alg ############################
+  #########################################################
+
+  ## we are using the same data to append, so we need to re-initialize the survival matrix
+
+  ## initializes a survival matrix called "survMatrix" with 0's
+
+  survMatrix <- matrix(data = 0.0,
+                       nrow = nTimes,
+                       ncol = nrow(x = x_append1))
+
+  ## sets the first row to 1.0
+
+  survMatrix[1L,] <- 1.0
+
+  ## we also re-update the eligibility. We need to select eligibility from stage nDP - 2, which start from column 2, and then goes every nDP - 3
+  ## this is in append1_resultss@eligibility-- we need to select every 4 columns to only get the eligibility for pts for stage nDP - 3
+  ## this should be 100 patients total
+  priorStep_elig <- append1_results@eligibility[seq(2, length(append1_results@eligibility), by = 4)]
+
+  ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
+  ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
+  survMatrix[, priorStep_elig] <- shiftedprob2
+
+
+  append2_pr <- .shiftMat(
+    timePoints = .TimePoints(object = params),
+
+    ## extracts columns from survMatrix corresponding to cases that are eligible
+    ## this is a matrix matrix where each column represents survival function for an individual
+    survMatrix = survMatrix[, elig_append1, drop = FALSE],
+
+    ## extracts survival times corresponding to eligible cases
+    ## this is how much to shift survival function for each individual
+    shiftVector = response_append1[elig_append1],
+
+    ## probably transforming survival times into probabilities?
+    surv2prob = TRUE
+  )
+
+
+  ## sets very small values in pr to 0
+  append2_pr[abs(append2_pr) < 1e-8] <- 0.0
+
+  ### now, we need to insert these into the optimal probabilities from the append1_results random forest
+  ## we replace the estimated optimal probabilities for stage nDP - 3 in the forest with ALL patients:
+  ## 1st column from appended pr, REPLACE 5th column 9th column, etc-- every 4th column should be REPLACED (not inserted) from appended pr
+
+  ## now, we need to add append1_pr into the pool1_results@optimal as an input-- adding the shifted optimals basically into the pooled optimals
+  ### NOTE: we need to essentially shift the pooled optimal survival function by 0-- convert these into probability mass vectors
+  ## this is essential to match with the shifted probabilities we just calculated
+
+  prev.op2 <- t(append1_results@optimal@optimalY)
+  ## calculate the change in survival probability at each consecutive pait of time points
+  ## subtracting each row of survShifted from the row above it
+  ## append a row of 0s at the end to align with matrix dimensions
+  ## probability mass vector representing the change in survival probabilities at each time point
+  prev.op2 <- prev.op2 - rbind(prev.op2[-1L,], 0.0)
+  ####################
+  ####################
+  ####################
+  ####################
+
+  # Initialize a matrix to store the combined results, with a matrix of NAs
+  pr_poolappend2 <- matrix(NA, nrow = nTimes, ncol = ncol(prev.op2))
+
+  # Define the index to insert columns from append1_pr
+  insert_index <- seq(from = 1, to = ncol(pr_poolappend2), by = 4)
+
+  # Exclude columns from pr_poolappend2 that we will be "overwriting"
+  prev.op_future <- prev.op2[, -insert_index]
+
+  # Initialize a counter for columns from append1_pr
+  col_counter <- 1
+
+  # Loop over each index to insert columns from append1_pr into combined_results
+  ## what we will do, is insert the column from append2_pr for the current stage, then the past optimal ones
+
+  for (i in seq_along(insert_index)) {
+    # Insert columns from append1_pr into combined_results
+    pr_poolappend2[, (insert_index[i]):(insert_index[i] + 3)] <-
+      cbind(append2_pr[, col_counter], prev.op_future[, ((i - 1) * 3 + 1):(i * 3)])
+
+    # Increment the counter for columns from append1_pr
+    col_counter <- col_counter + 1
+  }
+
+  ## this is for stage nDP - 3
+  IHstageResults[[nDP - 3]] <- new(
+    Class = "IHsurvrf",
+    "data" = long_data,
+    "PMVoptimal" = pr_poolappend2,
+    "survRF1" = pool1_results,
+    "survRF2" = append1_results
+  )
+
+  iter_counter <- iter_counter + 1
+
+  ## preparing for backwards recursion by going a step backwards stage-wise
+
+  k <- nDP - 4L
+
+
+  ############################# iteration 2 of cycle and onwards
+  ## after appending, we fit another pooled random forest, including the data from nDP - 3, and the optimized future timepoints
+
+
+  # Now, the generalized algorithm
+
+
+  # backward recursion
+
+  ## looking through the rest of the stages until we get to 1
+
+  while (k >= 1L) {
+    ## display the current stage number to the user to track progress
+
+    message("Stage IHsurv ", k)
+
+    ## calls the .dtrSurvStep() function for the current stage
+    ## defined in class_DTRSurvStep.R
+    ## use model at q-th stage
+
+    IHstageResults[[k]] <- .IHsurvstep( ## input arguments
+      ## we use the output data from the prior stage
+      data = IHstageResults[[k + 1L]]@data,
+      ## the common formula: Surv(Y,D)~X + A
+      models = models,
+      params = params,
+      ## IHstageResults[[q + 1L]]@PMVoptimal
+      priorIH = IHstageResults[[k + 1L]],
+      ## tracks the current stage
+      k = k,
+      ## tracks the current iteration
+      iter_counter = iter_counter,
+      nDP = nDP
+    )
+
+    ## decrease the counter
+
+    k <- k - 1L
+
+    ## increase the iteration counter
+
+    iter_counter <- iter_counter + 1
+
+  }
+
+  ######################## LAST STAGE ######################
+
+  ### now, we also need to add a last stage-- fitting one final RF for all patients.
+
+  #### at stage 1, the loop ends with the incorporation of stage 1 into the probabilities through shifting.
+  ## the last thing to do is fit a single overall RF containing the overall shifted & optimal probabilities from stages 1...10
+
+  pr_poolappend_final = IHstageResults[[1]]@PMVoptimal
+
+
+  ## calls the .dtrSurvStep() function for all of the pooled data
+  ## defined in class_DTRSurvStep.R
+  ## use model from last time point
+  ## returns object of class"DTRSurvStep" with the predicted survival curves for each treatment & also the one that's the optimal (based on whatever criteria of interest)
+  ## input the HC optimal survival probabilities
+
+  pool1_final <- .dtrSurvStep(
+    ## use the model for pooled data
+    model = models,
+    ## this includes all the data
+    data = IHstageResults[[1L]]@data,
+    priorStep = NULL,
+    params = params,
+    txName = "A",
+    ## set to the same as the input ((NOTE THIS GETS CHANGED EARLIER IN THE CODE, so we temporarily set it to null))
+    mTry = NULL,
+    ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
+    sampleSize = 1,
+    ## we are in the first step of pooling patient data after running HC code
+    pool1 = TRUE,
+    appendstep1 = TRUE,
+
+    ## using the full survival probabilities from the last cycle
+    ## ex) includes nDP - 3, nDP - 2, nDP - 1; where nDP - 4 is the new data
+    inputpr = pr_poolappend_final
+  )
+
+  ## now, we want to retrieve the optimal actions for each patient for all stages
+  # first we retrieve the most recent data
+
+  long_data <- IHstageResults[[1L]]@data
+
+
+  # Set the column name in long_data
+  long_data$A.final <- NA
+
+  # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
+  ## also update the "A" column
+  long_data$A.final <- pool1_final@optimal@optimalTx
+  long_data$A <- pool1_final@optimal@optimalTx
+
+
+
+  ############# mean value results
+  ## mean of maximum expected survival times across treatment levels & mean of maximum expected survival probabilities
+  ## these are returned (not calculated) based on the maximum value for whatever the best treatment is
+  ## ex) mean 1 (for trt1), mean2 (for trt2); we identify which the maximum is
   # value obtained from the first stage analysis
 
   ## after backwards recursion is complete, calculate the estimated value from the first stage
@@ -338,7 +930,7 @@ dtrSurv <- function(data,
   ## this is calculated across all PTS, so, once all pts have received their estimated optimal treatment --> what's the mean of all their survival times
   ## .meanValue() function defined in class_DTRSurvStep.R
 
-  valueTrain <- .meanValue(object = stageResults[[1L]])
+  valueTrain <- .meanValue(object = pool1_final)
 
   ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
 
@@ -346,7 +938,6 @@ dtrSurv <- function(data,
   for (i in 1L:length(valueTrain)) {
     message(" ", names(valueTrain)[i], ": ", valueTrain[[i]], appendLF = FALSE)
   }
-  message()
 
 
   # store values in call structure for returned object
@@ -355,7 +946,7 @@ dtrSurv <- function(data,
   cl <- match.call()
 
   ## ensures name of called function is set to "dtrSurv"
-  cl[[1L]] <- as.name("dtrSurv")
+  cl[[1L]] <- as.name("IHdtrSurv")
 
   ## construct an object of class DTRSurv for the output
   ## this is defined in class_IH.DTRSurv.R
@@ -363,6 +954,8 @@ dtrSurv <- function(data,
   res <- new(
     Class = "DTRSurv",
     "stageResults" = stageResults,
+    "IHstageResults" = IHstageResults,
+    "FinalForest" = pool1_final,
     "value" = valueTrain,
     "call" = cl,
     "params" = params
@@ -377,26 +970,52 @@ dtrSurv <- function(data,
 
 ### examples:
 
-### simulate data for 5 stages
-#dt <- data.frame("Y.1" = sample(1:100,100,TRUE), "Y.2" = sample(1:100,100,TRUE), "Y.3" = sample(1:100,100,TRUE),
-#                 "Y.4" = sample(1:100,100,TRUE), "Y.5" = sample(1:100,100,TRUE),
-#                 "D.1" = rbinom(100, 1, 0.9), "D.2" = rbinom(100,1,0.9), "D.3" = rbinom(100,1,0.9),
-#                 "D.4" = rbinom(100,1,0.9), "D.5" = rbinom(100,1,0.9),
-#                 "A.1" = rbinom(100, 1, 0.5), "A.2" = rbinom(100,1,0.5), "A.3" = rbinom(100,1,0.5),
-#                 "A.4" = rbinom(100,1,0.5), "A.5" = rbinom(100,1,0.5),
-#                 "X.1" = rnorm(100), "X.2" = rnorm(100), "X.3" = rnorm(100), "X.4" = rnorm(100), "X.5" = rnorm(100))
+### simulate data for 10 stages
+#set.seed(123)
+#dt <- data.frame("Y_1" = sample(1:100,100,TRUE), "Y_2" = sample(1:100,100,TRUE), "Y_3" = sample(1:100,100,TRUE),
+#                 "Y_4" = sample(1:100,100,TRUE), "Y_5" = sample(1:100,100,TRUE), "Y_6" = sample(1:100,100,TRUE),
+#                 "Y_7" = sample(1:100,100,TRUE), "Y_8" = sample(1:100,100,TRUE), "Y_9" = sample(1:100,100,TRUE), "Y_10" = sample(1:100,100,TRUE),
+#                 "D_1" = rbinom(100, 1, 0.9), "D_2" = rbinom(100,1,0.9), "D_3" = rbinom(100,1,0.9),
+#                 "D_4" = rbinom(100,1,0.9), "D_5" = rbinom(100,1,0.9), "D_6" = rbinom(100,1,0.9),
+#                 "D_7" = rbinom(100,1,0.9),"D_8" = rbinom(100,1,0.9), "D_9" = rbinom(100,1,0.9), "D_10" = rbinom(100,1,0.9),
+#                 "A_1" = rbinom(100, 1, 0.5), "A_2" = rbinom(100,1,0.5), "A_3" = rbinom(100,1,0.5),
+#                 "A_4" = rbinom(100,1,0.5), "A_5" = rbinom(100,1,0.5), "A_6" = rbinom(100,1,0.5),
+#                 "A_7" = rbinom(100,1,0.5), "A_8" = rbinom(100,1,0.5), "A_9" = rbinom(100,1,0.5), "A_10" = rbinom(100,1,0.5),
+#                 "X_1" = rnorm(100), "X_2" = rnorm(100), "X_3" = rnorm(100), "X_4" = rnorm(100), "X_5" = rnorm(100), "X_6" = rnorm(100),
+#                 "X_7" = rnorm(100), "X_8" = rnorm(100), "X_9" = rnorm(100), "X_10" = rnorm(100),
+#                 "Z_1" = rnorm(100), "Z_2" = rnorm(100), "Z_3" = rnorm(100), "Z_4" = rnorm(100), "Z_5" = rnorm(100), "Z_6" = rnorm(100),
+#                 "Z_7" = rnorm(100), "Z_8" = rnorm(100), "Z_9" = rnorm(100), "Z_10" = rnorm(100))
+#
+## Add patient id column
+#dt$subj.id <- 1:nrow(dt)
 #
 #
-#results <- dtrSurv(data = dt,
-#       txName = c("A.1", "A.2", "A.3", "A.4", "A.5"),
+#
+#results <- IHdtrSurv(data = dt,
+#       txName = c("A_1", "A_2", "A_3", "A_4", "A_5",
+#                  "A_6", "A_7", "A_8", "A_9", "A_10"),
 #       ## using a common formula
-#       models = Surv(Y,D)~X,
+#       models = Surv(Y,D)~X + A,
 #       ## pooled analysis (why we include A in formula)
-#       pooled = FALSE,
+#       pooled = TRUE,
 #       usePrevTime = TRUE,
-#       stageLabel = ".")
+#       stageLabel = "_", nTimes = 50L)
 #
+
 #str(results)
 #
 #results@stageResults[[2]]
+
+### checking using my own data simulations
+
+#a <- output2observable(pts)
+#
+#results <- dtrSurv(data = a,
+#       txName = paste0("A_", seq(1, 30)),
+#       ## using a common formula
+#       models = Surv(T, delta) ~ baseline1 + baseline2 + state + prior.visit.length + cumulative.time + nstages + action.1.count + action.0.count,
+#       ## pooled analysis TRUE (why we include A in formula)
+#       pooled = FALSE,
+#       usePrevTime = TRUE,
+#       stageLabel = "_")
 
