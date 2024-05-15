@@ -12,13 +12,16 @@
 
 ### 0. Get the setting number
 ## This section retrieves the settings from the command line arguments.
-## It expects four arguments: beta, propensity, size, and crit.
+## It expects four arguments: 1 = beta, 2 = propensity, 3 = size, and 4 = crit.
 ## these are used to set the different beta, propensity, size, crit settings
 ## If these arguments are not provided, it sets default values.
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
+  message("500 patients, max stages = 25, 200 simulation replicates, 10,000 eval, 10% censoring, OBS; trueopt and increasing mTry to 10")
+  message("After adjusting integral change to proportion and fixing proportion censor, true opt should be doing better now")
   arg = c(1, 1, 1, 1) # by default
+  print(arg)
 }
 
 ## renames the arguments for clarity
@@ -35,14 +38,16 @@ arg.date <- if (is.na(arg[5]) | arg[5] == "") Sys.Date() else as.character(arg[5
 ### 1. setup
 # n.stages = 3 # number of stages
 default <- list(
-  ## evaluation sample size
+  ## evaluation sample size: 10000
   n.eval = 10000,
-  ## number of simulation replicates
+  ## number of simulation replicates: 200
   n.sim = 200,
   ## tau (days): total study length
   tau = 1000,
   ## maximum number of stages
-  n.stages = 50)
+  n.stages = 25,
+  ## the stage we start at since we don't want issues with too small sample size
+  ss = NULL)
 
 # arg4 crit: a list containing different 2 different criterion with associated values
 crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "truncated mean E[T]"),
@@ -51,8 +56,11 @@ crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "trunca
                           crit.value = 730, value = "S(730)"))
 
 # arg3 size: a list containing 2 training sample sizes
-size <- list(small.sample.size = list(n = 75),
-             large.sample.size = list(n = 500))
+size <- list(
+  ## small ss is 75
+  small.sample.size = list(n = 100),
+  ## large ss is 10,000
+             large.sample.size = list(n = 10000))
 
 # arg2 propensity
 propensity <-   # (int), state
@@ -67,16 +75,36 @@ coefs <- list(
   setting1 = list(
     coef_failure = list(
 
+      ### 10% censoring
+
+      ##  a1 + b1 * state + c1*state2 + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
+      ###    r1 * action * state * nstages * cumulative.length*prior.visit.length
+
+      a = -6, b = -0.3, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.008, r = 0.05
+    ),
+    coef_nextvisit = list(
+      a = -3, b = -0.3, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.008, r = 0.05
+    ),
+    coef_censoring = list(
+      ## a = -8 for 10% censoring
+      a = -8, b = -0.3, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.008, r = 0.05
+    )
+  ),
+
+  ## higher censoring
+  setting2 = list(
+    coef_failure = list(
+
       ##  a1 + b1 * state + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
       ###    r1 * action * state * nstages * cumulative.length*prior.visit.length
 
-      a = -6, b = -0.3, z = -0.025, p = 0.02, g = -0.2, h = 0.008, r = 0.01
+      a = -7, b = -0.3, c = -0.5, z = -0.025, p = 0.02, g = -0.2, h = 0.008, r = 0.01
     ),
     coef_nextvisit = list(
-      a = -3, b = -0.3, z = -0.015, p = 0.025, g = -0.2, h = 0.008, r = 0.01
+      a = -5, b = -0.3, c = -0.05, z = -0.015, p = 0.025, g = -0.2, h = 0.008, r = 0.01
     ),
     coef_censoring = list(
-      a = -8, b = -0.3, z = -0.04, p = 0.02, g = -0.2, h = 0.008, r = 0.01
+      a = -9.5, b = -0.3, c = -0.6, z = -0.04, p = 0.02, g = -0.2, h = 0.008, r = 0.01
     )
   )
 )
@@ -85,14 +113,17 @@ coefs <- list(
 names(coefs$setting1$coef_failure) <- paste0(names(coefs$setting1$coef_failure), "1")
 names(coefs$setting1$coef_nextvisit) <- paste0(names(coefs$setting1$coef_nextvisit), "2")
 names(coefs$setting1$coef_censoring) <- paste0(names(coefs$setting1$coef_censoring), "3")
+names(coefs$setting2$coef_failure) <- paste0(names(coefs$setting2$coef_failure), "1")
+names(coefs$setting2$coef_nextvisit) <- paste0(names(coefs$setting2$coef_nextvisit), "2")
+names(coefs$setting2$coef_censoring) <- paste0(names(coefs$setting2$coef_censoring), "3")
 
 # p.list: List of the number of covariates for the coefficient settings
 ## takes off 2 from intercept, nstages, cumulative.length, action, prior.visit.length, interaction between all of them
-p.list <- lapply(coefs, function(x) length(x$coef_failure) - 6)
+p.list <- (length(coefs[[arg1]]$coef_failure) - 6)
 
 # setting1 n.boot 50 / n 300
 setting = c(arg = list(arg), default, coefs[[arg1]]$coef_failure, coefs[[arg1]]$coef_nextvisit,
-            coefs[[arg1]]$coef_censoring, p = p.list[[arg1]],
+            coefs[[arg1]]$coef_censoring, p = p.list,
             propensity[[arg2]], size[[arg3]], crit[[arg4]])
 
 ### 2. put a selected setting into the global environment
@@ -104,9 +135,9 @@ beta.propensity <- beta.propensity(p)
 #filename = paste0("output/simResult_", arg.date, "_beta", arg1, "_prop", arg2,
 #                  "_n", arg3, "_crit", arg4, ".rds")
 
-predictedPropensity <- function(state) {
+predictedPropensity <- function(state1, state2) {
   # Compute the predicted probability using the logistic function
-  plogis(cbind(1, state) %*% beta.propensity)
+  plogis(cbind(1, state1,state2) %*% beta.propensity)
 }
 
 ### we don't need the predicted hazard, censoring, etc.
@@ -122,7 +153,9 @@ for (i in 1:n.stages) {
 
 ### 3. Run the simulation
 skip.IHsurvrf <- FALSE
-skip.zom <- FALSE
+skip.trt1 <- FALSE
+skip.trt0 <- FALSE
+skip.opt <- FALSE
 ### commented out since we don't need it
 ## skip.gk <- skip.dw <- TRUE
 cv.nodesize = FALSE

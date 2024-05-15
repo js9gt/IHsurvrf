@@ -24,7 +24,10 @@ source("R/class_IH.pool1.R")
                         k,
                         ## uses the current iteration counter
                         iter_counter,
-                        nDP){
+                        nDP,
+                        mTry
+
+                        ){
 
 ## uses the input k as the stage
 k <- k
@@ -37,6 +40,11 @@ IHsurvresults <- list()
 
 pr_poolappend2 <- priorIH@PMVoptimal
 
+## retrieve the number of timepoints from the params object
+## defined in class_TimeInfo.R
+
+nTimes <- .NTimes(object = params)
+
 
 ## calls the .dtrSurvStep() function for the pooled data, only on stages ndp - 2, ndp -1, ndp
 ## defined in class_DTRSurvStep.R
@@ -48,12 +56,12 @@ pool1_results <- .dtrSurvStep(
   ## use the model for pooled data
   model = models,
   ## only include the data where the stage >= nDP - 2, or for the next iteration in stage nDP - 4, use nDP - 3
-  data = data[data$stage >= (k + 1), ],
+  data = data[data$stage >= (k + 1) & data$stage <= nDP, ],
   priorStep = NULL,
   params = params,
   txName = "A",
   ## set to the same as the input ((NOTE THIS GETS CHANGED EARLIER IN THE CODE, so we temporarily set it to null))
-  mTry = NULL,
+  mTry = mTry,
   ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
   sampleSize = 1,
   ## we are in the first step of pooling patient data after running HC code
@@ -64,6 +72,8 @@ pool1_results <- .dtrSurvStep(
   ## ex) includes nDP - 3, nDP - 2, nDP - 1; where nDP - 4 is the new data
   inputpr = pr_poolappend2
 )
+
+
 
 ## now, we want to retrieve the optimal actions for each patient for stages nDP - 2, nDP - 1, nDP from the first pooling
 # pool1_results@optimal@optimalTx
@@ -79,23 +89,36 @@ data[[column_name1]] <- NA
 ## meaning, if nDP - 4 is the new data and current loop, we want nDP - 3, nDP - 2, nDP - 1, nDP
 stage_indices <- which(data$stage %in% (k + 1):nDP)
 
-# Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
+
+
+# Extract eligibility for the current forest
+eligibility_pool1 <- pool1_results@eligibility
+
+# Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5 (for eligible patients)
 ## also update the "A" column
-data[[column_name1]][stage_indices] <- pool1_results@optimal@optimalTx
-data$A[stage_indices] <- pool1_results@optimal@optimalTx
+data[[column_name1]][stage_indices][eligibility_pool1] <- pool1_results@optimal@optimalTx
+data$A[stage_indices][eligibility_pool1] <- pool1_results@optimal@optimalTx
 
 ## retrieve matrix of optimal only for stage nDP - 3:
 ## recall: we can start from seq 1 since we haven't yet incorporated the new data
 ## current is nDP - 4 loop...
 # Calculate the indices of the columns you want to retrieve-- note this matrix needs to be transposed to get to our dimensions
 ## when retrieved for some reason it has patients for rows, instead of columns
-pool1pr_indices <- seq(1, ncol(t(pool1_results@optimal@optimalY)), by = (nDP - k))
+pool1pr_indices <- seq(1, length(pool1_results@eligibility), by = (nDP - k))
 
 
 # Retrieve the columns of optimal survival probabilities using the calculated indices
 ## this is equivalent to class_IH.DTRSurvStep.R: t(.OptimalY(object = priorStep@optimal))
 
-shiftedprob1 <- t(pool1_results@optimal@optimalY)[, pool1pr_indices]
+# Initialize the shifted probability matrix
+## ## each patient will have k + 1 --> k stages; nrow(data) is the number of patients
+## we overwrite the eligible patients
+shiftedprob1 <- matrix(NA, nrow = nTimes, ncol = length(eligibility_pool1) )
+shiftedprob1[,eligibility_pool1] <-t(pool1_results@optimal@optimalY)
+
+
+## include only shifted probabilities for eligible patients
+shiftedprob1 <- shiftedprob1[, pool1pr_indices]
 
 
 #########################################################
@@ -114,7 +137,7 @@ shiftedprob1 <- t(pool1_results@optimal@optimalY)[, pool1pr_indices]
 
 x_append1 <- stats::model.frame(formula = models,
                                 ## ## we want to exclude the A.opt.HC column and A.pool1 column, and only consider data from the prev timepoint
-                                data = data %>% filter(stage == k) %>% select(-matches("^A\\.")),
+                                data = data %>% filter(stage == k) %>% dplyr::select(-matches("^A\\.")),
                                 na.action = na.pass)
 
 
@@ -162,11 +185,6 @@ if (sum(elig_append1) == 0L)
 message("cases in stage: ", sum(elig_append1))
 
 
-## retrieve the number of timepoints from the params object
-## defined in class_TimeInfo.R
-
-nTimes <- .NTimes(object = params)
-
 # create an empty matrix for all previously eligible cases
 
 ## initializes a survival matrix called "survMatrix" with 0's
@@ -197,7 +215,8 @@ priorStep_elig <- pool1_results@eligibility[seq(1, length(pool1_results@eligibil
 
 ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
 ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
-survMatrix[, priorStep_elig] <- shiftedprob1
+## with columns with non NA values only
+survMatrix[, priorStep_elig] <- shiftedprob1[, colSums(is.na(shiftedprob1)) == 0]
 
 
 # shift the survival function down in time (T_i - Tq) and
@@ -209,7 +228,7 @@ survMatrix[, priorStep_elig] <- shiftedprob1
 ## shifts the survival function based on the observed survival times
 ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
 
-append1_pr <- .shiftMat(
+append1_pr_1 <- .shiftMat(
   timePoints = .TimePoints(object = params),
 
   ## extracts columns from survMatrix corresponding to cases that are eligible
@@ -226,7 +245,15 @@ append1_pr <- .shiftMat(
 
 ## sets very small values in pr to 0
 
-append1_pr[abs(append1_pr) < 1e-8] <- 0.0
+append1_pr_1[abs(append1_pr_1) < 1e-8] <- 0.0
+
+## now, we put the appended probabilities in context of the full matrix of patients, with 0s in all the other locations
+## AKA we overwrite these shifted probabilities for eligible patients
+## number of columns is the number of patients for this stage (nDP - 2)
+
+append1_pr <- matrix(0, nrow = nTimes, ncol = length(pool1_results@eligibility[seq(1, length(pool1_results@eligibility), by = (nDP - (k) ))]))
+## we overwrite the patients who are eligible in new stage (nDP - 3)
+append1_pr[,elig_append1] <-append1_pr_1
 
 ##### NOTE: this step is equivalent to shifting by 0, essentially we just transform the optimal survival probabilities into probability mass vectors
 ## this step is essential to match with the probabilities that we've just computed
@@ -234,12 +261,17 @@ append1_pr[abs(append1_pr) < 1e-8] <- 0.0
 ####################
 ####################
 ####################
-prev.op1 <- t(pool1_results@optimal@optimalY)
+prev.op1_1 <- t(pool1_results@optimal@optimalY)
 ## calculate the change in survival probability at each consecutive pait of time points
 ## subtracting each row of survShifted from the row above it
 ## append a row of 0s at the end to align with matrix dimensions
 ## probability mass vector representing the change in survival probabilities at each time point
-prev.op1 <- prev.op1 - rbind(prev.op1[-1L,], 0.0)
+prev.op1_1 <- prev.op1_1 - rbind(prev.op1_1[-1L,], 0.0)
+
+### now, we need to create 0s for all other columns where patients were not eligible
+## only overwrite the columns that had the optimal probabilities with the columns where the patients were eligible
+prev.op1  <- matrix(0, nrow = nTimes, ncol = length(eligibility_pool1))
+prev.op1[,eligibility_pool1] <- prev.op1_1
 ####################
 ####################
 ####################
@@ -251,8 +283,6 @@ prev.op1 <- prev.op1 - rbind(prev.op1[-1L,], 0.0)
 # Initialize a matrix to store the combined results, with a matrix of NAs
 pr_poolappend <- matrix(NA, nrow = nTimes, ncol = ncol(prev.op1) + ncol(append1_pr))
 
-# Define the number of columns to insert from append1_pr
-num_cols_insert <- ncol(append1_pr)
 
 # Define the index to insert columns from append1_pr
 insert_index <- seq(from = 1, to = ncol(pr_poolappend), by = nDP - (k) + 1)
@@ -278,12 +308,12 @@ append1_results <- .dtrSurvStep(
   model = models,
   ## only include the data where the stage >= the current stage in the loop which includes the new data
   ## so, our new data is nDP - 4, which is the current stage that the loop is in
-  data = data[data$stage >= k, ],
+  data = data[data$stage >= k & data$stage <= nDP, ],
   priorStep = NULL,
   params = params,
   txName = "A",
   ## set to the same as the input
-  mTry = NULL,
+  mTry = mTry,
   ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
   sampleSize = 1,
   ## this is used as TRUE for processing the treatment levels
@@ -307,18 +337,48 @@ data[[column_name2]] <- NA
 ## this means we only want to select the treatments we've already used for pooling AKA not the current stage
 stage_indices <- which(data$stage %in% (k + 1):nDP)
 
+# Extract eligibility for the current forest, including ALL the patients (and most recent stage nDP - 2)
+eligibility_append1 <- append1_results@eligibility
+
 # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5-- we want to NOT select column 1, 5, etc.
 ### AKA we select all indices except for these
 ## also update the "A" column
 
+## the optimal treatment for eligible patients is in: append1_results@optimal@optimalTx
+## for all other patients, we want to put NA
+# Create a vector with NA values for patients who are not eligible
+append1_opt <- rep(NA, length(eligibility_append1))
 
-data[[column_name2]][stage_indices] <- append1_results@optimal@optimalTx[!(1:length(append1_results@optimal@optimalTx) %% (nDP - (k) + 1) %in% 1)]
-data$A[stage_indices] <- append1_results@optimal@optimalTx[!(1:length(append1_results@optimal@optimalTx) %% (nDP - (k) + 1) %in% 1)]
+# Replace NA values with optimal treatments for eligible patients
+append1_opt[eligibility_append1] <- append1_results@optimal@optimalTx
+
+
+data[[column_name2]][stage_indices] <- append1_opt[!(1:length(eligibility_append1) %% (nDP - (k) + 1) %in% 1)]
+data$A[stage_indices] <- append1_opt[!(1:length(eligibility_append1) %% (nDP - (k) + 1) %in% 1)]
 
 ## retrieve the optimal probabilities again at the last stage (nDP - 2)
 # Retrieve the columns of optimal survival probabilities using the calculated indices
 
-shiftedprob2 <- t(append1_results@optimal@optimalY)[, seq(2, nrow(append1_results@optimal@optimalY), by = (nDP - (k) + 1))]
+######
+######
+######
+######
+
+## retrieve the optimal probabilities again at the last stage (nDP - 2)
+# Retrieve the columns of optimal survival probabilities using the calculated indices
+## but first we need to fill in all the other columns with 0 for ineligible patients
+
+shiftedprob2_1 <- t(append1_results@optimal@optimalY)
+
+
+# Initialize a matrix to store the combined results, with a matrix of NA
+## this should be a matrix for all datapoints and patients so far: including the newest datapoint
+shiftedprob2 <- matrix(NA, nrow = nTimes, ncol = length(eligibility_append1))
+
+## now, for eligible patients at the last stage, we overwrite their optimal probabilities from the last forest
+shiftedprob2[, eligibility_append1] <- shiftedprob2_1
+
+shiftedprob2 <- shiftedprob2[, seq(2, length(eligibility_append1), by = (nDP - (k) + 1))]
 
 
 #########################################################
@@ -338,15 +398,17 @@ survMatrix <- matrix(data = 0.0,
 survMatrix[1L,] <- 1.0
 
 ## we also re-update the eligibility. We need to select eligibility from stage nDP - 2, which start from column 2, and then goes every nDP - 3
-## if we are in stage nDP - 4 as the current iteration, we want to select the ones corresponding to nDP - 3
+## this is in append1_resultss@eligibility-- we need to select every 4 columns to only get the eligibility for pts for stage nDP - 3
+## this should be 100 patients total
 priorStep_elig <- append1_results@eligibility[seq(2, length(append1_results@eligibility), by = (nDP - (k) + 1))]
+
 
 ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
 ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
-survMatrix[, priorStep_elig] <- shiftedprob2
+survMatrix[, priorStep_elig] <- shiftedprob2[, colSums(is.na(shiftedprob2)) == 0]
 
 
-append2_pr <- .shiftMat(
+append2_pr_1 <- .shiftMat(
   timePoints = .TimePoints(object = params),
 
   ## extracts columns from survMatrix corresponding to cases that are eligible
@@ -363,7 +425,14 @@ append2_pr <- .shiftMat(
 
 
 ## sets very small values in pr to 0
-append2_pr[abs(append2_pr) < 1e-8] <- 0.0
+append2_pr_1[abs(append2_pr_1) < 1e-8] <- 0.0
+
+### now, for the ineligible patients, we insert a value of 0
+
+append2_pr <- matrix(0, nrow = nTimes, ncol = length(eligibility_append1))
+
+## we overwrite the patients who are eligible in new stage (nDP - 3): we found this earlier in the new data using elig_append1
+append2_pr[,elig_append1] <-append2_pr_1
 
 ### now, we need to insert these into the optimal probabilities from the append1_results random forest
 ## we replace the estimated optimal probabilities for stage nDP - 3 in the forest with ALL patients:
@@ -373,12 +442,18 @@ append2_pr[abs(append2_pr) < 1e-8] <- 0.0
 ### NOTE: we need to essentially shift the pooled optimal survival function by 0-- convert these into probability mass vectors
 ## this is essential to match with the shifted probabilities we just calculated
 
-prev.op2 <- t(append1_results@optimal@optimalY)
+prev.op2_1 <- t(append1_results@optimal@optimalY)
 ## calculate the change in survival probability at each consecutive pait of time points
 ## subtracting each row of survShifted from the row above it
 ## append a row of 0s at the end to align with matrix dimensions
 ## probability mass vector representing the change in survival probabilities at each time point
-prev.op2 <- prev.op2 - rbind(prev.op2[-1L,], 0.0)
+prev.op2_1 <- prev.op2_1 - rbind(prev.op2_1[-1L,], 0.0)
+
+### now, we need to create 0s for all other columns where patients were not eligible
+## only overwrite the columns that had the optimal probabilities with the columns where the patients were eligible
+## now, we add 100 more patients
+prev.op2  <- matrix(0, nrow = nTimes, ncol = length(eligibility_append1))
+prev.op2[,eligibility_append1] <- prev.op2_1
 ####################
 ####################
 ####################
@@ -388,7 +463,6 @@ prev.op2 <- prev.op2 - rbind(prev.op2[-1L,], 0.0)
 
 # Initialize a matrix to store the combined results, with a matrix of NAs
 pr_poolappend2 <- matrix(NA, nrow = nTimes, ncol = ncol(prev.op2))
-
 
 
 # Define the index to insert columns from append1_pr

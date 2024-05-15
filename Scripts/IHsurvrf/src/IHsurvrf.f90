@@ -983,6 +983,14 @@ SUBROUTINE kaplan(ns, nj, oj, z)
 
       z(i) = z(i-1)
     END IF
+
+
+    ! Check if the value of z(i) is negative and smaller than an order of e^-8, then set it to 0
+    ! .AND. ABS(z(i)) < 1d-8 : this used to be there as well but we want any negative values to be set to 0
+    IF (z(i) < 0) THEN
+      z(i) = 0
+    END IF
+
   END DO
 
 END SUBROUTINE
@@ -1228,6 +1236,19 @@ SUBROUTINE calcValueSingle(nCases, casesIn, survFunc, mean)
 
   Rb = sum(pr(casesIn,:), DIM = 1)
 
+
+    !!!!!!!
+    !!!!!!! Adding print statement
+    !!!!!!!
+
+    !! Print values of variables
+    !print *, "Number of at risk cases at each time point:"
+    !print *, "Rb =", Rb
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
+
   ! initialize Nj(1) with the number of cases at the first time point
 
   Nj(1) = nCases
@@ -1239,6 +1260,7 @@ SUBROUTINE calcValueSingle(nCases, casesIn, survFunc, mean)
   ! subtract cumulative at-risk cases form the previous total
 
     Nj(i) = Nj(i-1) - Rb(i-1)
+
   END DO
 
   ! number of events at each time point
@@ -1249,7 +1271,24 @@ SUBROUTINE calcValueSingle(nCases, casesIn, survFunc, mean)
 
   ! calculate the number of events by summing (delta * probability for each indiv at that time point)
     Oj(i) = sum(pr(casesIn, i)*delta(casesIn))
+
+
   END DO
+
+    !!!!!!!
+    !!!!!!! Adding print statement
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "Number of at events at each time point calcvaluesingle:"
+    !print *, "Oj =", Oj
+    !print *, "Number of cases at risk at each time point calcvaluesingle:"
+    !print *, "Nj =", Nj
+
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
 
   ! Kaplan-Meier estimate survival function
   ! {nt}
@@ -1502,6 +1541,19 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
     CALL calcValueSingle(n, indices, survFunc(:,1), mean(1))
 
+    !!!!!!!
+    !!!!!!! Adding print statement
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "calcValueSingle for first node:"
+    !print *, "surv function and mean surv time =", survFunc(:,1)
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
+
+
     ! if the "isSurvival" flag is TRUE,
 
     IF (isSurvival) THEN
@@ -1587,6 +1639,18 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       ! stm(k, 1) and stm(k, 2) are the start and finish locations of indices in a node
       ! then take the array of indices representing all cases
       ind = jdex(stm(k,1):stm(k,2))
+
+    !!!!!!!
+    !!!!!!! Adding print statement for indices in current node
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "Indices for cases in current node:"
+    !print *, "indices =", ind
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
 
       ! compares count of times a variable ws used in a split cstat(:,k) with a threshold floor(srs * sum(cStat(:,k))
       ! cstat(:, k) = column of array for current node "k"
@@ -1712,12 +1776,37 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       leftCases = jdex(stm(ncur,1):stm(ncur,2))
 
+    !!!!!!!
+    !!!!!!! Adding print statement for indices in current left node
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "Indices for cases in current left node:"
+    !print *, "indices =", leftCases
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
+
       ! get basic node information for left daughter
 
       !! call "calcValueSingle" subroutine to calculate survival function & mean survival time for left daughter node
 
       CALL calcValueSingle(size(leftCases), leftCases, survFunc(:,ncur), &
                          & mean(ncur))
+
+
+    !!!!!!!
+    !!!!!!! Adding print statement for indices in surival function for left daughter node
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "survival function and mean survival time for left daughter node:"
+    !print *, "values =", survFunc(:,ncur)
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
 
       ! if isSurvival is true,
 
@@ -1790,9 +1879,35 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       rightCases = jdex(stm(ncur,1):stm(ncur,2))
 
+
+    !!!!!!!
+    !!!!!!! Adding print statement for indices in right daughter node
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "indices of cases in right daughter node:"
+    !print *, "indices =", rightCases
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
+
       ! calculate survival function and mean survival time for right node
       CALL calcValueSingle(size(rightCases), rightCases, survFunc(:,ncur), &
                          & mean(ncur))
+
+
+    !!!!!!!
+    !!!!!!! Adding print statement for survival function in right node
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "survival function and mean survival in right daughter node:"
+    !print *, "values =", survFunc(:,ncur)
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
 
       ! if "isSurvival" is TRUE
 
@@ -1933,6 +2048,18 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     ! store survival function values for each node of current tree
 
     trees(iTree)%survFunc = survFunc(:,1:ncur)
+
+    !!!!!!!
+    !!!!!!! Adding print statement for each node's survival function
+    !!!!!!!
+
+    ! Print values of variables
+    !print *, "survival function values for each node of current tree:"
+    !print *, "survival func for each node =", survFunc(:,1:ncur)
+
+    !!!!!!!
+    !!!!!!!
+    !!!!!!!
 
     ! store mean survival time for each node of the current tree
     trees(iTree)%mean = mean(1:ncur)
@@ -2371,6 +2498,8 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_mTry, t_nCat,  t_sampleS
 
   ! probability mass vector from input t_pr
   prAll = reshape(t_pr, (/nAll,nt/))
+
+
 
 
 

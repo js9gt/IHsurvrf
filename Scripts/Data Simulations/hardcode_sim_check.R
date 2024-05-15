@@ -7,21 +7,28 @@
 # failure coefficient
 a1 = -6
 b1 = -0.3
+c1 = -0.5
 z1 = -0.025
 p1 = 0.02
-g1 = -0.2
+g1 = -0.02
 h1 = 0.008
-r1 = 0.01
+r1 = 0.02
 
-state = 0.89281091
+state1 = 7.770589e-01
+state2 = 5.010484e-01
 # ratio of input for max stages
-priorstages = 6/50
-cum_length = 0.06834277
+nstages = 0.3
+cumulative.length = 0.07
 action = 1
-priortime =  2.468611
+prior.visit.length = 50
 
-rate_failure = exp(a1 + b1*state + z1*priorstages + p1*cum_length + g1*action + h1*priortime + r1*action*state*priorstages*cum_length*priortime)
+rate_failure = exp(
+  a1 + b1 * state1 + c1*state2 + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
+    r1 * action * state1*state2 * nstages * cumulative.length*prior.visit.length
+)
 
+set.seed(127)
+rexp(n = 1, rate = rate_failure)
 
 
 ## time to next visit coefficient

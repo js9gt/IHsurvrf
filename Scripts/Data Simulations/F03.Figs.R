@@ -19,8 +19,8 @@ library(writexl)
 
 generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text) {
   
-  new_folder <- sprintf("~/Desktop/survrf/Figures/%spts_%sstage_%s", num_patients, num_stages, other_text)
-  fs::dir_create(new_folder)  # Create a new folder
+  #new_folder <- sprintf("~/Desktop/survrf/Figures/%spts_%sstage_%s", num_patients, num_stages, other_text)
+  #fs::dir_create(new_folder)  # Create a new folder
   
   # ------------------------------------------- #
   #          Plot 1: Event Time by Patient      #
@@ -35,7 +35,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     mutate(stage = as.numeric(stage),
            patient = as.numeric(gsub("pt", "", patient)))
   
-  png(sprintf("%s/timeline_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/timeline_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
   p1_save <- ggplot(p1, aes(x = event.time, y = patient, color = factor(stage))) +
     geom_point() +
@@ -46,7 +46,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     theme_minimal()
   
   print(p1_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #              Plot 2: Average rates          #
@@ -72,7 +72,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     )
   
   
-  png(sprintf("%s/avg_rates_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/avg_rates_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
   p2_save <- ggplot(p2_avg, aes(x = stage, group = 1)) +
     geom_line(aes(y = avg_rate_failure, color = "Rate Failure"), size = 1) +
@@ -87,7 +87,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     scale_x_continuous(breaks = seq(min(p2_avg$stage) - 1, max(p2_avg$stage), by = 1))
   
   print(p2_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #             Plot 3: Pct Advancement         #
@@ -107,7 +107,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     )
   
   
-  png(sprintf("%s/pct_atrisk_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/pct_atrisk_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
   p3_save <- ggplot(p3_percentage, aes(x = stage, y = percentage_at_risk, group = 1)) +
     geom_line(size = 1) +
@@ -117,36 +117,53 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     scale_x_continuous(breaks = seq(min(p3_percentage$stage) - 1, max(p3_percentage$stage), by = 5))
   
   print(p3_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #              Plot 4: Average state          #
   # ------------------------------------------- #
   
-  state_vals <- pts[, "state", ]
+  # Subset "state1" and "state2" variables separately
+  state_vals1 <- pts[, "state1", ]
+  state_vals2 <- pts[, "state2", ]
   
-  p4 <- data.frame(
-    stage = rep(1:max_stages, each = nrow(state_vals)),
-    state_vals = c(state_vals)
+  # Create data frames for plotting
+  p4_state1 <- data.frame(
+    stage = rep(1:max_stages, each = nrow(state_vals1)),
+    state_vals = c(state_vals1),
+    state = "State 1"
   )
   
+  p4_state2 <- data.frame(
+    stage = rep(1:max_stages, each = nrow(state_vals2)),
+    state_vals = c(state_vals2),
+    state = "State 2"
+  )
+  
+  # Combine data frames
+  p4 <- rbind(p4_state1, p4_state2)
+  
+  # Calculate average for each stage
   p4_avg <- p4 %>%
-    group_by(stage) %>%
+    group_by(state, stage) %>%
     summarize(
       avg_state = mean(state_vals, na.rm = TRUE)
     )
   
-  png(sprintf("%s/avg_states_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/avg_states_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
-  p4_save <- ggplot(p4_avg, aes(x = stage, group = 1)) +
-    geom_line(aes(y = avg_state, color = "Average State Value"), size = 1) +
-    geom_point(aes(y = avg_state, color = "Average State Value"), size = 3) +
+  # Plot "state1" and "state2" separately but on the same plot
+  p4_save <- ggplot(p4_avg, aes(x = stage, y = avg_state, color = state)) +
+    geom_line(size = 1) +
+    geom_point(size = 3) +
     labs(x = "Stage", y = "Average Value") +
     theme_minimal() +
-    scale_x_continuous(breaks = seq(min(p4_avg$stage)-1, max(p4_avg$stage), by = 5))
+    scale_x_continuous(breaks = seq(min(p4_avg$stage) - 1, max(p4_avg$stage), by = 5))
+  
+  
   
   print(p4_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #               Plot 5: Pct Action            #
@@ -165,7 +182,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
               denominator_count = sum(!is.na(action_vals)))
   
 
-  png(sprintf("%s/pct_action_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/pct_action_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
   p5_save <- ggplot(p5_percentage, aes(x = stage, y = percentage)) +
     geom_line(aes(y = percentage), size = 1) +
@@ -178,7 +195,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     scale_x_continuous(breaks = seq(min(p5_percentage$stage) - 1, max(p5_percentage$stage), by = 5))
   
   print(p5_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #            Plot 6: Pct Gamma Delta          #
@@ -201,7 +218,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
               censor_count = sum(!is.na(delta)))
   
   
-  png(sprintf("%s/pct_gamma_delta_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
+  #png(sprintf("%s/pct_gamma_delta_%spts_%sstage_%s.png", new_folder, num_patients, num_stages, other_text), units = "px", res = 75)
   
   p6_save <- ggplot(p6_percentage, aes(x = stage, group = 1)) +
     geom_line(aes(y = pct_gamma, color = "Percentage of Failures"), size = 1) +
@@ -212,7 +229,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     scale_x_continuous(breaks = seq(min(p6_percentage$stage) - 1, max(p6_percentage$stage), by = 5))
   
   print(p6_save)
-  dev.off()
+  #dev.off()
   
   # ------------------------------------------- #
   #            Stage Event Time Summary         #
@@ -232,7 +249,7 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
     ) %>%
     rename(Stage = Var3)
   
-  write_xlsx(summary_table, path =sprintf("~/Desktop/survrf/Outputs/event.time_summary_%spts_%sstage_%s.xlsx", num_patients, num_stages, other_text))
+  #write_xlsx(summary_table, path =sprintf("~/Desktop/survrf/Outputs/event.time_summary_%spts_%sstage_%s.xlsx", num_patients, num_stages, other_text))
   
   
   message("Plots and summary table generated successfully!")
@@ -240,7 +257,5 @@ generate_plots_and_summary <- function(pts, num_patients, num_stages, other_text
 
 
 # Example usage:
-# generate_plots_and_summary(pts)
-
-
+#generate_plots_and_summary(obs.data$output,num_patients = 75, num_stages = 40)
 

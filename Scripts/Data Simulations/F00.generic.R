@@ -27,30 +27,30 @@ output2observable <- function(output, stage = NULL) {
   nm = dimnames(output)[[2]]
 
   ## names of the covariates
-  nm.covar = c("baseline1", "baseline2", "state", "prior.visit.length", "cumulative.time", "nstages", "action.1.count", "action.0.count")
+  nm.covar = c("baseline1", "baseline2", "state1", "state2", "prior.visit.length", "cumulative.time", "nstages", "action.1.count", "action.0.count")
   nm.stage =  c("event.time", "delta", "action", nm.covar)
 
   # initializes empty DF with subject ID column for the first stage, taken from "output"
-  df <- data.frame(subject.id = output[, "subj.id", 1])
+  df <- data.frame(subj.id = output[, "subj.id", 1])
 
   # iterates through each stage to make
   # df.i: DF containing columns related to Time, delta, action, covariates for stage i
   # mergecolumns of this into main dataframe (DF)
   for (i in stage) {
-    df.i <- data.frame(output[, nm.stage, i])
+    df.i <- data.frame(matrix(output[, nm.stage, i], ncol = length(nm.stage), byrow = FALSE))
     names(df.i) <- paste(c("T", "delta", "A", nm.covar), i, sep = "_")
     df <- cbind(df, df.i)
   }
 
   # calculates new delta value in DF
-  df$delta =
-    # selects columns starting with "delta_"
-    df %>% dplyr::select(starts_with("delta_")) %>%
-    # converts selected cols into matrix
-    as.matrix %>%
-    # applies function to each row to see if any values == 0 (Censoring)
-    # this returns a 1 if there's no 0, returns a 0 if there is a 0
-    apply(1, function(s) 1 - any(s == 0, na.rm = TRUE))
+#  df$delta =
+#    # selects columns starting with "delta_"
+#    df %>% dplyr::select(starts_with("delta_")) %>%
+#    # converts selected cols into matrix
+#    as.matrix %>%
+#    # applies function to each row to see if any values == 0 (Censoring)
+#    # this returns a 1 if there's no 0, returns a 0 if there is a 0
+#    apply(1, function(s) 1 - any(s == 0, na.rm = TRUE))
   df
 }
 

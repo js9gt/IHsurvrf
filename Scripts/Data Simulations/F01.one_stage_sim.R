@@ -72,9 +72,10 @@ one_stage <- function(
   time.max = 10000,
   terminal.stage = FALSE,
   input.state.value = 0,
-  a1 = -0.3, b1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
-  a2 = 1.2, b2 = -0.05, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
-  a3 = 1.2, b3 = -0.05, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
+  input.state.value2 = 0,
+  a1 = -0.3, b1 = 0.1, c1 = 0.1, z1 = -0.3, p1 = -1, g1 = -0.2, h1 = 0.2, r1 = -0.8,
+  a2 = 1.2, b2 = -0.05, c2 = 0.1, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
+  a3 = 1.2, b3 = -0.05, c3 = 0.1, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
   tau = 50,
   #dimensions of covariates for state vector generated-- 20MAR2024 not needed bc p is a global variable now
   #p = 1,
@@ -96,7 +97,7 @@ one_stage <- function(
       # If not at risk, assign NA values to output variables
       output = c(event.time = NA, gamma = NA, delta = NA,
                  failure.time = NA, treatment.time = NA, censor.time = NA, time.max = NA,
-                 action = NA, state = NA, prior.visit.length = prior.visit.length, nstages = NA, rate.failure = NA,
+                 action = NA, state1 = NA, state2 = NA, prior.visit.length = prior.visit.length, nstages = NA, rate.failure = NA,
                  rate.next.visit = NA, rate.censoring = NA)
       return(output)
     }
@@ -108,15 +109,20 @@ one_stage <- function(
         ## we input values for the state. For the first state, the value is generated from U(0, 1) distribution
         ## this is input here for single stage data generation, then will be updated based on depepdency in the next stage
       ## then, the updates state values from the dependency will be input here
-       state = input.state.value
+       state1 = input.state.value
+       state2 = input.state.value2
 
 
       ### if policy is NULL, we just generate propensity scores from the state
       if (policyTF == FALSE) {
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
-      propensity_scores = predictedPropensity(state = state)
+      propensity_scores = predictedPropensity(state1 = state1, state2 = state2)
+      
+      ## allow action to be -1 or 1 instead of 0 and 1 so that there's a treatment effect
+      ## suppressWarnings(rbinom(1, 1, propensity_scores) * 2 - 1)
 
-      action = rbinom(n = 1, size = 1, prob = propensity_scores)
+      action = rbinom(1, 1, propensity_scores)
+      
 
       ### if policy is NOT null, we use the input action
       } else{
@@ -128,15 +134,15 @@ one_stage <- function(
 
       # Rate of failure time (Tk)
       rate_failure = exp(
-        a1 + b1 * state + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
-          r1 * action * state * nstages * cumulative.length*prior.visit.length
+        a1 + b1 * state1 + c1*state2 + z1 * nstages + p1 * cumulative.length + g1 * action*state1 + h1*prior.visit.length +
+          r1 * action * state1*state2 * nstages * cumulative.length*prior.visit.length
       )
 
 
       # Rate of time to next visit (Uk)
       rate_time_next_visit = exp(
-        a2 + b2 * state + z2 * nstages + p2 * cumulative.length + g2 * action + h2*prior.visit.length +
-          r2 * action * state * nstages * cumulative.length*prior.visit.length
+        a2 + b2 * state1 + c2*state2 + z2 * nstages + p2 * cumulative.length + g2 * action*state1 + h2*prior.visit.length +
+          r2 * action * state1*state2 * nstages * cumulative.length*prior.visit.length
       )
 
 
@@ -145,8 +151,8 @@ one_stage <- function(
       # Rate of time to censoring (Ck)
       #delta is 1 if a patient is not censored, 0 if a patient is censored
       rate_censoring = exp(
-        a3 + b3 * state + z3 * nstages + p3 * cumulative.length + g3 * action + h3*prior.visit.length +
-          r3 * action * state * nstages * cumulative.length*prior.visit.length
+        a3 + b3 * state1 + c3*state2 + z3 * nstages + p3 * cumulative.length + g3 * action*state1 + h3*prior.visit.length +
+          r3 * action * state1*state2 * nstages * cumulative.length*prior.visit.length
       )
 
       # Generating time to censoring (censor.time) (Ck) using the rate from an exponential distribution
@@ -218,7 +224,7 @@ one_stage <- function(
     # Construct output vector of relevant variables and their values
     output = c(event.time = X, gamma = gamma, delta = delta,
                failure.time = failure.time, treatment.time = trt.time, censor.time = censor.time, time.max = time.max,
-               action = action, state = state, prior.visit.length = prior.visit.length, nstages = nstages, rate.failure = rate_failure,
+               action = action, state1 = state1, state2 = state2, prior.visit.length = prior.visit.length, nstages = nstages, rate.failure = rate_failure,
                rate.next.visit = rate_time_next_visit, rate.censoring = rate_censoring)
 
     # Return a list containing statistics
@@ -227,7 +233,7 @@ one_stage <- function(
 }
 
 ## vectorizing the following arguments
-one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative.length", "input.state.value", "at.risk",
+one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative.length", "input.state.value", "input.state.value2", "at.risk",
                                                          "prior.visit.length", "time.max", "input.policy.action"))
 
 ### example code after fitting propensity model in F02.multistage_sim.R

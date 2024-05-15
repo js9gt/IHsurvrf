@@ -64,7 +64,13 @@ setClass(
     "optimal" = "Optimal",
 
     ## stores each patient's shifted probabilities from appending
-    "stageappend" = "matrix"
+    "stageappend" = "matrix",
+
+    ## a logical statement telling us we have enough patients in the current stage (at least 5)
+    "sumElig" = "logical",
+
+    ## TRUE means we only have 1 treatment level present-- we need at least 2
+    "enoughtrt" = "logical"
   )
 )
 
@@ -303,6 +309,35 @@ setMethod(f = ".Predict",
   if (sum(elig) == 0L)
     stop("no cases have complete data", call. = FALSE)
 
+  # Check if sum(elig) < 3
+#  if (sum(elig) < 5) {
+#    return(new(
+#      Class = "DTRSurvStep",
+#      "txName" = "A",
+#      "txLevels" = c(0, 1),
+#      "model" = mod,
+#      "survRF" = NA,
+#      "eligibility" = T,
+#
+#      ## predicted values for all treatment levels
+#      "valueAllTx" = list(0, 0),
+#
+#      ## optimal treatment recommendations extracted
+#      "optimal" = new("Optimal",
+#                      optimalTx = c(0),  # Initial value for optimalTx slot
+#                      optimalY = matrix(0, nrow = 2, ncol = 2),  # Initial value for optimalY slot
+#                      type = "mean"),
+#
+#      ## adding a new slot to retrieve the appending probabilities for each stage
+#      "stageappend" = matrix(0, nrow = 2, ncol = 2),
+#
+#      ## logical if we have enough patients in the stage to move on
+#      ## TRUE means we don't
+#      "sumElig" = TRUE
+#
+#    ))
+#  }
+
   ## displays message indicating the number of cases that are still eligible for analysis at this stage
 
   message("cases in stage: ", sum(elig))
@@ -469,6 +504,37 @@ setMethod(f = ".Predict",
 
   if (length(x = txLevels) == 1L) {
     message("***only one treatment level in data***")
+
+    ## also return early,with indicator for txLevel
+#    return(new(
+#      Class = "DTRSurvStep",
+#      "txName" = "A",
+#      "txLevels" = c(0, 1),
+#      "model" = mod,
+#      "survRF" = NA,
+#      "eligibility" = T,
+#
+#      ## predicted values for all treatment levels
+#      "valueAllTx" = list(0, 0),
+#
+#      ## optimal treatment recommendations extracted
+#      "optimal" = new("Optimal",
+#                      optimalTx = c(0),  # Initial value for optimalTx slot
+#                      optimalY = matrix(0, nrow = 2, ncol = 2),  # Initial value for optimalY slot
+#                      type = "mean"),
+#
+#      ## adding a new slot to retrieve the appending probabilities for each stage
+#      "stageappend" = matrix(0, nrow = 2, ncol = 2),
+#
+#      ## logical if we have enough patients in the stage to move on
+#      ## TRUE means we don't
+#      "sumElig" = FALSE,
+#
+#      ## TRUE means we only have 1 treatment level present-- we need at least 2
+#      "enoughtrt" = TRUE
+#
+#    ))
+
   }
 
   ## if .Pooled (defined in class_TreeConditions.R) which returns a logical vector,
@@ -630,7 +696,14 @@ setMethod(f = ".Predict",
     "optimal" = resV$optimal,
 
     ## adding a new slot to retrieve the appending probabilities for each stage
-    "stageappend" = pr
+    "stageappend" = pr,
+
+    ## logical if we have enough patients in the stage to move on
+    "sumElig" = FALSE,
+
+    ## TRUE means we only have 1 treatment level present-- we need at least 2
+    "enoughtrt" = FALSE
+
   )
 
   ## return newly created "DTRSurvStep" object

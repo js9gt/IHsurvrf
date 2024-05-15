@@ -24,8 +24,8 @@ stat.stage <- matrix(NA, nrow = n.sim, ncol = n.stages,
 ########## simulation ##################
 ## initialize a data.frame called "result"  with columns for various statistics
 ## gets a result for each iteration of the simulation (AKA one row = values for one sim)
-result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, zom = NA, time.obs = NA,
-                     time.IHsurvrf = NA, time.zom = NA, percent.censor = NA)  # time for each method (both policy est and eval)
+result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, change.integral = NA, time.obs = NA,
+                     time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
 
 ## assign an attribute to "result" containing a list of 2 elements
 ## stores value of criterion used
@@ -42,8 +42,11 @@ for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
 
 
 ## we want the no censor part, IHsurvRV, ZOM to have no censoring
-arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.zom <-
+arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.trueopt <-
   list(
+    ## we don't want to start at the very last stage to avoid issues with too few
+    ## ## stage that we start at
+    stage.start = ss,
     n.sample = n, max_stages = n.stages, tau = tau,
     ## initially all patients are at risk
     at.risk = 1,
@@ -68,6 +71,7 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.zom <-
     ## this is a DTRSurv object
     policy = NULL,
     summary = TRUE
+
   )
 
 ## for the observed data, we allow for censoring, everything else doesn't have censoring
@@ -79,11 +83,11 @@ arg.obs$censoringyesno <- TRUE
 #### this is the number of samples per simulation
 ### Q: why do do we overwrite this from n to n.eval?
 ## observed data still has the regular number of samples-- I think this is "training data" so we have more samples
-arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.zom$n.sample <-
+arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.trt1$n.sample <-
   n.eval
 
 ## setting nodesize to 5
-nodesize = 5
+nodesize = 3
 ## setting minimum number of deaths by rounding sqrt of "nodesize" to nearest integer (no decimals)
 mindeath = round(sqrt(c(nodesize)), 0)
 
@@ -104,11 +108,12 @@ tt(1)
 # generate multistage obs.data (allows for censoring) using arg.obs defined earlier
 set.seed(sim*10000)
 ## do.call: calls a function and a list of arguments to be passed to it
+## observed data uses "n" number of patients which is the sample size
 obs.data <- do.call(simulate_patients, arg.obs)
 
 # observed policy value
 ##### simulate a set of data again, when there is no censoring (AKA) using a censoring value of -10 for all surv.prev
-## also use n.eval as number of samples
+## also use n.eval as number of samples: 10000
 set.seed(sim*10000 + 10)
 obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 
@@ -121,11 +126,13 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 ## crit.value is put at 5 (5 year survival rate) in C21.simulation_run.R
 
 ## this observed policy is based on n.eval number of reps to calculate a single value of observed policy
+## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
 result[sim, "observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
 
 ## note: 0 = censored, 1 = not censored, so we calculate the proportion of 1's from the generated observed data, then subtract from 1
 ####### USES OBSERVED DATA, not policy data
-result[sim, "percent.censor"] <- 1 - mean(obs.data$summary$censor.status, na.rm = TRUE)
+result[sim, "proportion.censor"] <- 1 - mean(obs.data$summary$censor.status, na.rm = TRUE)
+
 
 # select columns named "n_1", "n_2"... "n_nstages" which we created earlier
 result[sim, paste0("n_", 1:n.stages)] <-
@@ -153,16 +160,11 @@ cat ("2. IHsurvrf \n")
 if (!skip.IHsurvrf) {
   cat ("  2. IHsurvrf - Policy estimation \n")
 
-  # Generate the formulas for each stage-- NOTE that this does not include action (since we are not doing pooled analysis)
-  models = lapply(1:n.stages, function(x) {
-    # Create the formula with all terms for this stage
-    paste0("Surv(T_", x, ", delta_", x, ") ~ baseline1_", x, " + baseline2_", x, " + state_", x, " + prior.visit.length_", x,
-           " + cumulative.time_", x, " + nstages_", x, " + action.1.count_", x, " + action.0.count_", x,
-           ## comment this line out if we don't want action
-           " + A_", x
-           ) %>%
-      as.formula
-  })
+  # Generate the formulas for each stage-- NOTE that this formula is the same across ALL stages
+  models = Surv(`T`, delta) ~ A + baseline1 + baseline2 + state1 + state2 + prior.visit.length + cumulative.time + nstages + action.1.count + action.0.count
+
+
+  ##### CHECK THESE ARGUMENTS
 
   ## create new list of arguments to use IHsurvrf
   ## used the observed data generated earlier (once it's in observable form)
@@ -173,7 +175,8 @@ if (!skip.IHsurvrf) {
                   ## list of models generated above for each stage
                   models = models,
                   ## use the observed lengths of the previous stages in the current stage's model as covariates
-                  usePrevTime = TRUE,
+                  ## we don't need this as our data simulations currently track the cumulative time
+                  usePrevTime = FALSE,
                   ## maximum study length, set as 10 in C21.simulation_run.R
                   tau = tau,
                   ## distribution to draw timepoints from
@@ -207,23 +210,25 @@ if (!skip.IHsurvrf) {
                   nTree = 300,
 
                   ## maximum number of covariates to consider-- a vector of covars for each decision point
-                  mTry = rep(sqrt(p), n.stages),
+                  mTry = rep(sqrt(10), n.stages),
 
-                  ## false = using stratified analysis
+                  ## false = using stratified analysis-- don't need to include action in model
                   pooled = TRUE,
 
                   ## Covariates for which the number of splits (s_i) is less
                   #'    than s*stratifiedSplit/d are explored preferentially
                   #     (s is the total number of splits, d is the
                   #'    total number of covariates under consideration).
-                  stratifiedSplit = 0.1)
+                  stratifiedSplit = 0.1,
+                  stageLabel = "_",
+                  stage.start = ss)
 
   ## setting a different seed
-  set.seed(sim*10000 + 1)
+  set.seed(sim*10000 + 5)
 
   ## feed arguments to dtrSurv() function: loops through each of the stages using Q-learning, using the predicted optimal from the previous stage and carrying it back
   ## the result should be the predicted optimal
-  optimal.IHsurvrf <- do.call(dtrSurv, c(arg.IHsurvrf2, list(nodeSize = nodesize, minEvent = mindeath )))
+  optimal.IHsurvrf <- do.call(IHdtrSurv, c(arg.IHsurvrf2, list(nodeSize = nodesize, minEvent = mindeath )))
 
   ## if the first element of the class == try-error, this value will be TRUE
   IHsurvrf.error <- class(optimal.IHsurvrf)[1] == "try-error"
@@ -231,10 +236,12 @@ if (!skip.IHsurvrf) {
   ##if csk.error is FALSE (code works properly), then assign the results of the dtrSurv() which are optimal, to the "policy" slot of arg.csk
   ## this is of class DTRSurv
   arg.IHsurvrf$policy <- if (!IHsurvrf.error) optimal.IHsurvrf
+  
+
 
   ## remove the results from dtrSurv()
   rm(optimal.IHsurvrf); gc()
-
+  
   ############### evaluating the results of the estimated policy: we used the observed data with 100 patients (or whatever n is) to train the RF
 
 
@@ -246,7 +253,8 @@ if (!skip.IHsurvrf) {
         ## use arguments provided in original arg.csk to generate new multistage data-- with POLICY added
         ### this is the same set of arguments we used to generate multistage data for the observed data
         ### basically, we predict the patient's optimal action after feeding them through the trained RF
-        ### same number of patients too
+        ### the number of patients generated here is of n.eval which is 10000
+
         if (!IHsurvrf.error) IHsurvrf.data.rep <- do.call(simulate_patients, arg.IHsurvrf)
 
 
@@ -258,10 +266,16 @@ if (!skip.IHsurvrf) {
         ## crit.value is put at 5 (5 year survival rate) in C21.simulation_run.R
 
         ## calculate value function of the new generated data-- generated based on predicted optimal policy
+        ## this should acount for ss as one of the inputs in arg.IHsurvrf which truncates the summary data to only look at 1:ss stages
         if (!IHsurvrf.error) result[sim, "IHsurvrf"] <- val.fn(IHsurvrf.data.rep$summary$cumulative.event.time)
 
         ## tt(2, reset = TRUE): resets timer for later measurements, and retreives the elapsed time in terms of mins for the time it takes to estimate and evaluate the policy
         result[sim, "time.IHsurvrf"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+        
+        result[sim, "change.integral"] <- unique(IHsurvrf.data.rep$summary$avg.last.iter.change)
+        
+        ####### gets the number of iterations from the training data for convergence
+        result[sim, "num.convergence.it"] <- unique(IHsurvrf.data.rep$summary$convergence.iterations)
 
         ## reset the policy to NULL and clean
         arg.IHsurvrf$policy <- NULL; gc()
@@ -275,62 +289,76 @@ if (!skip.IHsurvrf) {
 ###############################################################
 
 
-cat ("6. Estimation - zero-order model\n")
+cat ("3. Estimation - Treatment 1 Only \n")
 ## all pts treated identically regardless of their characterstics
 ## chosen regime yields most favorable outcomes across pt population based on model predictions
 ## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
-if (!skip.zom) {
-  cat ("  6. zero-order model - Policy estimation \n")
-  set.seed(sim*10000 + 5)
-    ## If an error or warning occurs during the execution, it will be captured, and the execution won't halt
-    ## Instead, the program will continue to execute
-  optimal.zom <- try(dtrSurv(data = data.df,
-                                       txName = paste("A", 1:n.stages, sep = "_"),
-                                       models = models,
-                                       usePrevTime = TRUE,
-                                       tau = tau,
-                                       timePoints = "uni",
-                                       nTimes = 200,
-                                       criticalValue = criterion, evalTime = crit.value,
-                                       splitRule = ifelse(criterion == "mean", "mean", "logrank"),
-                                       ERT = TRUE, uniformSplit = TRUE, replace = FALSE,
-                                       randomSplit = 0.2,
+if (!skip.trt1) {
+  
+  ## create an object of claass "trt1" to input as the policy
+  trt1 <- structure(1, class = "trt1")
 
-                                       ##### these are different -- these were:
-                                       ## minEvent: round(sqrt(c(nodesize)), 0)
-                                       # this means that a node can be split even if there's only 1 event in a node
-                                       ## nodeSize = 5
-                                       # large node size: 10,000 to indicate that all pts remain in root node (unless > 10,000)
-                                       minEvent = 1, nodeSize = 1e+5, # zero-order model
-                                       #########
-
-                                       nTree = 300,
-
-                                       #### this is different--
-                                       ## was rep(sqrt(p), n.stages)
-                                       # we only consider 1 covariate for splitting
-                                       mTry = rep(1, n.stages),
-                                       pooled = FALSE,
-
-                                       #### this is different--
-                                       ## was 0.1
-                                       # means there's no preferential splitting for using covariates that are underused
-                                       stratifiedSplit = 0))
-
-  zom.error <- class(optimal.zom)[1] == "try-error"
-  ## add the estimated policy from ZOM to the argumentto simulate multistage data
-  arg.zom$policy <- if (!zom.error) optimal.zom
-  rm(optimal.zom); gc()
+  ## add the input policy which is "trt1" 
+  arg.trt1$policy <- trt1
 
 
-  cat ("  6. zero-order model - Evaluation \n")
+  cat ("  3. Treatment 1 only (zero-order model) - Evaluation \n")
   set.seed(sim*10000 + 10)
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
-  if (!zom.error) zom.data.rep <- do.call(simulate_patients, arg.zom)
-  if (!zom.error) result[sim, "zom"] <- val.fn(zom.data.rep$summary$cumulative.event.time)
-  result[sim, "time.zom"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
-  arg.zom$policy <- NULL; gc()
-  rm(zom.data.rep); gc()
+  trt1.data.rep <- do.call(simulate_patients, arg.trt1)
+  
+  result[sim, "trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
+  result[sim, "time.trt1"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  arg.trt1$policy <- NULL; gc()
+  rm(trt1.data.rep); gc()
+}
+
+cat ("4. Estimation - Treatment 0 Only \n")
+## all pts treated identically regardless of their characterstics
+## chosen regime yields most favorable outcomes across pt population based on model predictions
+## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
+if (!skip.trt0) {
+  
+  ## create an object of claass "trt1" to input as the policy
+  trt0 <- structure(0, class = "trt0")
+  
+  ## add the input policy which is "trt1" 
+  arg.trt0$policy <- trt0
+  
+  
+  cat ("  3. Treatment 0 only (zero-order model) - Evaluation \n")
+  set.seed(sim*10000 + 10)
+  ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
+  trt0.data.rep <- do.call(simulate_patients, arg.trt0)
+  
+  result[sim, "trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
+  result[sim, "time.trt0"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  arg.trt0$policy <- NULL; gc()
+  rm(trt0.data.rep); gc()
+}
+
+cat ("5. Estimation - True Optimal \n")
+## all pts treated identically regardless of their characterstics
+## chosen regime yields most favorable outcomes across pt population based on model predictions
+## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
+if (!skip.opt) {
+  
+  ## create an object of claass "trt1" to input as the policy
+  trueopt <- structure(0, class = "trueopt")
+  
+  ## add the input policy which is "trt1" 
+  arg.trueopt$policy <- trueopt
+  
+  
+  cat ("  3. True Optimal- Evaluation \n")
+  set.seed(sim*10000 + 10)
+  ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
+  arg.trueopt.data.rep <- do.call(simulate_patients, arg.trueopt)
+  
+  result[sim, "trueopt"] <- val.fn(arg.trueopt.data.rep$summary$cumulative.event.time)
+  result[sim, "time.trueopt"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  arg.trueopt$policy <- NULL; gc()
+  rm(arg.trueopt.data.rep); gc()
 }
 
 
@@ -344,7 +372,7 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/pt75.csv", row.names=FALSE)
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/test_trueopt_at.risk.csv", row.names=FALSE)
 
 
 
