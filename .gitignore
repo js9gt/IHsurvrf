@@ -14,3 +14,5 @@ Outputs/*.xlsx
 # ignore all csv and txt files from sims
 Outputs/*.txt
 Outputs/*.csv
+
+*.RData
