@@ -10,3 +10,7 @@ Figures/**
 # ignore all excel outputs
 Outputs/*.xlsx
 .Rproj.user
+
+# ignore all csv and txt files from sims
+Outputs/*.txt
+Outputs/*.csv
