@@ -134,6 +134,28 @@ IHdtrConv <- function(data,
     # also update "A" column
     long_data$A[long_data$stage == nDP][which(eligibility == 1)] <- optimal_treatments
 
+    #############################
+    #############################
+    #############################
+    ####### VISUALIZATION #######
+
+    ## shifted probability output after adding new point for nDP - 3
+
+    xaxis <- params@timePoints
+    ## nDP
+    y1 <- last.stage.pred$optimal@optimalY[1,]
+
+
+
+    plot(xaxis, y1)
+    title("Convergence 1: stage nDP prediction")
+
+
+    #############################
+    #############################
+    #############################
+    #############################
+
     ##########################################
     ## putting optimal predictions together ##
     ##########################################
@@ -299,7 +321,7 @@ IHdtrConv <- function(data,
   ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
   ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
   ## with columns with values that are non-0
-  survMatrix[, eligibility] <-  shiftedprob1[, colSums(shiftedprob1) != 0]
+  survMatrix[, which(eligibility == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
 
 
   # shift the survival function down in time (T_i - Tq) and
@@ -325,6 +347,41 @@ IHdtrConv <- function(data,
     ## probably transforming survival times into probabilities?
     surv2prob = TRUE
   )
+
+  #############################
+  #############################
+  #############################
+  ####### VISUALIZATION #######
+
+  ## shifted probability output after adding new point for nDP - 3
+
+
+  ## nDP
+  y1 <- .shiftMat(
+    timePoints = .TimePoints(object = params),
+
+    ## extracts columns from survMatrix corresponding to cases that are eligible
+    ## this is a matrix matrix where each column represents survival function for an individual
+    survMatrix = survMatrix[, elig_append1, drop = FALSE],
+
+    ## extracts survival times corresponding to eligible cases
+    ## this is how much to shift survival function for each individual
+    shiftVector = response_append1[elig_append1],
+
+    ## probably transforming survival times into probabilities?
+    surv2prob = FALSE
+  )[, 1]
+
+
+
+  plot(xaxis, y1)
+  title("Convergence 1: stage nDP - 1 appending to nDP prediction")
+
+
+  #############################
+  #############################
+  #############################
+  #############################
 
   ## sets very small values in pr to 0
 
@@ -376,6 +433,7 @@ IHdtrConv <- function(data,
     terms_with_stage <- paste0(terms, "_", (i+1))
     updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
     x = get_all_vars(updated_formula, data)
+    ## remove stage suffixto use in prediction
     new_col_names <- gsub(paste0("_", (i+1), "$"), "", colnames(x))
     colnames(x) <- new_col_names
     args <- list(prev.iteration, newdata = x)
@@ -406,11 +464,13 @@ IHdtrConv <- function(data,
     # Initialize the shifted probability matrix
     ## we overwrite the eligible patients
 
-    shiftedprob1 <- matrix(NA, nrow = nTimes, ncol = length(eligibility))
+    shiftedprob1 <- matrix(0, nrow = nTimes, ncol = length(eligibility))
 
     ### we retrieve the predicted survival curves for the patients in last.stage.pred@optimal@optimalY
     ## do this only for eligible patients
     shiftedprob1[, which(eligibility == 1) ] <- t(last.stage.pred$optimal@optimalY)
+
+
 
 
     ## now, we want insert these predictions into the first column of a combined probability with optimal predictions from each stage
@@ -505,7 +565,7 @@ IHdtrConv <- function(data,
     ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
     ## with columns with values that are non-0
 
-    survMatrix[, eligibility] <-  shiftedprob1[, is.na(colSums(shiftedprob1)) == 0]
+    survMatrix[, eligibility] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
 
 
     # shift the survival function down in time (T_i - Tq) and
@@ -566,6 +626,68 @@ IHdtrConv <- function(data,
     }
   }
 
+  ## now, at the first stage, we don't have optimal treatments for patients yet since the survival curve relies on stage 2 predictions, and then appended back
+  ## we need to feed stage 1 data through the forest in order to predict the optimal treatment
+
+  ### we need to re-construct the data to be in a predictable format
+  # Extract the response variable from the formula
+  response_var <- as.character(formula(prev.iteration@FinalForest@model)[[2]][-1])
+
+  # Append the current stage number to each term
+  response_with_stage <- paste0(response_var, "_", 1)
+
+  # Extract the terms of the formula excluding the response variable
+  terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
+
+  # Append the current stage number to each term
+  terms_with_stage <- paste0(terms, "_", 1)
+
+  # Reconstruct the formula
+  updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+  x = get_all_vars(updated_formula, data)
+
+  ### for the new data, we need to get rid of the stage labels since our model doesn't have any stage labels:
+  # Remove "_stage" suffix from all column names
+  new_col_names <- gsub(paste0("_", 1, "$"), "", colnames(x))
+  colnames(x) <- new_col_names
+
+  ## the arguments for predicting include only the data from the last stage, and the information from the final forest
+  args <- list(prev.iteration, newdata = x)
+
+  ## feeds this into predict() function which is defined in class_DTRSurv.R
+  ## acts on objects of class DTRSurv
+  ## the new data we are feeding through the forest is the covariates at the current stage
+
+
+  ## this then subsets to objects of class DTRSurvStep, and calls .Predict() in class_IH.DTRSurv.R
+  ## .Predict() on objects of DTRSurvStep is defined in class_IH.DTRSurvStep.R
+  ## this predicts based on the results of the final forest
+  ## this subsets to the "SurvRF" object to act on which is defined in class_IH.SurvRF.R
+
+  ## follow the predicted optimal policy based on the input policy
+  last.stage.pred <- do.call(predict, args)
+
+
+  ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+  # Iterate over each stage of interest
+
+  # Extract optimal treatments for the current stage
+  optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+  # We need an index of eligibility for the current stage-- AKA the patients who are present in the last stage get 1, otherwise they get a 0
+  ### patients who are eligible are ones who have a complete case for x
+  eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
+
+  # Update A.opt.iter2 column for patients in the current stage for tracking
+  long_data$A.opt.iter2[long_data$stage == 1][which(eligibility == 1)] <- optimal_treatments
+
+  # also update "A" column
+  long_data$A[long_data$stage == 1][which(eligibility == 1)] <- optimal_treatments
+
+
+
+
   ## end of the for loop
 
   ### now, we use the full data as well as the input probabilities to fit a new random forest
@@ -606,7 +728,7 @@ IHdtrConv <- function(data,
   # Initialize the shifted probability matrix
   ## ## each patient will have k + 1 --> k stages; nrow(data) is the number of patients
   ## we overwrite the eligible patients
-  shiftedprobfinal <- matrix(NA, nrow = nTimes, ncol = length(eligibility_final) )
+  shiftedprobfinal <- matrix(0, nrow = nTimes, ncol = length(eligibility_final) )
   shiftedprobfinal[,eligibility_final] <-t(conv1@optimal@optimalY)
 
 
@@ -626,12 +748,29 @@ IHdtrConv <- function(data,
   ## ex) mean 1 (for trt1), mean2 (for trt2); we identify which the maximum is
   # value obtained from the first stage analysis
 
-  ## after backwards recursion is complete, calculate the estimated value from the first stage
+  ## after backwards recursion is complete, calculate the estimated value from the first stage: we only want to subset to eligible patients from the first stage
   ## calculates mean values of expected survival times and survival probabilities
   ## this is calculated across all PTS, so, once all pts have received their estimated optimal treatment --> what's the mean of all their survival times
   ## .meanValue() function defined in class_DTRSurvStep.R
 
-  valueTrain <- .meanValue(object = conv1)
+  ## for the mean value, we want to only subset for the patients from the last stage, not include the value across all stage
+
+  mv_results <- matrix(0, nrow = length(eligibility_final), ncol = 2)
+  mv_results[eligibility_final, ] <- conv1@valueAllTx$mean
+
+  final_stagemv <- mv_results[seq(from = 1, to = nrow(mv_results), by = nDP), ]
+
+
+
+  valueTrain <- mean(x = apply(
+
+    ## access "mean" component of the valueAllTx slot which stores value of each tree for each treatment level
+    X = final_stagemv,
+
+    ##apply the "max" function across the margin of the mean matrix/array to apply across rows
+    ## AKA for each row (individual),take maximum value across all columns (treatment options), then calculate the mean
+    MARGIN = 1L,
+    FUN = max))
 
   ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
 

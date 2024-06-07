@@ -1192,7 +1192,7 @@ IHdtrSurv <- function(data,
 
     ## wait until the average change is less than 0.1%
 
-    if(avg_diff > 0.001) {
+    if(avg_diff > 0.0001) {
       # If the condition is met, continue the loop
       continue_iterations <- TRUE
 
@@ -1209,7 +1209,7 @@ IHdtrSurv <- function(data,
 
   }
 
-  .# Return the final result
+  # Return the final result
   return(res)
 
 }

@@ -56,7 +56,7 @@ pool1_results <- .dtrSurvStep(
   ## use the model for pooled data
   model = models,
   ## only include the data where the stage >= nDP - 2, or for the next iteration in stage nDP - 4, use nDP - 3
-  data = data[data$stage >= (k + 1) & data$stage <= nDP, ],
+  data = IHstageResults[[k + 1L]]@data[IHstageResults[[k + 1L]]@data$stage >= (k + 1) & IHstageResults[[k + 1L]]@data$stage <= nDP, ],
   priorStep = NULL,
   params = params,
   txName = "A",
@@ -116,10 +116,51 @@ pool1pr_indices <- seq(1, length(pool1_results@eligibility), by = (nDP - k))
 shiftedprob1 <- matrix(NA, nrow = nTimes, ncol = length(eligibility_pool1) )
 shiftedprob1[,eligibility_pool1] <-t(pool1_results@optimal@optimalY)
 
+#############################
+#############################
+#############################
+####### VISUALIZATION #######
+
+## shifted probability output after adding new point for nDP - 3
+
+
+## nDP
+y1 <- shiftedprob1[, 25]
+
+
+
+plot(x, y1)
+title("stage 1: pre-appending, output from previous iteration of pooling")
+
+
+#############################
+#############################
+#############################
+#############################
+
 
 ## include only shifted probabilities for eligible patients
 shiftedprob1 <- shiftedprob1[, pool1pr_indices]
 
+#############################
+#############################
+#############################
+####### VISUALIZATION #######
+
+## shifted probability output after adding new point for nDP - 3
+
+
+## nDP - 3
+y1 <- shiftedprob1[, 2]
+
+plot(x, y1)
+title("nDP-3 output frompooling 2")
+
+
+#############################
+#############################
+#############################
+#############################
 
 #########################################################
 ################# append 1 alg ############################
@@ -211,7 +252,7 @@ survMatrix[1L,] <- 1.0
 
 ## Currently, we are inloop nDP - 4 is the new data-- we have not incorporated this yet
 ## we select the eligible patients in the stage prior: stage nDP + 1 (nDp - 3)
-priorStep_elig <- pool1_results@eligibility[seq(1, length(pool1_results@eligibility), by = nDP - (k))]
+priorStep_elig <- pool1_results@eligibility[seq(1, length(pool1_results@eligibility), by = nDP - k)]
 
 ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
 ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
@@ -243,6 +284,40 @@ append1_pr_1 <- .shiftMat(
   surv2prob = TRUE
 )
 
+#############################
+#############################
+#############################
+####### VISUALIZATION #######
+
+## shifted probability output after adding new point for nDP - 3
+
+
+## nDP
+y1 <- .shiftMat(
+  timePoints = .TimePoints(object = params),
+
+  ## extracts columns from survMatrix corresponding to cases that are eligible
+  ## this is a matrix matrix where each column represents survival function for an individual
+  survMatrix = survMatrix[, elig_append1, drop = FALSE],
+
+  ## extracts survival times corresponding to eligible cases
+  ## this is how much to shift survival function for each individual
+  shiftVector = response_append1[elig_append1],
+
+  ## probably transforming survival times into probabilities?
+  surv2prob = FALSE
+)[, 2]
+
+
+
+plot(x, y1)
+title("stage 1 input into pooling 1")
+
+
+#############################
+#############################
+#############################
+#############################
 ## sets very small values in pr to 0
 
 append1_pr_1[abs(append1_pr_1) < 1e-8] <- 0.0
@@ -380,6 +455,28 @@ shiftedprob2[, eligibility_append1] <- shiftedprob2_1
 
 shiftedprob2 <- shiftedprob2[, seq(2, length(eligibility_append1), by = (nDP - (k) + 1))]
 
+#############################
+#############################
+#############################
+####### VISUALIZATION #######
+
+## shifted probability output after adding new point for nDP - 3
+
+
+## nDP
+y1 <- shiftedprob2[, 2]
+
+
+
+plot(x, y1)
+title("stage 1 output after pooling 1")
+
+
+#############################
+#############################
+#############################
+#############################
+
 
 #########################################################
 ################# append 2 alg ############################
@@ -423,6 +520,40 @@ append2_pr_1 <- .shiftMat(
   surv2prob = TRUE
 )
 
+#############################
+#############################
+#############################
+####### VISUALIZATION #######
+
+## shifted probability output after adding new point for nDP - 3
+
+
+## nDP
+y1 <- .shiftMat(
+  timePoints = .TimePoints(object = params),
+
+  ## extracts columns from survMatrix corresponding to cases that are eligible
+  ## this is a matrix matrix where each column represents survival function for an individual
+  survMatrix = survMatrix[, elig_append1, drop = FALSE],
+
+  ## extracts survival times corresponding to eligible cases
+  ## this is how much to shift survival function for each individual
+  shiftVector = response_append1[elig_append1],
+
+  ## probably transforming survival times into probabilities?
+  surv2prob = FALSE
+)[, 2]
+
+
+
+plot(x, y1)
+title("stage 1 input into pooling 2")
+
+
+#############################
+#############################
+#############################
+#############################
 
 ## sets very small values in pr to 0
 append2_pr_1[abs(append2_pr_1) < 1e-8] <- 0.0

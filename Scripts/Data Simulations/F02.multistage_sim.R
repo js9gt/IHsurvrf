@@ -50,7 +50,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                               stage.start = NULL) {
 
   ## if the stage.start is input,we generate that number of stages instead of max_stages (AKA change value of max_stages)
-  
+
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(at.risk) == 1) at.risk = rep(at.risk, n.sample)
 
@@ -65,8 +65,9 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ## input meaning the optimal policy from a method:
   ## if a policy is null, then policyTF == FALSE
   ## if a policy is input, then policyTF == TRUE
+  #policyTF <- !is.null(policy)
 
-  policyTF <- !is.null(policy)
+  ## 28MAY2024: this has been modified to populate based on if the input actions are all NA (then generate w prop score) or not (then use input policy)
 
   ## if SS is NULL, then we use the maximum number of stages (we don't consider going back any stages)
   stage.start <- ifelse(is.null(stage.start), max_stages, stage.start)
@@ -87,7 +88,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                   ## 2 for time to next visit
                   a2 = -3.9, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005,
                   a3 = -4.5, b3 = -2, z3 = -0.1, p3 = -0.1, g3 = 0.2, h3 = -0.4, r3 = -0.05,
-                  tau = tau, censoringyesno = TRUE, policyTF = FALSE, input.policy.action = NA) %>% t
+                  tau = tau, censoringyesno = TRUE, input.policy.action = NA, input_opt = NA) %>% t
 
 
 
@@ -96,13 +97,13 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ##        number of samples being simulated (input)
   ##        dim(tmp)[2]: number of columns in the tmp opject (AKA the output variables from dynamics.vec)
   ##        n.stages: number of stages (input) in simulation
-  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2 + 2, max_stages),
+  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2 + 1, max_stages),
                    ## row and column names for the array
                    dimnames = list(1:n.sample, c("subj.id", "rep.id", "baseline1", "baseline2", colnames(tmp), "at.risk",
                                                  ## new column to track number of each treatment
                                                  "action.1.count",
                                                  "action.0.count",
-                                                 "cumulative.time", "true.opt.A", "IHsurvrf.A"),
+                                                 "cumulative.time", "IHsurvrf.A"),
                                                  #colnames(baseline_covariates)),
                                    1:max_stages))
 
@@ -137,11 +138,11 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
   ## initialize an input action vector with NA values, with the same length as number of samples
   input.policy.action = rep(NA, n.sample)
-  
+
   true.opt <- rep(NA, n.sample)
   IHsurvrf_optimal <- rep(NA, n.sample)
-  
-  
+
+
 
 
   ## iterate through each stage
@@ -173,9 +174,9 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     output[, "state2", stage] <- input.state2
     output[, "prior.visit.length", stage] <- prior.visit.length
     output[, "nstages", stage] <- rep(0,n.sample)
-    
+
     ### to track true optimal and predicted optimal at each stage
-    output[, "true.opt.A", stage] <- true.opt
+    #output[, "true.opt.A", stage] <- true.opt
     output[, "IHsurvrf.A", stage] <- IHsurvrf_optimal
 
     ## we run this chunk if there was a policy input
@@ -194,9 +195,9 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ##     also computes new delta column representing censoring based on values of 0 in each stage's delta column
 
       x = output[as.logical(at.risk),,,drop = FALSE] %>% output2observable()
-      
-      
-      
+
+
+
 
       ## selects columns in x  by concatenating T_ and delta_ with stage:
       ### ex) T_1, delta_1
@@ -250,50 +251,50 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ## this then subsets to objects of class DTRSurvStep, and calls .Predict() in class_IH.DTRSurv.R
       ## .Predict() on objects of DTRSurvStep is defined in class_IH.DTRSurvStep.R
       ## this subsets to the "SurvRF" object to act on which is defined in class_IH.SurvRF.R
-      
+
       ## follow the predicted optimal policy based on the input policy
       input.policy.action[at.risk != 0] <- do.call(predict, args)$optimal@optimalTx
-      
+
       ### ADDED EXTRA
       ## for people who aren't at risk anymore, this is set to NA
       input.policy.action[at.risk == 0] <- NA
-      
+
       IHsurvrf_optimal <- input.policy.action
-      
+
       ##### now, we track the values for the average change in the last stage integral: this is tracked in the policy itself
-      
+
       prop_last_iter_change <- tail(policy@avgKM_diff, 1)
-      
+
       conv_iterations <- policy@n_it
 
       } else if (attr(policy, "class") %in% c("trt1")) {
-        
-        ## we give patient action == 1 at every stage 
-        
+
+        ## we give patient action == 1 at every stage
+
         input.policy.action[at.risk != 0] <- 1
-        
+
         prop_last_iter_change <- NA
-        
+
         conv_iterations <- NA
-        
-        
+
+
       }else if (attr(policy, "class") %in% c("trt0")){
-        
-        ## we give patient action == 0 at every stage 
+
+        ## we give patient action == 0 at every stage
         input.policy.action[at.risk != 0] <- 0
-        
+
         prop_last_iter_change <- NA
-        
+
         conv_iterations <- NA
-        
+
       }else if (attr(policy, "class") %in% c("trueopt")){
-        
+
         ### if we want to know what the true optimal is and generate observational data following that,
-        
-        
+
+
         ### if we want to know what the true optimal is and generate observational data following that,
         stage.output1 <-
-          
+
           ## generate values for current stage
           ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
           one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
@@ -303,14 +304,13 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                         a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
                         a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
                         a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-                        policyTF = policyTF,
-                        
+
                         ## inputting action == 1
                         input.policy.action = 1) %>% t
-        
-        
+
+
         stage.output2 <-
-          
+
           ## generate values for current stage
           ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
           one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
@@ -320,115 +320,65 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                         a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
                         a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
                         a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-                        policyTF = policyTF,
-                        
+
                         ## inputting action == 0
                         input.policy.action = 0) %>% t
-        
+
         ## find the maximum of the event times-- for whatever the maximum is, we should use that action
         true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
-        
+
         ## use the true policy as the input policy for people at risk
-        input.policy.action[at.risk != 0] = true.opt
-        
+        ### we omit the NA values since that's what's included for patients who are ineligible
+        input.policy.action[at.risk != 0] = na.omit(true.opt)
+
         prop_last_iter_change <- NA
-        
+
         conv_iterations <- NA
-    
+
       }
       ## for people who aren't at risk anymore, this is set to NA
       input.policy.action[at.risk == 0] <- NA
     }else{
-      
-      ## if there's no policy input, 
+
+      ## if there's no policy input,
       # otherwise, it remains as NA
       input.policy.action <- input.policy.action
-      
+
       prop_last_iter_change <- NA
-      
+
       conv_iterations <- NA
-      
+
       IHsurvrf_optimal <- NA
-      
-      
-    
+
+
+
       }
 
-    #########################
+
+    # Call the function and store the returned value
+    true.opt2 <- compute_true_opt(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
+                                 a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno)
 
 
-    #stage.output <-
-    
-    #  ## generate values for current stage
-    #  ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-    #  one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-    #                prior.visit.length = prior.visit.length,
-    #                #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-    #                terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-    #                a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-    #                a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-    #                a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-    #                policyTF = policyTF,
-    #                input.policy.action = input.policy.action) %>% t
-    
-    
-    stage.output1 <-
-      
-      ## generate values for current stage
-      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-                    prior.visit.length = prior.visit.length,
-                    #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                    terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-                    a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                    a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                    a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-                    
-                    ## changed to TRUE so that we always input action == 1 even though we have no policy
-                    policyTF = TRUE,
-                    
-                    ## inputting action == 1
-                    input.policy.action = 1) %>% t
-    
-    
-    stage.output2 <-
-      
-      ## generate values for current stage
-      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-                    prior.visit.length = prior.visit.length,
-                    #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                    terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-                    a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                    a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                    a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-                    policyTF = TRUE,
-                    
-                    ## inputting action == 0
-                    input.policy.action = 0) %>% t
-    
-    ## find the maximum of the event times-- for whatever the maximum is, we should use that action
-    true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
-    
-    ########## select the stage output for which the stage length is maximum & name it "stage.output"
-    ## generate new stage info w/ the correct optimal
-    
-    
-    stage.output <-
-      
-      ## generate values for current stage
-      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-                    prior.visit.length = prior.visit.length,
-                    #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                    terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-                    a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                    a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                    a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-                    policyTF = policyTF,
-                    
-                    ## if there's no policy input then just use NA
-                    input.policy.action = input.policy.action) %>% t
+    # Assume true.opt and true.opt2 have been computed previously
+    if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
+      selected.opt <- true.opt2
+    } else {
+      selected.opt <- true.opt
+    }
+
+    # Now selected.opt is either true.opt or true.opt2 based on the condition
+    # You can use selected.opt in the subsequent code
+    stage.output <- one_stage.vec(
+      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+      prior.visit.length = prior.visit.length,
+      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+      input.policy.action = input.policy.action, input_opt = selected.opt
+    ) %>% t
+
 
 
 
@@ -460,9 +410,8 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
     # Update action count vectors for action 0
     action.0.count <- action.0.count + (stage.output[, "action"] == 0)
-    
+
     ## update true optimal:
-    true.opt <- true.opt
     IHsurvrf_optimal <- IHsurvrf_optimal
 
 
@@ -490,7 +439,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
 
   }
-  
+
 
   if (summary) {
 
@@ -505,16 +454,49 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
              censor.status = output[cbind(1:n.sample, "delta", terminal.stage)],
              actions       = apply(output[, "action", ], 1,
                                    function(s) gsub("NA", "*", paste0(s, collapse = ""))),
-             true.opt  = apply(output[, "true.opt.A", ], 1,
+             true.opt  = apply(output[, "optimal.action", ], 1,
                                function(s) gsub("NA", "*", paste0(s, collapse = ""))),
              IHsurvrf_actions = apply(output[, "IHsurvrf.A", ], 1,
-                                      function(s) gsub("NA", "*", paste0(s, collapse = ""))), 
+                                      function(s) gsub("NA", "*", paste0(s, collapse = ""))),
              avg.last.iter.change = prop_last_iter_change,
              convergence.iterations = conv_iterations)
     return(list(output = output, summary = output.summary))
   } else {
     return(output)
   }
+}
+
+compute_true_opt <- function(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
+                             a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno) {
+  true.opt <- NULL  # Initialize true.opt
+
+  if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
+    # Generate the values of stage.output1 and stage.output2
+    stage.output1 <- one_stage.vec(
+      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+      prior.visit.length = prior.visit.length,
+      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+      input.policy.action = 1
+    ) %>% t
+
+    stage.output2 <- one_stage.vec(
+      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+      prior.visit.length = prior.visit.length,
+      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+      input.policy.action = 0
+    ) %>% t
+
+    # Compute true.opt based on stage.output1 and stage.output2
+    true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
+  }
+
+  return(true.opt)  # Return true.opt
 }
 
 

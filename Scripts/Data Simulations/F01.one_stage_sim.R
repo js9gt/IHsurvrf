@@ -83,21 +83,25 @@ one_stage <- function(
   ## this is used as an input into multistage sims
   censoringyesno = TRUE,
 
-  ## a logical for if we want to use propensity scores (FALSE), or use a policy (TRUE)
-  ## this is used as an input into multistage sims
-  ## this is used as an input into multistage sims
-  policyTF = FALSE,
 
   ## should be a vector of actions to take at the current stage
   ## the actions to take are decided based on the optimal policy
-  input.policy.action = NA) {
+  input.policy.action = NA,
+
+
+  ## the optimal action to take at that stage
+  input_opt = NA) {
+
+  ## a logical for if we want to use propensity scores (FALSE), or use a policy (TRUE)
+  ## if ALL of the input.policy.action values are NA, then we generate based on propensity score. Otherwise, we ue the input policy
+  policyTF = ifelse(sum(!is.na(input.policy.action)) != 0, T, F)
 
   while (TRUE) {
     if (!at.risk) {
       # If not at risk, assign NA values to output variables
       output = c(event.time = NA, gamma = NA, delta = NA,
                  failure.time = NA, treatment.time = NA, censor.time = NA, time.max = NA,
-                 action = NA, state1 = NA, state2 = NA, prior.visit.length = prior.visit.length, nstages = NA, rate.failure = NA,
+                 action = NA, optimal.action = NA, state1 = NA, state2 = NA, prior.visit.length = prior.visit.length, nstages = NA, rate.failure = NA,
                  rate.next.visit = NA, rate.censoring = NA)
       return(output)
     }
@@ -117,17 +121,22 @@ one_stage <- function(
       if (policyTF == FALSE) {
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
       propensity_scores = predictedPropensity(state1 = state1, state2 = state2)
-      
+
       ## allow action to be -1 or 1 instead of 0 and 1 so that there's a treatment effect
       ## suppressWarnings(rbinom(1, 1, propensity_scores) * 2 - 1)
 
       action = rbinom(1, 1, propensity_scores)
-      
+
+      optimal.action= input_opt
+
 
       ### if policy is NOT null, we use the input action
       } else{
 
         action = input.policy.action
+
+        optimal.action= input_opt
+
 
       }
 
@@ -224,7 +233,7 @@ one_stage <- function(
     # Construct output vector of relevant variables and their values
     output = c(event.time = X, gamma = gamma, delta = delta,
                failure.time = failure.time, treatment.time = trt.time, censor.time = censor.time, time.max = time.max,
-               action = action, state1 = state1, state2 = state2, prior.visit.length = prior.visit.length, nstages = nstages, rate.failure = rate_failure,
+               action = action, optimal.action = optimal.action, state1 = state1, state2 = state2, prior.visit.length = prior.visit.length, nstages = nstages, rate.failure = rate_failure,
                rate.next.visit = rate_time_next_visit, rate.censoring = rate_censoring)
 
     # Return a list containing statistics
@@ -234,7 +243,7 @@ one_stage <- function(
 
 ## vectorizing the following arguments
 one_stage.vec <- Vectorize(one_stage, vectorize.args = c("nstages", "cumulative.length", "input.state.value", "input.state.value2", "at.risk",
-                                                         "prior.visit.length", "time.max", "input.policy.action"))
+                                                         "prior.visit.length", "time.max", "input.policy.action", "input_opt"))
 
 ### example code after fitting propensity model in F02.multistage_sim.R
 #dynamics.vec(nstages = rep(0, 5),
