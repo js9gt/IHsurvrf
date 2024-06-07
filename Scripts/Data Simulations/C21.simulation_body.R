@@ -14,6 +14,40 @@ if (criterion == "mean") {
   val.fn <- function(x) {mean(x >= crit.value, na.rm = TRUE)}
 }
 
+# Function to count numbers in each row in the summary output
+## this excludes asterisks
+count_numbers <- function(row) {
+  # Remove asterisks
+  row_clean <- gsub("\\*", "", row)
+  # Count the number of remaining characters
+  n_numbers <- nchar(row_clean)
+  return(n_numbers)
+}
+
+## function to count matches for actions taken vs the optimal actions
+count_matches_without_asterisks <- function(actions_col, true_opt_col) {
+  # Function to clean a row by removing asterisks
+  clean_row <- function(row) {
+    return(gsub("\\*", "", row))
+  }
+
+  # Apply the cleaning function to both columns
+  actions_clean <- sapply(actions_col, clean_row)
+  true_opt_clean <- sapply(true_opt_col, clean_row)
+
+  # Function to count matches
+  count_matches <- function(action_str, true_opt_str) {
+    return(sum(unlist(strsplit(action_str, "")) == unlist(strsplit(true_opt_str, ""))))
+  }
+
+  # Apply the match counting function to each pair of cleaned strings
+  match_counts <- mapply(count_matches, actions_clean, true_opt_clean)
+
+  return(match_counts)
+}
+
+
+
 ## modifies a temporary filename by replacing ".rds" with "_tmp.rds"
 #filename.tmp <- gsub("\\.rds", "_tmp.rds", filename)
 
@@ -24,7 +58,9 @@ stat.stage <- matrix(NA, nrow = n.sim, ncol = n.stages,
 ########## simulation ##################
 ## initialize a data.frame called "result"  with columns for various statistics
 ## gets a result for each iteration of the simulation (AKA one row = values for one sim)
-result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, change.integral = NA, time.obs = NA,
+result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
+                     ### we also include the proportions of the actions that match the identified true optimal
+                     avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
                      time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
 
 ## assign an attribute to "result" containing a list of 2 elements
@@ -83,7 +119,9 @@ arg.obs$censoringyesno <- TRUE
 #### this is the number of samples per simulation
 ### Q: why do do we overwrite this from n to n.eval?
 ## observed data still has the regular number of samples-- I think this is "training data" so we have more samples
-arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.trt1$n.sample <-
+
+## only arg.obs still has the original number of samples
+arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.trt1$n.sample <- arg.trt0$n.sample <- arg.trueopt$n.sample <-
   n.eval
 
 ## setting nodesize to 5
@@ -128,6 +166,9 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 ## this observed policy is based on n.eval number of reps to calculate a single value of observed policy
 ## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
 result[sim, "observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
+
+
+result[sim, "avg.prop.match.opt.obs"] <- mean(count_matches_without_asterisks(obs.data.rep$summary$actions, obs.data.rep$summary$true.opt)/sapply(obs.data.rep$summary[, "actions"], count_numbers))
 
 ## note: 0 = censored, 1 = not censored, so we calculate the proportion of 1's from the generated observed data, then subtract from 1
 ####### USES OBSERVED DATA, not policy data
@@ -236,12 +277,12 @@ if (!skip.IHsurvrf) {
   ##if csk.error is FALSE (code works properly), then assign the results of the dtrSurv() which are optimal, to the "policy" slot of arg.csk
   ## this is of class DTRSurv
   arg.IHsurvrf$policy <- if (!IHsurvrf.error) optimal.IHsurvrf
-  
+
 
 
   ## remove the results from dtrSurv()
   rm(optimal.IHsurvrf); gc()
-  
+
   ############### evaluating the results of the estimated policy: we used the observed data with 100 patients (or whatever n is) to train the RF
 
 
@@ -271,11 +312,13 @@ if (!skip.IHsurvrf) {
 
         ## tt(2, reset = TRUE): resets timer for later measurements, and retreives the elapsed time in terms of mins for the time it takes to estimate and evaluate the policy
         result[sim, "time.IHsurvrf"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
-        
+
         result[sim, "change.integral"] <- unique(IHsurvrf.data.rep$summary$avg.last.iter.change)
-        
+
         ####### gets the number of iterations from the training data for convergence
         result[sim, "num.convergence.it"] <- unique(IHsurvrf.data.rep$summary$convergence.iterations)
+
+        result[sim, "avg.prop.match.opt.IHsurvrf"] <- mean(count_matches_without_asterisks(IHsurvrf.data.rep$summary$actions, IHsurvrf.data.rep$summary$true.opt)/sapply(IHsurvrf.data.rep$summary[, "actions"], count_numbers))
 
         ## reset the policy to NULL and clean
         arg.IHsurvrf$policy <- NULL; gc()
@@ -294,11 +337,11 @@ cat ("3. Estimation - Treatment 1 Only \n")
 ## chosen regime yields most favorable outcomes across pt population based on model predictions
 ## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
 if (!skip.trt1) {
-  
+
   ## create an object of claass "trt1" to input as the policy
   trt1 <- structure(1, class = "trt1")
 
-  ## add the input policy which is "trt1" 
+  ## add the input policy which is "trt1"
   arg.trt1$policy <- trt1
 
 
@@ -306,9 +349,12 @@ if (!skip.trt1) {
   set.seed(sim*10000 + 10)
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
   trt1.data.rep <- do.call(simulate_patients, arg.trt1)
-  
+
   result[sim, "trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
   result[sim, "time.trt1"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+
+  result[sim, "avg.prop.match.opt.trt1"] <- mean(count_matches_without_asterisks(trt1.data.rep$summary$actions, trt1.data.rep$summary$true.opt)/sapply(trt1.data.rep$summary[, "actions"], count_numbers))
+
   arg.trt1$policy <- NULL; gc()
   rm(trt1.data.rep); gc()
 }
@@ -318,21 +364,23 @@ cat ("4. Estimation - Treatment 0 Only \n")
 ## chosen regime yields most favorable outcomes across pt population based on model predictions
 ## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
 if (!skip.trt0) {
-  
+
   ## create an object of claass "trt1" to input as the policy
   trt0 <- structure(0, class = "trt0")
-  
-  ## add the input policy which is "trt1" 
+
+  ## add the input policy which is "trt1"
   arg.trt0$policy <- trt0
-  
-  
+
+
   cat ("  3. Treatment 0 only (zero-order model) - Evaluation \n")
   set.seed(sim*10000 + 10)
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
   trt0.data.rep <- do.call(simulate_patients, arg.trt0)
-  
+
   result[sim, "trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
   result[sim, "time.trt0"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+
+  result[sim, "avg.prop.match.opt.trt0"] <- mean(count_matches_without_asterisks(trt0.data.rep$summary$actions, trt0.data.rep$summary$true.opt)/sapply(trt0.data.rep$summary[, "actions"], count_numbers))
   arg.trt0$policy <- NULL; gc()
   rm(trt0.data.rep); gc()
 }
@@ -342,21 +390,23 @@ cat ("5. Estimation - True Optimal \n")
 ## chosen regime yields most favorable outcomes across pt population based on model predictions
 ## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
 if (!skip.opt) {
-  
-  ## create an object of claass "trt1" to input as the policy
-  trueopt <- structure(0, class = "trueopt")
-  
-  ## add the input policy which is "trt1" 
-  arg.trueopt$policy <- trueopt
-  
-  
+
+
   cat ("  3. True Optimal- Evaluation \n")
   set.seed(sim*10000 + 10)
+  ## create an object of claass "trt1" to input as the policy
+  trueopt_label <- structure(0, class = "trueopt")
+
+  ## add the input policy which is "trt1"
+  arg.trueopt$policy <- trueopt_label
+
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
   arg.trueopt.data.rep <- do.call(simulate_patients, arg.trueopt)
-  
+
+
   result[sim, "trueopt"] <- val.fn(arg.trueopt.data.rep$summary$cumulative.event.time)
   result[sim, "time.trueopt"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  result[sim, "avg.prop.match.opt.trueopt"] <- mean(count_matches_without_asterisks(arg.trueopt.data.rep$summary$actions, arg.trueopt.data.rep$summary$true.opt)/sapply(arg.trueopt.data.rep$summary[, "actions"], count_numbers))
   arg.trueopt$policy <- NULL; gc()
   rm(arg.trueopt.data.rep); gc()
 }
@@ -364,6 +414,8 @@ if (!skip.opt) {
 
 ### saving and cleaning
 print(result[sim, ])
+
+## mean of each column
 print(apply(result, 2, mean, na.rm = TRUE))
 #saveRDS(result, filename.tmp) # saving the temporary results
 gc()
