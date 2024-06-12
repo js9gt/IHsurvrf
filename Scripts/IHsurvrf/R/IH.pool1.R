@@ -56,7 +56,7 @@ pool1_results <- .dtrSurvStep(
   ## use the model for pooled data
   model = models,
   ## only include the data where the stage >= nDP - 2, or for the next iteration in stage nDP - 4, use nDP - 3
-  data = IHstageResults[[k + 1L]]@data[IHstageResults[[k + 1L]]@data$stage >= (k + 1) & IHstageResults[[k + 1L]]@data$stage <= nDP, ],
+  data = data[data$stage >= (k + 1) & data$stage <= nDP, ],
   priorStep = NULL,
   params = params,
   txName = "A",
@@ -121,16 +121,16 @@ shiftedprob1[,eligibility_pool1] <-t(pool1_results@optimal@optimalY)
 #############################
 ####### VISUALIZATION #######
 
-## shifted probability output after adding new point for nDP - 3
-
-
-## nDP
-y1 <- shiftedprob1[, 25]
-
-
-
-plot(x, y1)
-title("stage 1: pre-appending, output from previous iteration of pooling")
+### shifted probability output after adding new point for nDP - 3
+#
+#
+### nDP
+#y1 <- shiftedprob1[, 25]
+#
+#
+#
+#plot(x, y1)
+#title("stage 1: pre-appending, output from previous iteration of pooling")
 
 
 #############################
@@ -146,17 +146,17 @@ shiftedprob1 <- shiftedprob1[, pool1pr_indices]
 #############################
 #############################
 ####### VISUALIZATION #######
-
-## shifted probability output after adding new point for nDP - 3
-
-
-## nDP - 3
-y1 <- shiftedprob1[, 2]
-
-plot(x, y1)
-title("nDP-3 output frompooling 2")
-
-
+#
+### shifted probability output after adding new point for nDP - 3
+#
+#
+### nDP - 3
+#y1 <- shiftedprob1[, 2]
+#
+#plot(x, y1)
+#title("nDP-3 output frompooling 2")
+#
+#
 #############################
 #############################
 #############################
@@ -290,29 +290,29 @@ append1_pr_1 <- .shiftMat(
 ####### VISUALIZATION #######
 
 ## shifted probability output after adding new point for nDP - 3
-
-
-## nDP
-y1 <- .shiftMat(
-  timePoints = .TimePoints(object = params),
-
-  ## extracts columns from survMatrix corresponding to cases that are eligible
-  ## this is a matrix matrix where each column represents survival function for an individual
-  survMatrix = survMatrix[, elig_append1, drop = FALSE],
-
-  ## extracts survival times corresponding to eligible cases
-  ## this is how much to shift survival function for each individual
-  shiftVector = response_append1[elig_append1],
-
-  ## probably transforming survival times into probabilities?
-  surv2prob = FALSE
-)[, 2]
-
-
-
-plot(x, y1)
-title("stage 1 input into pooling 1")
-
+#
+#
+### nDP
+#y1 <- .shiftMat(
+#  timePoints = .TimePoints(object = params),
+#
+#  ## extracts columns from survMatrix corresponding to cases that are eligible
+#  ## this is a matrix matrix where each column represents survival function for an individual
+#  survMatrix = survMatrix[, elig_append1, drop = FALSE],
+#
+#  ## extracts survival times corresponding to eligible cases
+#  ## this is how much to shift survival function for each individual
+#  shiftVector = response_append1[elig_append1],
+#
+#  ## probably transforming survival times into probabilities?
+#  surv2prob = FALSE
+#)[, 2]
+#
+#
+#
+#plot(x, y1)
+#title("stage 1 input into pooling 1")
+#
 
 #############################
 #############################
@@ -459,18 +459,18 @@ shiftedprob2 <- shiftedprob2[, seq(2, length(eligibility_append1), by = (nDP - (
 #############################
 #############################
 ####### VISUALIZATION #######
-
-## shifted probability output after adding new point for nDP - 3
-
-
-## nDP
-y1 <- shiftedprob2[, 2]
-
-
-
-plot(x, y1)
-title("stage 1 output after pooling 1")
-
+#
+### shifted probability output after adding new point for nDP - 3
+#
+#
+### nDP
+#y1 <- shiftedprob2[, 2]
+#
+#
+#
+#plot(x, y1)
+#title("stage 1 output after pooling 1")
+#
 
 #############################
 #############################
@@ -526,29 +526,29 @@ append2_pr_1 <- .shiftMat(
 ####### VISUALIZATION #######
 
 ## shifted probability output after adding new point for nDP - 3
-
-
-## nDP
-y1 <- .shiftMat(
-  timePoints = .TimePoints(object = params),
-
-  ## extracts columns from survMatrix corresponding to cases that are eligible
-  ## this is a matrix matrix where each column represents survival function for an individual
-  survMatrix = survMatrix[, elig_append1, drop = FALSE],
-
-  ## extracts survival times corresponding to eligible cases
-  ## this is how much to shift survival function for each individual
-  shiftVector = response_append1[elig_append1],
-
-  ## probably transforming survival times into probabilities?
-  surv2prob = FALSE
-)[, 2]
-
-
-
-plot(x, y1)
-title("stage 1 input into pooling 2")
-
+#
+#
+### nDP
+#y1 <- .shiftMat(
+#  timePoints = .TimePoints(object = params),
+#
+#  ## extracts columns from survMatrix corresponding to cases that are eligible
+#  ## this is a matrix matrix where each column represents survival function for an individual
+#  survMatrix = survMatrix[, elig_append1, drop = FALSE],
+#
+#  ## extracts survival times corresponding to eligible cases
+#  ## this is how much to shift survival function for each individual
+#  shiftVector = response_append1[elig_append1],
+#
+#  ## probably transforming survival times into probabilities?
+#  surv2prob = FALSE
+#)[, 2]
+#
+#
+#
+#plot(x, y1)
+#title("stage 1 input into pooling 2")
+#
 
 #############################
 #############################

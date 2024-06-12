@@ -58,6 +58,7 @@ IHdtrSurv <- function(data,
 
   ## used in VerifyData.R script
 
+
   data <- .VerifyData(data = data)
 
 
@@ -1116,7 +1117,7 @@ IHdtrSurv <- function(data,
   ## this is defined in class_IH.DTRSurv.R
 
   # Initialize a flag to indicate whether to continue iterations
-  continue_iterations <- TRUE
+  continue_iterations <- FALSE
 
   conv_iterations <- 1
 
@@ -1190,9 +1191,9 @@ IHdtrSurv <- function(data,
     res@valueTrain_list <- valueTrain_values
 
 
-    ## wait until the average change is less than 0.1%
+    ## wait until the absolute change (not avg is less than 5%)
 
-    if(avg_diff > 0.0001) {
+    if(last_two_rows_diff > 5) {
       # If the condition is met, continue the loop
       continue_iterations <- TRUE
 

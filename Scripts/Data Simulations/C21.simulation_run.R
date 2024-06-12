@@ -153,9 +153,9 @@ for (i in 1:n.stages) {
 
 ### 3. Run the simulation
 skip.IHsurvrf <- FALSE
-skip.trt1 <- FALSE
-skip.trt0 <- FALSE
-skip.opt <- FALSE
+skip.trt1 <- TRUE
+skip.trt0 <- TRUE
+skip.opt <- TRUE
 ### commented out since we don't need it
 ## skip.gk <- skip.dw <- TRUE
 cv.nodesize = FALSE

@@ -36,7 +36,6 @@ IHdtrConv <- function(data,
   ### then, using the second to last stage, we start the appending & pooling process
 
 
-
   message("Algorithm Iteration 2: starting from stage ", nDP)
 
   ## first, using the data at the last stage, predict the outcome using the final forest
@@ -141,14 +140,14 @@ IHdtrConv <- function(data,
 
     ## shifted probability output after adding new point for nDP - 3
 
-    xaxis <- params@timePoints
-    ## nDP
-    y1 <- last.stage.pred$optimal@optimalY[1,]
-
-
-
-    plot(xaxis, y1)
-    title("Convergence 1: stage nDP prediction")
+#    xaxis <- params@timePoints
+#    ## nDP
+#    y1 <- last.stage.pred$optimal@optimalY[1,]
+#
+#    #eligibility
+#
+#    plot(xaxis, y1)
+#    title("Convergence 3: stage nDP prediction")
 
 
     #############################
@@ -357,26 +356,25 @@ IHdtrConv <- function(data,
 
 
   ## nDP
-  y1 <- .shiftMat(
-    timePoints = .TimePoints(object = params),
+# y1 <- .shiftMat(
+#   timePoints = .TimePoints(object = params),
 
-    ## extracts columns from survMatrix corresponding to cases that are eligible
-    ## this is a matrix matrix where each column represents survival function for an individual
-    survMatrix = survMatrix[, elig_append1, drop = FALSE],
+#   ## extracts columns from survMatrix corresponding to cases that are eligible
+#   ## this is a matrix matrix where each column represents survival function for an individual
+#   survMatrix = survMatrix[, elig_append1, drop = FALSE],
 
-    ## extracts survival times corresponding to eligible cases
-    ## this is how much to shift survival function for each individual
-    shiftVector = response_append1[elig_append1],
+#   ## extracts survival times corresponding to eligible cases
+#   ## this is how much to shift survival function for each individual
+#   shiftVector = response_append1[elig_append1],
 
-    ## probably transforming survival times into probabilities?
-    surv2prob = FALSE
-  )[, 1]
+#   ## probably transforming survival times into probabilities?
+#   surv2prob = FALSE
+# )[, 1]
 
 
 
-  plot(xaxis, y1)
-  title("Convergence 1: stage nDP - 1 appending to nDP prediction")
-
+# plot(xaxis, y1)
+# title("Convergence 3: stage nDP - 1 appending to nDP prediction")
 
   #############################
   #############################
@@ -454,6 +452,27 @@ IHdtrConv <- function(data,
 
     # also update "A" column
     long_data$A[long_data$stage == (i+1)][which(eligibility == 1)] <- optimal_treatments
+
+    #############################
+    #############################
+    #############################
+    ####### VISUALIZATION #######
+
+    ## shifted probability output after adding new point for nDP - 3
+
+#    xaxis <- params@timePoints
+#    ## nDP
+#    y1 <- last.stage.pred$optimal@optimalY[1,]
+#
+#
+#    plot(xaxis, y1)
+#    title("Convergence 3: stage nDP - 1 prediction")
+
+
+    #############################
+    #############################
+    #############################
+    #############################
 
 
     ##########################################
@@ -565,7 +584,7 @@ IHdtrConv <- function(data,
     ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
     ## with columns with values that are non-0
 
-    survMatrix[, eligibility] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
+    survMatrix[, which(eligibility == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
 
 
     # shift the survival function down in time (T_i - Tq) and
@@ -591,6 +610,41 @@ IHdtrConv <- function(data,
       ## probably transforming survival times into probabilities?
       surv2prob = TRUE
     )
+
+    #############################
+    #############################
+    #############################
+    ####### VISUALIZATION #######
+
+    ## shifted probability output after adding new point for nDP - 3
+
+
+#    ## nDP
+#    y1 <- .shiftMat(
+#      timePoints = .TimePoints(object = params),
+#
+#      ## extracts columns from survMatrix corresponding to cases that are eligible
+#      ## this is a matrix matrix where each column represents survival function for an individual
+#      survMatrix = survMatrix[, elig_append1, drop = FALSE],
+#
+#      ## extracts survival times corresponding to eligible cases
+#      ## this is how much to shift survival function for each individual
+#      shiftVector = response_append1[elig_append1],
+#
+#      ## probably transforming survival times into probabilities?
+#      surv2prob = FALSE
+#    )[, 1]
+#
+#
+#
+#    plot(xaxis, y1)
+#    title("Convergence 2: stage 1 appending to stage 2 prediction")
+#
+
+    #############################
+    #############################
+    #############################
+    #############################
 
     ## sets very small values in pr to 0
 
@@ -722,15 +776,40 @@ IHdtrConv <- function(data,
 
   # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
   ## also update the "A" column
-  long_data$A.final[eligibility_final] <- conv1@optimal@optimalTx
-  long_data$A[eligibility_final] <- conv1@optimal@optimalTx
+  long_data$A.final[which(eligibility_final == 1)] <- conv1@optimal@optimalTx
+  long_data$A[which(eligibility_final == 1)] <- conv1@optimal@optimalTx
 
   # Initialize the shifted probability matrix
   ## ## each patient will have k + 1 --> k stages; nrow(data) is the number of patients
   ## we overwrite the eligible patients
   shiftedprobfinal <- matrix(0, nrow = nTimes, ncol = length(eligibility_final) )
-  shiftedprobfinal[,eligibility_final] <-t(conv1@optimal@optimalY)
+  shiftedprobfinal[,which(eligibility_final == 1)] <-t(conv1@optimal@optimalY)
 
+  ## for stage 1 we do column 26
+  ## for stage 25 we do column 50
+  ## for stage nDP - 1 we do column 49
+
+  #############################
+  #############################
+  #############################
+  ####### VISUALIZATION #######
+
+     ## shifted probability output after adding new point for nDP - 3
+
+#     xaxis <- params@timePoints
+#     ## nDP
+#     y1 <- shiftedprobfinal[,50]
+#
+#
+#
+#     plot(xaxis, y1)
+#     title("Convergence 3: stage nDP output")
+
+
+  #############################
+  #############################
+  #############################
+  #############################
 
 
   ## get the final stage's area under the curve: we only look at the columns of the matrix in the last stage
@@ -756,7 +835,7 @@ IHdtrConv <- function(data,
   ## for the mean value, we want to only subset for the patients from the last stage, not include the value across all stage
 
   mv_results <- matrix(0, nrow = length(eligibility_final), ncol = 2)
-  mv_results[eligibility_final, ] <- conv1@valueAllTx$mean
+  mv_results[which(eligibility_final == 1), ] <- conv1@valueAllTx$mean
 
   final_stagemv <- mv_results[seq(from = 1, to = nrow(mv_results), by = nDP), ]
 
