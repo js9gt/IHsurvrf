@@ -1117,7 +1117,7 @@ IHdtrSurv <- function(data,
   ## this is defined in class_IH.DTRSurv.R
 
   # Initialize a flag to indicate whether to continue iterations
-  continue_iterations <- FALSE
+  continue_iterations <- TRUE
 
   conv_iterations <- 1
 
