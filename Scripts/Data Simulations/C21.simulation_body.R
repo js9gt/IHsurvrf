@@ -101,7 +101,7 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.true
 
     ## a logical for if we want to include censoring (besides administrative censoring)
     ### for no censoring argument, we will change this part to FALSE: for everything except "observed"
-      censoringyesno = FALSE,
+      censoringyesno = TRUE,
 
     ## for inputting dif policies used to generate data
     ## this is a DTRSurv object

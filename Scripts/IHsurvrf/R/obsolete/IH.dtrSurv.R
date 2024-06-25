@@ -1191,9 +1191,9 @@ IHdtrSurv <- function(data,
     res@valueTrain_list <- valueTrain_values
 
 
-    ## wait until the absolute change (not avg is less than 5%)
+    ## wait until the absolute change (not avg is less than 0.01%)
 
-    if(last_two_rows_diff > 5) {
+    if(avg_diff > 1) {
       # If the condition is met, continue the loop
       continue_iterations <- TRUE
 
@@ -1206,6 +1206,24 @@ IHdtrSurv <- function(data,
     } else {
       # If the condition is not met, stop the loop
       continue_iterations <- FALSE
+
+
+      # Update res@integral_KM with area_mat
+      res@integral_KM <- area_mat
+
+
+      ## we update the final forest used with the most recent forest estimated in the convergence step
+      # Update res@FinalForest with the forest in convergence_res@FinalForest
+      res@FinalForest <- convergence_res@FinalForest
+
+      ## we update the value with the most recent estimated value in the convergence steo
+      res@value <- convergence_res@value
+
+      ## track these values in the forest output
+      res@n_it <- conv_iterations
+      res@avgKM_diff <- as.matrix(avg_diff_values)
+      res@valueTrain_list <- valueTrain_values
+
     }
 
   }

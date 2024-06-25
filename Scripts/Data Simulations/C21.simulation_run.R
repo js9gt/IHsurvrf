@@ -20,7 +20,7 @@ if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
   message("500 patients, max stages = 25, 200 simulation replicates, 10,000 eval, 10% censoring, OBS; trueopt and increasing mTry to 10")
   message("After adjusting integral change to proportion and fixing proportion censor, true opt should be doing better now")
-  arg = c(1, 1, 1, 1) # by default
+  arg = c(1, 2, 1, 1) # by default
   print(arg)
 }
 
@@ -58,7 +58,7 @@ crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "trunca
 # arg3 size: a list containing 2 training sample sizes
 size <- list(
   ## small ss is 75
-  small.sample.size = list(n = 100),
+  small.sample.size = list(n = 150),
   ## large ss is 10,000
              large.sample.size = list(n = 10000))
 
@@ -153,8 +153,8 @@ for (i in 1:n.stages) {
 
 ### 3. Run the simulation
 skip.IHsurvrf <- FALSE
-skip.trt1 <- TRUE
-skip.trt0 <- TRUE
+skip.trt1 <- FALSE
+skip.trt0 <- FALSE
 skip.opt <- TRUE
 ### commented out since we don't need it
 ## skip.gk <- skip.dw <- TRUE
