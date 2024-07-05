@@ -17,12 +17,12 @@
 ## if the shifted time is in the middle of two, uses linear interpolation to return the resulting survival time
 
 # Generate a sample dataset with uniform time points
-set.seed(123)
-timePoints <- seq(1, 15)  # 15 uniform time points
-survVector <- pmin(1, exp(-0.2 * timePoints))  # Exponential survival function
-## we shift by observed survival time for each individual from response[elig]
-by <- 3
-## we would do these for a single shift AKA use only that patient's "by"
+#set.seed(123)
+#timePoints <- seq(1, 15)  # 15 uniform time points
+#survVector <- pmin(1, exp(-0.2 * timePoints))  # Exponential survival function
+### we shift by observed survival time for each individual from response[elig]
+#by <- 3
+### we would do these for a single shift AKA use only that patient's "by"
 
 
 # Function returns the shifted survival function
@@ -151,7 +151,8 @@ by <- 3
     ## subtracting each row of survShifted from the row above it
     ## append a row of 0s at the end to align with matrix dimensions
     ## probability mass vector representing the change in survival probabilities at each time point
-    survShifted <- survShifted - rbind(survShifted[-1L,], 0.0)
+    ## NOTE: we coerce survShifted[-1L] to be a matrix in case we have only 1 observation to make stub/double stub
+    survShifted <- survShifted - rbind(as.matrix(survShifted[-1L,]), 0.0)
   }
 
   return( survShifted )

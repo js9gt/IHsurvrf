@@ -604,13 +604,24 @@ setMethod(f = ".PredictAll",
     ## iterates over each row (observation) in predicted$mean and finds the treatment level maximizing the mean survival time for each observation
 
     # identify which element contains the maximum expected survival time
-    optTx <- apply(X = predicted$mean,
-                   MARGIN = 1L,
+    ## if there's only one treatment, only use that treatment
+    ## NOTE: the if else: statement is new
+    if (is.vector(predicted$mean) == TRUE) {
+      ## turn optimal into a column
+      opt_predicted <- matrix(predicted$mean, nrow = length(predicted$mean), ncol = 1)
 
-                   ## defined at the bottom
+      optTx <- apply(X = opt_predicted,
+            MARGIN = 1L,
+            FUN = .whichMax,
+            tieMethod = params@tieMethod)
 
-                   FUN = .whichMax,
-                   tieMethod = params@tieMethod)
+
+    } else {
+      optTx <- apply(X = predicted$mean,
+                     MARGIN = 1L,
+                     FUN = .whichMax,
+                     tieMethod = params@tieMethod)
+    }
 
     ## if the criterion returned is surv.mean,
 
@@ -709,6 +720,9 @@ setMethod(f = ".PredictAll",
 
 ## defines an internal function .whichMax to identify index of the maximum value in vector "x"
 .whichMax <- function(x, tieMethod) {
+
+  # Check if x has only one element. If so, just return the input
+  if (length(x) == 1) return(1)
 
   ## identifies indices of values in x within a very small range of the maximum value
   ## treats values as equal to the maximum if they're very close

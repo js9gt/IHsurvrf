@@ -26,7 +26,24 @@ setClass(Class = "DTRSurv",
            "value" = "ANY",
 
            ## slot named "params" that stores another class called "Parameters" created in another file class_Parameters.R
-           "params" = "Parameters"))
+           "params" = "Parameters",
+
+           ## matrix to hold the matrix of integral of the KM curves for each patient
+           ## column is for each patient, row is for each iteration of the convergence testing
+           "integral_KM" = "ANY",
+
+           ## this stores the number of iterations until the forest reaches convergence
+           "n_it" = "ANY",
+
+           ## this stores the matrix of the average differences between the survival curves for patients between iterations
+           "avgKM_diff" = "matrix",
+
+           ## this stores the value of the trained tree at each iteration of convergence
+
+           "valueTrain_list" = "list",
+
+           ## intput and output long_data where the actions get updated
+           "long_data" = "ANY"))
 
 
 
@@ -94,14 +111,17 @@ setMethod(f = "predict",
             ########
 
             ## if there's no new data (it's null), jusr retrieve the fitted values
-            ## method returns the contents of the "forest" slot from the SurvRF object
+            ## method returns the contents of the "forest" slot from the SurvRF object from the final forest
             ## this object contains list object containing survFunc, mean, and? survProb
 
             if (missing(x = newdata)) {
               ## the input is of class DTRSurvStep for the individual stage
               ### this function is defined in class_DTRSurvStep.R
 
-              return( .Predict(object = object@stageResults[[ stage ]],
+              ### NOTE: this was edited for Jane's code to use the contents from the FINAL FOREST instead of forest from a specific stage
+              ## object = object@stageResults[[ stage ]]
+
+              return( .Predict(object = object@FinalForest,
                                newdata = NULL,
                                params = object@params,
                                findOptimal = findOptimal) )
@@ -109,11 +129,14 @@ setMethod(f = "predict",
 
               ## otherwise, if findOptimal = TRUE, return the optimal predictions using .PredictAll():
               ## for all possible treatment options-- go through each treatment ant see what the patient's estimated survival would have been
+              ### NOTE: In Jane's code, we use the Final Forest
               ## ## return a list containing the predictions for each treatment level and the optimal treatment decision
 
               ## if findOptimal = FALSE, use .Predict() calculate the estimatated survival values that the patient receives using the actions they already got
 
-              return( .Predict(object = object@stageResults[[ stage ]],
+
+
+              return( .Predict(object = object@FinalForest,
                                newdata = newdata,
                                params = object@params,
                                findOptimal = findOptimal) )

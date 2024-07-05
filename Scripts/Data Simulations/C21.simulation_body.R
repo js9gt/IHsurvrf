@@ -240,6 +240,9 @@ if (!skip.IHsurvrf) {
                   #'   the random cutoff is sampled from a uniform distribution over the range
                   #'   of available covariate values for tree splitting
                   uniformSplit = TRUE,
+                  
+                  tieMethod = "random",
+                  sampleSize = 1,
 
                   ## individuals can't be present in sample more than once (sample without replacement)
                   replace = FALSE,
@@ -262,7 +265,9 @@ if (!skip.IHsurvrf) {
                   #'    total number of covariates under consideration).
                   stratifiedSplit = 0.1,
                   stageLabel = "_",
-                  stage.start = ss)
+                  stage.start = ss,
+                  nstrata = 2,
+                  windowsize = 50)
 
   ## setting a different seed
   set.seed(sim*10000 + 5)
@@ -424,7 +429,7 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/test_trueopt_at.risk.csv", row.names=FALSE)
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/300pt_25stage", row.names=FALSE)
 
 
 

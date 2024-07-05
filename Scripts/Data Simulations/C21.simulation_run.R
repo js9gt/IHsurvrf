@@ -43,9 +43,9 @@ default <- list(
   ## number of simulation replicates: 200
   n.sim = 200,
   ## tau (days): total study length
-  tau = 1000,
+  tau = 500,
   ## maximum number of stages
-  n.stages = 25,
+  n.stages = 10,
   ## the stage we start at since we don't want issues with too small sample size
   ss = NULL)
 
@@ -58,7 +58,7 @@ crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "trunca
 # arg3 size: a list containing 2 training sample sizes
 size <- list(
   ## small ss is 75
-  small.sample.size = list(n = 150),
+  small.sample.size = list(n = 300),
   ## large ss is 10,000
              large.sample.size = list(n = 10000))
 

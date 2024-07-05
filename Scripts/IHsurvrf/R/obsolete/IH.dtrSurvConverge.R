@@ -228,6 +228,8 @@ IHdtrConv <- function(data,
   ############## now, for stage 24, we work on appending
   ### to do: only do this for eligible patients for the new stage nDP - 3, and then perform shifting
 
+  #@### NOTE: subject 62 does not have a previous stage, do we still predict for them? 24.9347789
+
   # identify individuals with complete data in new stage
 
   ## prepares model frame using the formula (input) and the data (input)-- NOTE we use the original model input
@@ -347,6 +349,58 @@ IHdtrConv <- function(data,
     surv2prob = TRUE
   )
 
+
+  ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+  ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+  newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+  ## for these new patients, we predict their survival curves to get a stub
+  response_with_stage <- paste0(response_var, "_", (nDP - 1))
+  terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
+  terms_with_stage <- paste0(terms, "_", (nDP - 1))
+  updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+  x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+  if (dim(x)[1] != 0) {
+  ## remove stage suffixto use in prediction
+  new_col_names <- gsub(paste0("_", (nDP - 1), "$"), "", colnames(x))
+  colnames(x) <- new_col_names
+  args <- list(prev.iteration, newdata = x)
+  last.stage.pred <- do.call(predict, args)
+
+  ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+  # Extract optimal treatments for the current stage
+  optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+  # Update A.opt.iter2 column for patients in the current stage for tracking
+  long_data$A.opt.iter2[long_data$stage == (nDP - 1)][which(newpt_elig == 1)] <- optimal_treatments
+
+  # also update "A" column
+  long_data$A[long_data$stage == (nDP - 1)][which(newpt_elig == 1)] <- optimal_treatments
+
+  ### now, we also insert these predicted probs into the shifted probabilities
+  ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+  ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+  newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+  ## convert into survival probabilities
+  newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+  ## sets very small values in pr to 0
+
+  newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+  ## now substitute into the append1_pr_1 matrix
+  ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+  append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+  }
+
   #############################
   #############################
   #############################
@@ -355,25 +409,25 @@ IHdtrConv <- function(data,
   ## shifted probability output after adding new point for nDP - 3
 
 
-  ## nDP
- y1 <- .shiftMat(
-   timePoints = .TimePoints(object = params),
-
-   ## extracts columns from survMatrix corresponding to cases that are eligible
-   ## this is a matrix matrix where each column represents survival function for an individual
-   survMatrix = survMatrix[, elig_append1, drop = FALSE],
-
-   ## extracts survival times corresponding to eligible cases
-   ## this is how much to shift survival function for each individual
-   shiftVector = response_append1[elig_append1],
-
-   ## probably transforming survival times into probabilities?
-   surv2prob = FALSE
- )[, 1]
-
-
- plot(xaxis, y1)
- title("Convergence: stage nDP - 1 appending to nDP prediction")
+#  ## nDP
+# y1 <- .shiftMat(
+#   timePoints = .TimePoints(object = params),
+#
+#   ## extracts columns from survMatrix corresponding to cases that are eligible
+#   ## this is a matrix matrix where each column represents survival function for an individual
+#   survMatrix = survMatrix[, elig_append1, drop = FALSE],
+#
+#   ## extracts survival times corresponding to eligible cases
+#   ## this is how much to shift survival function for each individual
+#   shiftVector = response_append1[elig_append1],
+#
+#   ## probably transforming survival times into probabilities?
+#   surv2prob = FALSE
+# )[, 1]
+#
+#
+# plot(xaxis, y1)
+# title("Convergence: stage nDP - 1 appending to nDP prediction")
 
   #############################
   #############################
@@ -641,6 +695,57 @@ IHdtrConv <- function(data,
     #############################
     #############################
 
+    ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+    ## for these new patients, we predict their survival curves to get a stub
+    response_with_stage <- paste0(response_var, "_", i)
+    terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
+    terms_with_stage <- paste0(terms, "_", i)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+    x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+    if (dim(x)[1] != 0) {
+    ## remove stage suffixto use in prediction
+    new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
+    colnames(x) <- new_col_names
+    args <- list(prev.iteration, newdata = x)
+    last.stage.pred <- do.call(predict, args)
+
+    ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+    # Update A.opt.iter2 column for patients in the current stage for tracking
+    long_data$A.opt.iter2[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    # also update "A" column
+    long_data$A[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    ### now, we also insert these predicted probs into the shifted probabilities
+    ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+    ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+    newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+    ## convert into survival probabilities
+    newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+    ## sets very small values in pr to 0
+
+    newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+    ## now substitute into the append1_pr_1 matrix
+    ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+    append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+    }
+
     ## sets very small values in pr to 0
 
     append1_pr_1[abs(append1_pr_1) < 1e-8] <- 0.0
@@ -703,21 +808,21 @@ IHdtrConv <- function(data,
   #############################
   ####### VISUALIZATION #######
 
-  ## each patient has 5 stages, so it'll be pt1: 21 22 23 24 25, pt2: 21 22 23 24 25
-  ## pt 2 stage 25 = 10
-  ## pt 2 stage 24 = 9
-  ## however patient 1 doesn't have any data so it's actually 5 and 4
-
-  ## shifted probability output after adding new point for nDP - 3
-
-    xaxis <- params@timePoints
-    ## nDP
-    y1 <-   t(s21.25@optimal@optimalY)[, 4]
-
-    sum(s21.25@eligibility)
-
-    plot(xaxis, y1)
-    title("Convergence: stage 24 output")
+#  ## each patient has 5 stages, so it'll be pt1: 21 22 23 24 25, pt2: 21 22 23 24 25
+#  ## pt 2 stage 25 = 10
+#  ## pt 2 stage 24 = 9
+#  ## however patient 1 doesn't have any data so it's actually 5 and 4
+#
+#  ## shifted probability output after adding new point for nDP - 3
+#
+#    xaxis <- params@timePoints
+#    ## nDP
+#    y1 <-   t(s21.25@optimal@optimalY)[, 4]
+#
+#    sum(s21.25@eligibility)
+#
+#    plot(xaxis, y1)
+#    title("Convergence: stage 24 output")
 
 
   #############################
@@ -950,6 +1055,61 @@ IHdtrConv <- function(data,
       ## probably transforming survival times into probabilities?
       surv2prob = TRUE
     )
+
+    ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+    ## for these new patients, we predict their survival curves to get a stub
+    response_with_stage <- paste0(response_var, "_", i)
+    terms <- attr(terms(s21.25@model), "term.labels")
+    terms_with_stage <- paste0(terms, "_", i)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+    x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+    ### if there are no rows in x, we skip this prediction step
+
+    if (dim(x)[1] != 0) {
+    ## remove stage suffixto use in prediction
+    new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
+    colnames(x) <- new_col_names
+    last.stage.pred <- .Predict(object = s21.25,
+                                newdata = x,
+                                params = params,
+                                findOptimal = T)
+
+    ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+    # Update A.opt.iter2 column for patients in the current stage for tracking
+    long_data$A.opt.iter2[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    # also update "A" column
+    long_data$A[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    ### now, we also insert these predicted probs into the shifted probabilities
+    ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+    ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+    newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+    ## convert into survival probabilities
+    newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+    ## sets very small values in pr to 0
+
+    newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+    ## now substitute into the append1_pr_1 matrix
+    ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+    append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+    }
 
     #############################
     #############################
@@ -1340,6 +1500,62 @@ IHdtrConv <- function(data,
       surv2prob = TRUE
     )
 
+
+
+
+    ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+    ## for these new patients, we predict their survival curves to get a stub
+    response_with_stage <- paste0(response_var, "_", i)
+    terms <- attr(terms(s16.25@model), "term.labels")
+    terms_with_stage <- paste0(terms, "_", i)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+    x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+    if (dim(x)[1] != 0) {
+    ## remove stage suffixto use in prediction
+    new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
+    colnames(x) <- new_col_names
+    last.stage.pred <- .Predict(object = s16.25,
+                                newdata = x,
+                                params = params,
+                                findOptimal = T)
+
+    ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+    # Update A.opt.iter2 column for patients in the current stage for tracking
+    long_data$A.opt.iter2[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    # also update "A" column
+    long_data$A[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    ### now, we also insert these predicted probs into the shifted probabilities
+    ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+    ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+    newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+    ## convert into survival probabilities
+    newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+    ## sets very small values in pr to 0
+
+    newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+    ## now substitute into the append1_pr_1 matrix
+    ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+    append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+    }
+
     #############################
     #############################
     #############################
@@ -1711,6 +1927,60 @@ IHdtrConv <- function(data,
       surv2prob = TRUE
     )
 
+    ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+    ## for these new patients, we predict their survival curves to get a stub
+    response_with_stage <- paste0(response_var, "_", i)
+    terms <- attr(terms(s11.25@model), "term.labels")
+    terms_with_stage <- paste0(terms, "_", i)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+    x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+    if (dim(x)[1] != 0) {
+    ## remove stage suffixto use in prediction
+    new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
+    colnames(x) <- new_col_names
+    last.stage.pred <- .Predict(object = s11.25,
+                                newdata = x,
+                                params = params,
+                                findOptimal = T)
+
+    ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+    # Update A.opt.iter2 column for patients in the current stage for tracking
+    long_data$A.opt.iter2[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    # also update "A" column
+    long_data$A[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    ### now, we also insert these predicted probs into the shifted probabilities
+    ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+    ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+    newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+    ## convert into survival probabilities
+    newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+    ## sets very small values in pr to 0
+
+    newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+    ## now substitute into the append1_pr_1 matrix
+    ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+    append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+    }
+
+
     #############################
     #############################
     #############################
@@ -2068,6 +2338,60 @@ IHdtrConv <- function(data,
       ## probably transforming survival times into probabilities?
       surv2prob = TRUE
     )
+
+    ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
+
+    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+
+    ## for these new patients, we predict their survival curves to get a stub
+    response_with_stage <- paste0(response_var, "_", i)
+    terms <- attr(terms(s6.25@model), "term.labels")
+    terms_with_stage <- paste0(terms, "_", i)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+    x = get_all_vars(updated_formula, data)[newpt_elig, ]
+
+    if (dim(x)[1] != 0) {
+    ## remove stage suffixto use in prediction
+    new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
+    colnames(x) <- new_col_names
+    last.stage.pred <- .Predict(object = s6.25,
+                                newdata = x,
+                                params = params,
+                                findOptimal = T)
+
+    ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
+    # Extract optimal treatments for the current stage
+    optimal_treatments <- last.stage.pred$optimal@optimalTx
+
+
+    # Update A.opt.iter2 column for patients in the current stage for tracking
+    long_data$A.opt.iter2[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    # also update "A" column
+    long_data$A[long_data$stage == i][which(newpt_elig == 1)] <- optimal_treatments
+
+    ### now, we also insert these predicted probs into the shifted probabilities
+    ## we want the indexes of the current stage's eligible patients, and find the indexes in the previous stage's and find where these don't match (0)
+    ## for these columns, we insert the just predicted optimal for the patients who start in this stage
+
+    newpt_shiftprob <- t(last.stage.pred$optimal@optimalY)
+
+    ## convert into survival probabilities
+    newpt_shiftprob <- newpt_shiftprob - rbind( as.matrix(newpt_shiftprob[-1L,]), 0.0)
+
+    ## sets very small values in pr to 0
+
+    newpt_shiftprob[abs(newpt_shiftprob) < 1e-8] <- 0.0
+
+
+    ## now substitute into the append1_pr_1 matrix
+    ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
+    append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+
+    }
+
 
     #############################
     #############################

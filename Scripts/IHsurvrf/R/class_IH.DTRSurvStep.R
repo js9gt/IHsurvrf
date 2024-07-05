@@ -492,7 +492,7 @@ setMethod(f = ".Predict",
   } else if ( !is.factor(x = data[, txName]) & !pool1) {  # Add condition to execute else block only if pool1 is FALSE
 
     ## if txName is not a factor and pool1 is FALSE, find unique values of the treatment for eligible cases & sort them to use as treatment levels
-    txLevels <- sort(x = unique(x = data[elig, txName]))
+    txLevels <- sort(x = as.numeric(unlist(unique(data[elig, txName]))))
   }else  if (pool1) {  # If pool1 is TRUE
     ## if pool1 is TRUE, sort unique values of A.opt.HC for eligible cases
     txLevels <- sort(x = as.numeric(unlist(unique(data[elig, txName]))))

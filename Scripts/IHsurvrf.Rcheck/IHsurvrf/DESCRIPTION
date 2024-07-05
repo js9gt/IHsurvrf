@@ -23,9 +23,9 @@ Collate: 'IH.VerifyCriticalValue.R' 'IH.VerifyERT.R'
         'IH.predictSurvTree.R' 'IH.shiftMat.R' 'class_IH.Optimal.R'
         'IH.VerifyData.R' 'IH.VerifyModels.R' 'IH.VerifyTxName.R'
         'IH.VerifyUsePrevTime.R' 'IH.VerifySampleSize.R'
-        'class_IH.DTRSurv.R' 'IH.pool1.R' 'class_IH.pool1.R'
+        'class_IH.DTRSurv.R' 'area_function.R' 'IH.dtrSurvConverge.R'
 NeedsCompilation: yes
-Packaged: 2024-04-04 14:54:47 UTC; js9gt
+Packaged: 2024-07-04 15:29:50 UTC; js9gt
 Author: First Last [aut, cre] (YOUR-ORCID-ID)
 Maintainer: First Last <first.last@example.com>
-Built: R 4.1.0; x86_64-pc-linux-gnu; 2024-04-04 14:54:54 UTC; unix
+Built: R 4.1.0; x86_64-pc-linux-gnu; 2024-07-04 15:29:59 UTC; unix

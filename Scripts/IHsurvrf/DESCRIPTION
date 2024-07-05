@@ -45,8 +45,6 @@ Collate:
     'IH.VerifyUsePrevTime.R'
     'IH.VerifySampleSize.R'
     'class_IH.DTRSurv.R'
-    'IH.pool1.R'
-    'class_IH.pool1.R'
     'area_function.R'
     'IH.dtrSurvConverge.R'
     

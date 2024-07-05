@@ -151,7 +151,8 @@
     ## subtracting each row of survShifted from the row above it
     ## append a row of 0s at the end to align with matrix dimensions
     ## probability mass vector representing the change in survival probabilities at each time point
-    survShifted <- survShifted - rbind(survShifted[-1L,], 0.0)
+    ## NOTE: we coerce survShifted[-1L] to be a matrix in case we have only 1 observation to make stub/double stub
+    survShifted <- survShifted - rbind(as.matrix(survShifted[-1L,]), 0.0)
   }
 
   return( survShifted )

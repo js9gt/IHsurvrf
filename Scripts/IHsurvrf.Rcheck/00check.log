@@ -41,14 +41,6 @@ Standardizable: FALSE
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
 * checking R code for possible problems ... NOTE
-.IHsurvstep: no visible global function definition for ‘%>%’
-.IHsurvstep: no visible global function definition for ‘filter’
-.IHsurvstep: no visible binding for global variable ‘stage’
-.IHsurvstep: no visible global function definition for ‘select’
-.IHsurvstep: no visible global function definition for ‘matches’
-.IHsurvstep: no visible binding for global variable ‘na.pass’
-.IHsurvstep: no visible global function definition for ‘terms’
-.IHsurvstep: no visible global function definition for ‘new’
 .criticalValueMean: no visible global function definition for ‘new’
 .criticalValueSurvival: no visible global function definition for ‘new’
 .dtrSurvStep: no visible binding for global variable ‘na.pass’
@@ -61,18 +53,36 @@ Standardizable: FALSE
 .timeInfo: no visible global function definition for ‘new’
 .treeConditions: no visible global function definition for ‘new’
 .treeType: no visible global function definition for ‘new’
+IHdtrConv: no visible global function definition for ‘formula’
+IHdtrConv: no visible global function definition for ‘get_all_vars’
+IHdtrConv: no visible global function definition for ‘%>%’
+IHdtrConv: no visible global function definition for ‘filter’
+IHdtrConv: no visible global function definition for ‘sym’
+IHdtrConv: no visible binding for global variable ‘stage’
+IHdtrConv: no visible global function definition for ‘pull’
+IHdtrConv: no visible global function definition for ‘matches’
+IHdtrConv: no visible binding for global variable ‘na.pass’
+IHdtrConv: no visible global function definition for ‘new’
 IHdtrSurv: no visible global function definition for ‘%>%’
 IHdtrSurv: no visible global function definition for ‘pivot_longer’
 IHdtrSurv: no visible global function definition for ‘starts_with’
 IHdtrSurv: no visible global function definition for ‘mutate’
+IHdtrSurv: no visible binding for global variable ‘stage’
 IHdtrSurv: no visible binding for global variable ‘A’
 IHdtrSurv: no visible global function definition for ‘arrange’
 IHdtrSurv: no visible binding for global variable ‘subj.id’
 IHdtrSurv: no visible global function definition for ‘filter’
-IHdtrSurv: no visible global function definition for ‘select’
-IHdtrSurv: no visible global function definition for ‘matches’
-IHdtrSurv: no visible binding for global variable ‘na.pass’
-IHdtrSurv: no visible global function definition for ‘terms’
+IHdtrSurv: no visible binding for global variable ‘cumulative.time’
+IHdtrSurv: no visible global function definition for ‘pivot_wider’
+IHdtrSurv: no visible binding for global variable ‘delta’
+IHdtrSurv: no visible binding for global variable ‘baseline1’
+IHdtrSurv: no visible binding for global variable ‘baseline2’
+IHdtrSurv: no visible binding for global variable ‘state1’
+IHdtrSurv: no visible binding for global variable ‘state2’
+IHdtrSurv: no visible binding for global variable ‘prior.visit.length’
+IHdtrSurv: no visible binding for global variable ‘nstages’
+IHdtrSurv: no visible binding for global variable ‘action.1.count’
+IHdtrSurv: no visible binding for global variable ‘action.0.count’
 IHdtrSurv: no visible global function definition for ‘new’
 commonFormula: no visible global function definition for ‘terms’
 .Predict,DTRSurvStep-data.frame: no visible global function definition
@@ -93,13 +103,15 @@ initialize,CriticalValueSurvival : <anonymous>: no visible global
 initialize,CriticalValueSurvival: no visible binding for global
   variable ‘is’
 Undefined global functions or variables:
-  %>% A arrange filter is matches model.frame model.response mutate
-  na.pass new pivot_longer select stage starts_with subj.id terms
-  update
+  %>% A action.0.count action.1.count arrange baseline1 baseline2
+  cumulative.time delta filter formula get_all_vars is matches
+  model.frame model.response mutate na.pass new nstages pivot_longer
+  pivot_wider prior.visit.length pull stage starts_with state1 state2
+  subj.id sym terms update
 Consider adding
   importFrom("methods", "is", "new")
-  importFrom("stats", "filter", "model.frame", "model.response",
-             "na.pass", "terms", "update")
+  importFrom("stats", "filter", "formula", "get_all_vars", "model.frame",
+             "model.response", "na.pass", "terms", "update")
 to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
 contains 'methods').
 * checking Rd files ... OK
