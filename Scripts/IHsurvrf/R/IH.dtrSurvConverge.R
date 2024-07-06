@@ -77,7 +77,9 @@ IHdtrConv <- function(data,
   eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
 
   # also update "A" column
-  long_data$A[long_data$stage == (nDP)][which(eligibility == 1)] <- optimal_treatments
+  ### we select the eligible values which are in the current stage, and strata
+  ### then we subset t only those eligible (have complete cases)
+  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1] [which(eligibility == 1)] <- optimal_treatments
 
 
   #### now, we want to extract the eligibility for the whole stage
@@ -154,9 +156,15 @@ IHdtrConv <- function(data,
     ## start at stage nDP:
     message("Convergence Strata ", strata, " starting prediction from stage ", i)
 
+
+
     ### first, we predict for the previous stage's optimal survival probability by feeding it through the forest
     ### if the current iteration is nDP - 2, we want to predict for nDP - 1
     ## then, for stage nDP - 2 (stage 23), predict the optimal survial and treatment for stage 24
+
+    ####
+    #### run for strata == 1
+    ####
 
     ## then, use this previous predicted survival probability and append nDP - 2 observed info onto stage 24 predicted
     response_var <- as.character(formula(prev.iteration@FinalForest@model)[[2]][-1])
@@ -164,11 +172,21 @@ IHdtrConv <- function(data,
     terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
     terms_with_stage <- paste0(terms, "_", (i+1))
     updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+
+  ### NOTE: we only predict for those patients who have the same next strata
     x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",(i+1) )) == 1))
+
+    ####
+    #### end for strata == 1
+    ####
+
 
     ### if there are no observations in x, we skip this whole thing
     ### there should automatically be 0's in pr_pooled for this
     ### meaning, we only run the rest of this loop if there are non-0 values for x
+
+
 
     if (dim(x)[1] != 0){
 
@@ -186,13 +204,28 @@ IHdtrConv <- function(data,
     # Extract optimal treatments for the current stage
     optimal_treatments <- last.stage.pred$optimal@optimalTx
 
+    ####
+    #### run for strata == 1
+    ####
+
     # We need an index of eligibility for the current stage at i+1 -- AKA the patients who are present in the last stage get 1, otherwise they get a 0
     ### patients who are eligible are ones who have a complete case for x
     eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
 
     # also update "A" column
-    long_data$A[long_data$stage == (i+1)][which(eligibility == 1)] <- optimal_treatments
+    long_data$A[long_data$stage == (i+1) & long_data[[paste0("strata", strata)]] == 1][which(eligibility == 1)] <- optimal_treatments
 
+
+    ####
+    #### end for strata == 1
+    ####
+
+
+
+
+    ###
+    ### used only in strata == 1
+    ###
     wholestage.eligibility <- as.numeric(
       ## within stage 10 variables, which are complete cases?
       ifelse(apply(get_all_vars(updated_formula, data), 1, function(x) all(!is.na(x))) &
@@ -202,33 +235,19 @@ IHdtrConv <- function(data,
              ## if both conditions are true, put 1; otherwise, put 0
              1, 0) )
 
-
-    #############################
-    #############################
-    #############################
-    ####### VISUALIZATION #######
-
-    ## shifted probability output after adding new point for nDP - 3
-
-    #    xaxis <- params@timePoints
-    #    ## nDP
-    #    y1 <- last.stage.pred$optimal@optimalY[1,]
-    #
-    #
-    #    plot(xaxis, y1)
-    #    title("Convergence 3: stage nDP - 1 prediction")
-
-
-    #############################
-    #############################
-    #############################
-    #############################
+    ###
+    ### end strata == 1
+    ###
 
 
     ##########################################
     ## putting optimal predictions together ##
     ##########################################
 
+
+    ###
+    ### for  strata == 1
+    ###
 
     # Initialize the shifted probability matrix
     ## we overwrite the eligible patients
@@ -239,6 +258,16 @@ IHdtrConv <- function(data,
     ## do this only for eligible patients
     shiftedprob1[, which(wholestage.eligibility == 1) ] <- t(last.stage.pred$optimal@optimalY)
 
+    ###
+    ### end strata == 1
+    ###
+
+
+
+
+    ###################################################
+    ################################################# NEXT START HERE
+    ###############################################################
 
     ## now, we want insert these predictions into the first column of a combined probability with optimal predictions from each stage
 
@@ -627,7 +656,7 @@ IHdtrConv <- function(data,
     Class = "DTRSurv",
     "stageResults" = list(),
     "IHstageResults" = list(),
-    "FinalForest" = s2.strata1,
+    "FinalForest" = get(forest.name),
     "value" = NULL,
     "call" = cl,
     "params" = params,
@@ -640,7 +669,6 @@ IHdtrConv <- function(data,
   )
 
   return(conv_forest)
-
 
 
 }

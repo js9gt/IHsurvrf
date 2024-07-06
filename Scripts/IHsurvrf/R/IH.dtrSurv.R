@@ -17,9 +17,9 @@ source("R/IH.dtrSurvConverge.R")
 library(tidyr)
 library(dplyr)
 library(survival)
-#library(IHsurvrf)
+library(IHsurvrf)
 
-#dyn.load("src/IHsurvrf.so")
+dyn.load("src/IHsurvrf.so")
 
 IHdtrSurv <- function(data,
                          txName,
@@ -472,7 +472,7 @@ IHdtrSurv <- function(data,
     "avgKM_diff" = matrix(nrow = 2, ncol = 2),
     "valueTrain_list" = list(),
     "long_data" = long_data,
-    "prev_probs" = NULL
+    "prev_probs" = matrix(nrow = nTimes, ncol = nDP * nrow(long_data %>% filter(stage == 1)))
   )
 
 
@@ -616,7 +616,8 @@ IHdtrSurv <- function(data,
     "n_it" = conv_iterations,
     "avgKM_diff" = matrix(nrow = 2, ncol = 2),
     "valueTrain_list" = list(),
-    "long_data" = long_data
+    "long_data" = long_data,
+    "prev_probs" = matrix(nrow = nTimes, ncol = nDP * nrow(long_data %>% filter(stage == 1)))
   )
 
 

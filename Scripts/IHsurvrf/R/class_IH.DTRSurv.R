@@ -48,7 +48,7 @@ setClass(Class = "DTRSurv",
            ## input and output matrix of optimal survival probs from previous iterations
            ## this is only used for convergence
 
-           "prev_probs"= "ANY"))
+           "prev_probs"= "matrix"))
 
 
 
