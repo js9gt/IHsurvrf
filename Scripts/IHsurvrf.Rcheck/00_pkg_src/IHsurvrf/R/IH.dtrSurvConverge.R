@@ -9,7 +9,8 @@ IHdtrConv <- function(data,
                       strata,
 
                       ## the input forest results from the previous iteration
-                      prev.iteration = NULL, nDP, params, nTimes, models, mTry, ..., long_data){
+                      prev.iteration = NULL, nDP, params, nTimes, models, mTry, ..., long_data,
+                      prev_probs){
 
 
   ######
@@ -37,6 +38,10 @@ IHdtrConv <- function(data,
 
   long_data <- long_data
 
+  last_strata_prob <- prev_probs
+
+
+
   ########## for the last stage (stage 10) we don't need to append so we do this outside the loop
   ## start at stage nDP:
   message("Convergence Strata ", strata, " starting prediction from stage ", nDP)
@@ -50,7 +55,7 @@ IHdtrConv <- function(data,
   response_with_stage <- paste0(response_var, "_", (nDP))
   terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
   terms_with_stage <- paste0(terms, "_", (nDP))
-  updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+  updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
   x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",nDP)) == 1))
   ## remove stage suffixto use in prediction
   new_col_names <- gsub(paste0("_", (nDP), "$"), "", colnames(x))
@@ -59,6 +64,7 @@ IHdtrConv <- function(data,
                               newdata = x,
                               params = params,
                               findOptimal = T)
+
 
   ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
   # Iterate over each stage of interest
@@ -71,7 +77,9 @@ IHdtrConv <- function(data,
   eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
 
   # also update "A" column
-  long_data$A[long_data$stage == (nDP)][which(eligibility == 1)] <- optimal_treatments
+  ### we select the eligible values which are in the current stage, and strata
+  ### then we subset t only those eligible (have complete cases)
+  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1] [which(eligibility == 1)] <- optimal_treatments
 
 
   #### now, we want to extract the eligibility for the whole stage
@@ -142,31 +150,43 @@ IHdtrConv <- function(data,
     col_counter <- col_counter + 1
   }
 
-  #######
-  #######
-  ############## NOTE: need to go through these
-  ##############
 
   for (i in (nDP - 1):(1)) {
 
     ## start at stage nDP:
     message("Convergence Strata ", strata, " starting prediction from stage ", i)
 
+
+
     ### first, we predict for the previous stage's optimal survival probability by feeding it through the forest
     ### if the current iteration is nDP - 2, we want to predict for nDP - 1
     ## then, for stage nDP - 2 (stage 23), predict the optimal survial and treatment for stage 24
+
+    ####
+    #### run for strata == 1
+    ####
 
     ## then, use this previous predicted survival probability and append nDP - 2 observed info onto stage 24 predicted
     response_var <- as.character(formula(prev.iteration@FinalForest@model)[[2]][-1])
     response_with_stage <- paste0(response_var, "_", (i+1))
     terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
     terms_with_stage <- paste0(terms, "_", (i+1))
-    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
-    x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",i)) == 1))
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+
+  ### NOTE: we only predict for those patients who have the same next strata
+    x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",(i+1) )) == 1))
+
+    ####
+    #### end for strata == 1
+    ####
+
 
     ### if there are no observations in x, we skip this whole thing
     ### there should automatically be 0's in pr_pooled for this
     ### meaning, we only run the rest of this loop if there are non-0 values for x
+
+
 
     if (dim(x)[1] != 0){
 
@@ -184,49 +204,50 @@ IHdtrConv <- function(data,
     # Extract optimal treatments for the current stage
     optimal_treatments <- last.stage.pred$optimal@optimalTx
 
+    ####
+    #### run for strata == 1
+    ####
+
     # We need an index of eligibility for the current stage at i+1 -- AKA the patients who are present in the last stage get 1, otherwise they get a 0
     ### patients who are eligible are ones who have a complete case for x
     eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
 
     # also update "A" column
-    long_data$A[long_data$stage == (i+1)][which(eligibility == 1)] <- optimal_treatments
+    long_data$A[long_data$stage == (i+1) & long_data[[paste0("strata", strata)]] == 1][which(eligibility == 1)] <- optimal_treatments
 
+
+    ####
+    #### end for strata == 1
+    ####
+
+
+
+
+    ###
+    ### used only in strata == 1
+    ###
     wholestage.eligibility <- as.numeric(
       ## within stage 10 variables, which are complete cases?
       ifelse(apply(get_all_vars(updated_formula, data), 1, function(x) all(!is.na(x))) &
 
                ## within stage 10, which patients are in strata 1?
-               long_data %>% filter(stage == i)%>% pull(!!sym(paste0("strata", strata))) == 1 ,
+               long_data %>% filter(stage == (i+1))%>% pull(!!sym(paste0("strata", strata))) == 1 ,
              ## if both conditions are true, put 1; otherwise, put 0
              1, 0) )
 
-
-    #############################
-    #############################
-    #############################
-    ####### VISUALIZATION #######
-
-    ## shifted probability output after adding new point for nDP - 3
-
-    #    xaxis <- params@timePoints
-    #    ## nDP
-    #    y1 <- last.stage.pred$optimal@optimalY[1,]
-    #
-    #
-    #    plot(xaxis, y1)
-    #    title("Convergence 3: stage nDP - 1 prediction")
-
-
-    #############################
-    #############################
-    #############################
-    #############################
+    ###
+    ### end strata == 1
+    ###
 
 
     ##########################################
     ## putting optimal predictions together ##
     ##########################################
 
+
+    ###
+    ### for  strata == 1
+    ###
 
     # Initialize the shifted probability matrix
     ## we overwrite the eligible patients
@@ -237,6 +258,16 @@ IHdtrConv <- function(data,
     ## do this only for eligible patients
     shiftedprob1[, which(wholestage.eligibility == 1) ] <- t(last.stage.pred$optimal@optimalY)
 
+    ###
+    ### end strata == 1
+    ###
+
+
+
+
+    ###################################################
+    ################################################# NEXT START HERE
+    ###############################################################
 
     ## now, we want insert these predictions into the first column of a combined probability with optimal predictions from each stage
 
@@ -246,24 +277,52 @@ IHdtrConv <- function(data,
 
     x_append1 <- stats::model.frame(formula = models,
                                     ## ## we want to exclude the A.opt.HC column and A.pool1 column, and only consider data from the prev timepoint
-                                    data = long_data %>% filter(stage == i & !!sym(paste0("strata", strata)) == 1) %>% dplyr::select(-matches("^A\\.")),
+                                    data = long_data %>% filter(stage == i) %>% dplyr::select(-matches("^A\\.")),
                                     na.action = na.pass)
 
+    ## current stage's eligibility based on being in strata1 and having complete cases
 
-    ## we want to exclude the A.opt.HC column and A.pool1 column
-    elig_append1 <- stats::complete.cases(x_append1)
+
+    elig_append1 <- long_data %>%
+      # Filter the data to include only rows where stage is equal to i
+      filter(stage == i) %>%
+
+      # Mutate the data to add a new column 'eligibility'
+      mutate(
+        eligibility = as.numeric(
+          # Use ifelse to check two conditions for assigning eligibility
+          ifelse(
+            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
+            !!sym(paste0("strata", strata)) == 1 &
+              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
+              complete.cases(dplyr::select(., -matches("^A\\."))),
+            # If both conditions are TRUE, assign 1
+            1,
+            # Otherwise, assign 0
+            0
+          )
+        )
+      ) %>%
+
+      # Extract the 'eligibility' column as a vector
+      pull(eligibility)
 
     # extract response and delta from model frame
 
-    ## extract survival response
+    ## extract survival response for all 300 patients
+    ### however, those that are not in elig_append1 = TRUE will receive an NA
     response_append1 <- stats::model.response(data = x_append1)
+    ## if there are any that are not eligible for this stage, we turn into NA
+    response_append1[!elig_append1, ] <- NA
 
     ## extract censoring indicator (delta) from the second column of the "response" data
     ## "L" is used to indicate that 2 is an integer
     delta_append1 <- response_append1[, 2L]
+    delta_append1[!elig_append1] <- NA
 
     ## updates the "response" variable to only include the first column of the original "response" data which represents survival times
     response_append1 <- response_append1[, 1L]
+    response_append1[!elig_append1] <- NA
 
     # remove response from x
 
@@ -284,14 +343,15 @@ IHdtrConv <- function(data,
 
     elig_append1 <- elig_append1 & !zeroed
 
-    ## if there are no eligible cases, output an error message
-
-    if (sum(elig_append1) == 0L)
-      stop("no cases have complete data", call. = FALSE)
+    ## if there are no eligible cases, skip the following loop
 
     ## displays message indicating the number of cases that are still eligible for analysis at this stage
 
     message("cases in stage: ", sum(elig_append1))
+
+
+
+    if (sum(elig_append1) != 0L){
 
 
     ## retrieve the number of timepoints from the params object
@@ -301,11 +361,28 @@ IHdtrConv <- function(data,
 
     # create an empty matrix for all previously eligible cases
 
+    ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
+    ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
+    ## with columns with values that are non-0
+    ### NOTE: we don't have the same number of patients in stage 9 as stage 10,
+    ## so, we need to create an eligibility the same length as the patients in stage 10, with TRUE if they were in stage 9 too
+
+    prev.stag.elig <- long_data %>%
+      filter(stage == (i+1)) %>%
+      mutate(eligibility = as.numeric(ifelse(
+        !is.na(T) & !!sym(paste0("strata", strata)) == 1,
+        1,
+        0
+      ))) %>%
+      pull(eligibility)
+
+
     ## initializes a survival matrix called "survMatrix" with 0's
+
 
     survMatrix <- matrix(data = 0.0,
                          nrow = nTimes,
-                         ncol = nrow(x = x_append1))
+                         ncol = length(prev.stag.elig))
 
     ## sets the first row to 1.0
 
@@ -325,11 +402,7 @@ IHdtrConv <- function(data,
 
 
 
-    ## NOTE: transpose is not needed bc shiftedprob has nrows = timepoints, ncols = patients
-    ## only for the patients who were still eligible in the prior stage, we take their optimal shifted probabilities and overwrite them in the current matrix
-    ## with columns with values that are non-0
-
-    survMatrix[, which(eligibility == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
+    survMatrix[, which(prev.stag.elig == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
 
 
     # shift the survival function down in time (T_i - Tq) and
@@ -340,6 +413,8 @@ IHdtrConv <- function(data,
     ## transforms the survival functions in survMatrix to probability mass format for the current stage
     ## shifts the survival function based on the observed survival times
     ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
+    ## NOTE, we only shift patients who HAD previous stages
+
 
     append1_pr_1 <- .shiftMat(
       timePoints = .TimePoints(object = params),
@@ -394,18 +469,17 @@ IHdtrConv <- function(data,
     #############################
 
     ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
-    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (eligibility), we put a TRUE. Otherwise if they match, put FALSE
-
-    newpt_elig <- ifelse(elig_append1 == eligibility, FALSE, TRUE)
+    ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (prev.stag.elig), we put a TRUE. Otherwise if they match, put FALSE
+    ## this means if new stage eligibility is TRUE, and previous stage is FALSE, we put a value of TRUE
+    newpt_elig <- ifelse(elig_append1 == T & prev.stag.elig == F, TRUE, FALSE)
 
     ## for these new patients, we predict their survival curves to get a stub
     response_with_stage <- paste0(response_var, "_", i)
     terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
     terms_with_stage <- paste0(terms, "_", i)
-    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
 
-    x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",i)) == 1))[newpt_elig, ]
-
+    x = get_all_vars(updated_formula, data)[which(newpt_elig == 1), ]
 
 
     if (dim(x)[1] != 0) {
@@ -440,7 +514,7 @@ IHdtrConv <- function(data,
 
       ## now substitute into the append1_pr_1 matrix
       ### this now includes both shifted probabilities (double stubs) from previous stage as well as stubs from patients where this is their first stage
-      append1_pr_1[, eligibility[which(elig_append1)] == 0] <- newpt_shiftprob
+      append1_pr_1[, prev.stag.elig[which(elig_append1)] == 0] <- newpt_shiftprob
 
     }
 
@@ -496,50 +570,68 @@ IHdtrConv <- function(data,
     }
 
     }
+    }
   }
+
+  ## for stage 1, we need to include the optimal predicted actions
 
 
 
   ## after we predict for all the stages, we fit a random forest to pool all stages
 
-  s2.strata1 <- .dtrSurvStep(
-    ## use the model for pooled data
+  # Define the dynamic variable name
+  forest.name <- paste0("s2.strata", strata)
+
+  # Perform the desired operation and assign the result to the dynamic variable
+  assign(forest.name, .dtrSurvStep(
     model = models,
-    ## convergence forest uses all the data from the current strata with observations that are relevant
-    ### we can filter only for strata1 == 1, but this includes observations where the patient already is NA
     data = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(T)),
     priorStep = NULL,
     params = params,
     txName = "A",
-    ## set to the same as the input: these mTry values are all the same so I just use an arbitrary one
     mTry = mTry[[nDP]],
-    ## NOTE: sampleSize is a vector of inputs from 0-1, but we use the whole sample size so we just specify 1
     sampleSize = 1,
-    ## this is used as TRUE for processing the treatment levels
     pool1 = TRUE,
-    ## as TRUE allows for inputting the probability matrix to be used instead of creating one separately in the function
     appendstep1 = TRUE,
-    ## the input probability should be only the last 5 of each stage
     inputpr = pr_pooled[, colSums(pr_pooled) != 0]
-  )
+  ))
 
   # Set the column name in long_data
   long_data$A.final <- NA
 
   # Extract eligibility for the current forest
-  eligibility_final <- s2.strata1@eligibility
+  eligibility_final <- get(forest.name)@eligibility
 
   # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
   ## also update the "A" column
-  long_data$A.final[which(eligibility_final == 1)] <- s2.strata1@optimal@optimalTx
-  long_data$A[which(eligibility_final == 1)] <- s2.strata1@optimal@optimalTx
+  long_data$A.final[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+  long_data$A[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
 
+
+  ######## now, we want to output this into a grid, so that all patients have all stages present
+  ### for stages that are not in this strata, they will just take on values of 0
+  #### for this, we need to have an overall eligibility vector across ALL stages: complete case & strata criteria
+  #### we count all variables that begin with the variables in the model and count the complete cases
+  # first, we update the formula to get rid of any underscores
+  overall.form <- gsub("_.*?(?=\\s|\\)|$)", "", updated_formula, perl = TRUE)
+
+
+  allstage.eligibility <- as.numeric(
+
+    ifelse(apply(get_all_vars(overall.form, long_data), 1, function(x) all(!is.na(x))) &
+
+             ## within stage 10, which patients are in strata 1?
+             long_data %>% pull(!!sym(paste0("strata", strata))) == 1 ,
+           ## if both conditions are true, put 1; otherwise, put 0
+           1, 0) )
 
   # Initialize the shifted probability matrix
   ## ## each patient will have k + 1 --> k stages; nrow(data) is the number of patients
   ## we overwrite the eligible patients
-  shiftedprobfinal <- matrix(0, nrow = nTimes, ncol = length(eligibility_final) )
-  shiftedprobfinal[,which(eligibility_final == T)] <-t(s2.strata1@optimal@optimalY)
+  shiftedprobfinal <- matrix(0, nrow = nTimes, ncol = length(allstage.eligibility) )
+  shiftedprobfinal[,which(allstage.eligibility == T)] <-t(get(forest.name)@optimal@optimalY)
+
+
 
   ## get the final stage's area under the curve: we only look at the columns of the matrix in the last stage
   #finalstagepr <- shiftedprobfinal[, seq(from = 1, to = ncol(shiftedprobfinal), by = nDP)]
@@ -548,7 +640,7 @@ IHdtrConv <- function(data,
 
 
   ## the result after appyling the area function to each column of the matrix of survival probabilities
-  areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
+  areas <- apply(shiftedprobfinal[, colSums(shiftedprobfinal) != 0], 2, function(surv_prob_col) {
     area_under_curve(surv_prob_col, params@timePoints)
   })
 
@@ -564,7 +656,7 @@ IHdtrConv <- function(data,
     Class = "DTRSurv",
     "stageResults" = list(),
     "IHstageResults" = list(),
-    "FinalForest" = s2.strata1,
+    "FinalForest" = get(forest.name),
     "value" = NULL,
     "call" = cl,
     "params" = params,
@@ -572,11 +664,11 @@ IHdtrConv <- function(data,
     "n_it" = NA,
     "avgKM_diff" = matrix(nrow = 2, ncol = 2),
     "valueTrain_list" = list(),
-    "long_data" = long_data
+    "long_data" = long_data,
+    "prev_probs" = shiftedprobfinal
   )
 
   return(conv_forest)
-
 
 
 }

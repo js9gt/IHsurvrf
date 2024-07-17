@@ -178,6 +178,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     ### to track true optimal and predicted optimal at each stage
     #output[, "true.opt.A", stage] <- true.opt
     output[, "IHsurvrf.A", stage] <- IHsurvrf_optimal
+    
 
     ## we run this chunk if there was a policy input
     #########################
@@ -187,7 +188,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ### if policy == DTRSurv object, then we get the optimal policy for ppl at risk in this stage
       ## the extracted actions are then input into the one_stage.vec
 
-      if (attr(policy, "class") %in% c("DTRSurv")) {
+      if (attr(policy, "class") %in% c("DTRSurvRes")) {
 
       ## puts output data into a specific format by setting specific columns to dummy values
       ## uses output2observable() function from F00.generic.R which rearranges data into each row is subject,
@@ -210,16 +211,40 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ## now, we retrieve the model used at each stage (the current stage from the loop): Surv(T_1, delta_1) ~ Z1_1 + Z2_1 + Z3_1 + Z4_1 + Z5_1
       ## get_all_vars() retrieves all the variables from this stage's model, then updates the dataframe to only include these
       ### we want to retrieve vars_stage variables, since we have a common model across all treatment times
+      
+      
+      ### NOTE: depending on the strata, we should use the forest from that strata.
+      ## for the very first stage, since the cumulative time is 0, we should use strata 2
+      
+      if (stage == 1) {
+        
+        forest <- policy@Forest1
+        
+      } else {
+        
+        ## Calculate the cumulative time
+        cumulative_time <- output[, "cumulative.time", stage] * 100
+        
+        ## Assign the appropriate forest based on the cumulative time
+        if (!is.na(cumulative_time)) {
+          if (cumulative_time < policy@cutoff) {
+            forest <- policy@Forest2
+          } else {
+            forest <- policy@Forest1
+          }
+        }
+        
+      }
 
 
       # Extract the response variable from the formula
-      response_var <- as.character(formula(policy@FinalForest@model)[[2]][-1])
+      response_var <- as.character(formula(forest@FinalForest@model)[[2]][-1])
 
       # Append the current stage number to each term
       response_with_stage <- paste0(response_var, "_", stage)
 
       # Extract the terms of the formula excluding the response variable
-      terms <- attr(terms(policy@FinalForest@model), "term.labels")
+      terms <- attr(terms(forest@FinalForest@model), "term.labels")
 
       # Append the current stage number to each term
       terms_with_stage <- paste0(terms, "_", stage)
@@ -240,7 +265,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ## policy is the optimal estimated policy (DTRSurv Object), with a stage
       ##### NOTE: we need to change the "predict" to work using the FinalForest slot
 
-      args <- list(policy, newdata = x)
+      args <- list(forest, newdata = x)
 
       ## for at.risk != 0 (pt still at risk), retrieve the optimal treatment after feeding this new data into the trained forest
       ## feeds this into predict() function which is defined in class_DTRSurv.R

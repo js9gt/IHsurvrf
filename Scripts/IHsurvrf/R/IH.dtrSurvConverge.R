@@ -175,7 +175,10 @@ IHdtrConv <- function(data,
 
 
   ### NOTE: we only predict for those patients who have the same next strata
-    x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",(i+1) )) == 1))
+
+    x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",(i+1) )) == 1
+                                                      & !is.na(!!sym(paste0("T","_",(i+1) )))
+                     ))
 
     ####
     #### end for strata == 1
@@ -477,7 +480,7 @@ IHdtrConv <- function(data,
     response_with_stage <- paste0(response_var, "_", i)
     terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
     terms_with_stage <- paste0(terms, "_", i)
-    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = ", "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
 
     x = get_all_vars(updated_formula, data)[which(newpt_elig == 1), ]
 

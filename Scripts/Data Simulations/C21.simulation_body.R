@@ -101,7 +101,7 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.true
 
     ## a logical for if we want to include censoring (besides administrative censoring)
     ### for no censoring argument, we will change this part to FALSE: for everything except "observed"
-      censoringyesno = TRUE,
+      censoringyesno = FALSE,
 
     ## for inputting dif policies used to generate data
     ## this is a DTRSurv object
@@ -267,7 +267,7 @@ if (!skip.IHsurvrf) {
                   stageLabel = "_",
                   stage.start = ss,
                   nstrata = 2,
-                  windowsize = 50)
+                  windowsize = 10)
 
   ## setting a different seed
   set.seed(sim*10000 + 5)

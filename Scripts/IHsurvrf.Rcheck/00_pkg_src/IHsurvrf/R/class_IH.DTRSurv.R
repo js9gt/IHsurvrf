@@ -43,7 +43,12 @@ setClass(Class = "DTRSurv",
            "valueTrain_list" = "list",
 
            ## intput and output long_data where the actions get updated
-           "long_data" = "ANY"))
+           "long_data" = "ANY",
+
+           ## input and output matrix of optimal survival probs from previous iterations
+           ## this is only used for convergence
+
+           "prev_probs"= "matrix"))
 
 
 

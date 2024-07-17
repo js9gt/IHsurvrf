@@ -18,9 +18,10 @@
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
-  message("500 patients, max stages = 25, 200 simulation replicates, 10,000 eval, 10% censoring, OBS; trueopt and increasing mTry to 10")
+  message("10,000 patients, max stages = 10, 200 simulation replicates, 10,000 eval, 
+          no censoring (only administrative), obs setting (not RCT)")
   message("After adjusting integral change to proportion and fixing proportion censor, true opt should be doing better now")
-  arg = c(1, 2, 1, 1) # by default
+  arg = c(1, 1, 1, 1) # by default
   print(arg)
 }
 
@@ -58,7 +59,7 @@ crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "trunca
 # arg3 size: a list containing 2 training sample sizes
 size <- list(
   ## small ss is 75
-  small.sample.size = list(n = 300),
+  small.sample.size = list(n = 150),
   ## large ss is 10,000
              large.sample.size = list(n = 10000))
 

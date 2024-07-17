@@ -347,7 +347,7 @@ IHdtrConv_otherstrata <- function(data,
       ## first we update the survival matrix with previously predicted values from the same strata
       ## recall, we only predict if they had the same strata both times
 
-      survMatrix[, which(nextstrat_same == 1)] <-  shiftedprob1[, which(nextstrat_same == 1) ]
+      survMatrix[, which(nextstrat_same == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
 
 
       ## next, we update the survival matrix with the strata 1 output values for stage i + 1

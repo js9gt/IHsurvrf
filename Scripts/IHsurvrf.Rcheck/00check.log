@@ -62,7 +62,34 @@ IHdtrConv: no visible binding for global variable ‘stage’
 IHdtrConv: no visible global function definition for ‘pull’
 IHdtrConv: no visible global function definition for ‘matches’
 IHdtrConv: no visible binding for global variable ‘na.pass’
+IHdtrConv: no visible global function definition for ‘mutate’
+IHdtrConv: no visible global function definition for ‘complete.cases’
+IHdtrConv: no visible binding for global variable ‘.’
 IHdtrConv: no visible global function definition for ‘new’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘formula’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘get_all_vars’
+IHdtrConv_otherstrata: no visible global function definition for ‘%>%’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘filter’
+IHdtrConv_otherstrata: no visible global function definition for ‘sym’
+IHdtrConv_otherstrata: no visible binding for global variable ‘stage’
+IHdtrConv_otherstrata: no visible global function definition for ‘pull’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘select’
+IHdtrConv_otherstrata: no visible binding for global variable ‘subj.id’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘left_join’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘matches’
+IHdtrConv_otherstrata: no visible binding for global variable ‘na.pass’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘mutate’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘complete.cases’
+IHdtrConv_otherstrata: no visible binding for global variable ‘.’
+IHdtrConv_otherstrata: no visible global function definition for ‘new’
 IHdtrSurv: no visible global function definition for ‘%>%’
 IHdtrSurv: no visible global function definition for ‘pivot_longer’
 IHdtrSurv: no visible global function definition for ‘starts_with’
@@ -103,15 +130,16 @@ initialize,CriticalValueSurvival : <anonymous>: no visible global
 initialize,CriticalValueSurvival: no visible binding for global
   variable ‘is’
 Undefined global functions or variables:
-  %>% A action.0.count action.1.count arrange baseline1 baseline2
-  cumulative.time delta filter formula get_all_vars is matches
-  model.frame model.response mutate na.pass new nstages pivot_longer
-  pivot_wider prior.visit.length pull stage starts_with state1 state2
-  subj.id sym terms update
+  %>% . A action.0.count action.1.count arrange baseline1 baseline2
+  complete.cases cumulative.time delta filter formula get_all_vars is
+  left_join matches model.frame model.response mutate na.pass new
+  nstages pivot_longer pivot_wider prior.visit.length pull select stage
+  starts_with state1 state2 subj.id sym terms update
 Consider adding
   importFrom("methods", "is", "new")
-  importFrom("stats", "filter", "formula", "get_all_vars", "model.frame",
-             "model.response", "na.pass", "terms", "update")
+  importFrom("stats", "complete.cases", "filter", "formula",
+             "get_all_vars", "model.frame", "model.response", "na.pass",
+             "terms", "update")
 to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
 contains 'methods').
 * checking Rd files ... OK
