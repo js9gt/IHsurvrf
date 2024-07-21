@@ -203,25 +203,18 @@ IHdtrConv <- function(data,
     # Extract optimal treatments for the current stage
     optimal_treatments <- last.stage.pred$optimal@optimalTx
 
-    ####
-    #### run for strata == 1
-    ####
-
     # We need an index of eligibility for the current stage at i+1 -- AKA the patients who are present in the last stage get 1, otherwise they get a 0
     ### patients who are eligible are ones who have a complete case for x
     eligibility <- as.numeric( ifelse(apply(x, 1, function(x) all(!is.na(x))), 1, 0) )
 
     # also update "A" column
 
-    ############ CHECK
-    ################# does this account for visits that are not complete cases as well??? should we filter for that?
-    #################
 
-    long_data$A[long_data$stage == (i+1) & long_data[[paste0("strata", strata)]] == 1][which(eligibility == 1)] <- optimal_treatments
+    long_data$A[
+      long_data$stage == (i + 1) &
+        long_data[[paste0("strata", strata)]] == 1 &
+        !is.na(long_data$T)][which(eligibility == 1)] <- optimal_treatments
 
-    ############
-    #################
-    #################
 
 
 ## the dimensions of this are for all patients
@@ -612,8 +605,14 @@ IHdtrConv <- function(data,
   ################### might need to subset the pts in the strata to update the actions
   ###################
 
-  long_data$A.final[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
-  long_data$A[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+  ## we want to filter for all the patients who are in the strata and don't have an NA
+
+
+  long_data$A.final[long_data[[paste0("strata", strata)]] == 1 &
+      !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+
+  long_data$A[long_data[[paste0("strata", strata)]] == 1 &
+      !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
 
 
   ####################
