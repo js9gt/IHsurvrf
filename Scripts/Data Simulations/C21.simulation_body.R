@@ -101,7 +101,7 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.true
 
     ## a logical for if we want to include censoring (besides administrative censoring)
     ### for no censoring argument, we will change this part to FALSE: for everything except "observed"
-      censoringyesno = FALSE,
+      censoringyesno = TRUE,
 
     ## for inputting dif policies used to generate data
     ## this is a DTRSurv object
@@ -123,6 +123,7 @@ arg.obs$censoringyesno <- TRUE
 ## only arg.obs still has the original number of samples
 arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.trt1$n.sample <- arg.trt0$n.sample <- arg.trueopt$n.sample <-
   n.eval
+
 
 ## setting nodesize to 5
 nodesize = 3
@@ -223,7 +224,7 @@ if (!skip.IHsurvrf) {
                   ## distribution to draw timepoints from
                   timePoints = "uni",
                   ## number of timepoints from 0 to tau
-                  nTimes = 200,
+                  nTimes = 500,
 
                   ## mean,surv.prob, or surv.mean
                   criticalValue = criterion,
@@ -429,7 +430,7 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/300pt_25stage", row.names=FALSE)
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/500pt_newsimforest_tau", row.names=FALSE)
 
 
 

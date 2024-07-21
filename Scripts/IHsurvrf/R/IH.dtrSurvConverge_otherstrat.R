@@ -76,8 +76,17 @@ IHdtrConv_otherstrata <- function(data,
   # also update "A" column
   ### we select the eligible values which are in the current stage, and strata
   ### then we subset t only those eligible (have complete cases)
+
+  ################
+  ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
+  ###############
+
   long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1] [which(eligibility == 1)] <- optimal_treatments
 
+
+  ##############
+  #############
+  ##############
 
   #### now, we want to extract the eligibility for the whole stage
   #### this means they have to BOTH have compelte cases, AND have strata1 == 1
@@ -170,6 +179,7 @@ IHdtrConv_otherstrata <- function(data,
     # Filter for the next stage (i + 1)
     next_stage <- long_data %>%
       filter(stage == i + 1) %>%
+      ### select the subjects in the previous strata
       select(subj.id, paste0("strata", strata - 1), T)
 
     # Rename columns for clarity in join
@@ -214,9 +224,17 @@ IHdtrConv_otherstrata <- function(data,
       # Extract optimal treatments for the current stage
       optimal_treatments <- last.stage.pred$optimal@optimalTx
 
+
+      ################
+      ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
+      ###############
+
       # also update "A" column
       long_data$A[long_data$stage == (i+1)][which(nextstrat_same == 1)] <- optimal_treatments
 
+      ################
+      #################
+      ###############
 
 
       ##########################################
@@ -514,7 +532,9 @@ IHdtrConv_otherstrata <- function(data,
     txName = "A",
     mTry = mTry[[nDP]],
     sampleSize = 1,
-    pool1 = TRUE,
+
+    #### in the original IH.dtrSurv this is FALSE, so let's try changing it to FALSE to match
+    pool1 = FALSE,
     appendstep1 = TRUE,
     inputpr = pr_pooled[, colSums(pr_pooled) != 0]
   ))
@@ -527,8 +547,19 @@ IHdtrConv_otherstrata <- function(data,
 
   # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
   ## also update the "A" column
+
+  ##########
+  ########## check to see if eligibility matches dimensions bc it should only be for pts in the strata
+  ##########
+
+
   long_data$A.final[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
   long_data$A[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+
+
+  #################
+  #################
+  #################
 
   ######## now, we want to output this into a grid, so that all patients have all stages present
   ### for stages that are not in this strata, they will just take on values of 0

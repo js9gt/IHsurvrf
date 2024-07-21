@@ -312,13 +312,13 @@ IHdtrSurv <- function(data,
     # Select data where cumulative time is greater than or equal to the current threshold
     selected_data <- long_data %>% filter(cumulative.time * tau >= i)
 
-    # Calculate the percentage of events
+    # Calculate the percentage of events in current cutoff divided by total number of events
     event_percentage <- sum(selected_data$delta == 0, na.rm = TRUE) / sum(long_data$delta == 0, na.rm = TRUE)
 
     # Check if the event percentage meets the threshold
     ## NOTE: that the dimensions of these will not match the original data just because the original data contains rows of NAs
     ## this is because we simulate every patient to have 10 stages but if they have event/censored earlier they just have NA
-    if (event_percentage >= 0.50) {
+    if (event_percentage >= 0.5) {
       # Assign strata membership
       long_data$strata1[ (long_data$cumulative.time * tau) >= i] <- 1
       long_data$strata2[ (long_data$cumulative.time * tau) < i] <- 1
@@ -327,14 +327,49 @@ IHdtrSurv <- function(data,
       strata1 <- selected_data
       strata2 <- long_data %>% filter(cumulative.time*tau < i)
 
-      print(i)
+      selected_thresh <- i
+
       ### print the cutoff time for the strata
+      message("Cumulative cutoff:", selected_thresh, "; longest length:", tau)
+
 
       break
 
 
     }
   }
+
+#####
+##### plotting to see how many stages a patient has
+#####
+
+#  #### see how many stages patients have
+#strata1_stages <- long_data %>%
+#  filter(strata1 == 1 & !is.na(T)) %>%
+#  group_by(subj.id) %>%
+#  summarise(stage_count = n()) %>%
+#  ungroup() %>%
+#  count(stage_count)
+#
+#strata2_stages <- long_data %>%
+#  filter(strata2 == 1 & !is.na(T)) %>%
+#  group_by(subj.id) %>%
+#  summarise(stage_count = n()) %>%
+#  ungroup() %>%
+#  count(stage_count)
+#
+## Create the bar plot
+#ggplot(strata1_stages, aes(x = stage_count, y = n)) +
+#  geom_bar(stat = "identity") +
+#  labs(title = "Number of Stages Patients Have in Strata 1,
+#       with 10% split in events",
+#       x = "Number of Stages",
+#       y = "Number of Patients") +
+#  theme_minimal()
+
+#####################################
+#####################################
+#####################################
 
 
   # Step 2: Convert back to wide format
@@ -353,7 +388,7 @@ IHdtrSurv <- function(data,
   s1.strata1 <- .dtrSurvStep(
     ## use the model for pooled data
     model = models,
-    ## only include the data in the first strata
+    ## only include the data in the first strata with complete cases (don't include if they've failed already)
     data = long_data %>% filter(strata1 == 1 & !is.na(T)),
     priorStep = NULL,
     params = params,
@@ -364,6 +399,8 @@ IHdtrSurv <- function(data,
     sampleSize = 1,
     ## we are in the first step of pooling patient data after running HC code
     pool1 = F,
+
+    ## we're not inputting any survival probabilities
     appendstep1 = F
   )
 
@@ -374,15 +411,16 @@ IHdtrSurv <- function(data,
 
   eligibility_s1.strata1 <- s1.strata1@eligibility
 
+
+
   # Update actions for A.s1.strata1 for rows where strata1 == 1 and eligibility_final is TRUE
-  long_data$A.s1.strata1[which(long_data$strata1 == 1)][which(eligibility_s1.strata1 == 1)] <- s1.strata1@optimal@optimalTx
+  ### the eligibility is only for patients in strata 1 AND not NA, so we have to filter for that too
+  long_data$A.s1.strata1[long_data$strata1 == 1 & !is.na(long_data$T)][which(eligibility_s1.strata1 == 1)] <- s1.strata1@optimal@optimalTx
   ## also update the "A" column to be used for the convergence aspect
-  long_data$A[which(long_data$strata1 == 1)][which(eligibility_s1.strata1 == 1)] <- s1.strata1@optimal@optimalTx
+  long_data$A[long_data$strata1 == 1 & !is.na(long_data$T)][which(eligibility_s1.strata1 == 1)] <- s1.strata1@optimal@optimalTx
 
 
-  # Initialize the shifted probability matrix
-  ## ## each patient will have k + 1 --> k stages; nrow(data) is the number of patients
-  ## we overwrite the eligible patients
+  # Initialize the probability matrix that's output
   shiftedprobfinal <- matrix(NA, nrow = nTimes, ncol = length(eligibility_s1.strata1) )
   shiftedprobfinal[,eligibility_s1.strata1] <-t(s1.strata1@optimal@optimalY)
 
@@ -390,8 +428,7 @@ IHdtrSurv <- function(data,
 
 
   ## the result after appyling the area function to each column of the matrix of survival probabilities
-  ##### NOTE: the issue is that each patient has a different number of visits belonging to this strata
-  ##### meaning, for visits in strata 2, we must input 0 probability
+## since each patient has a different number of visits in the strata, we look at the area of all stages included
   areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
     area_under_curve(surv_prob_col, params@timePoints)
   })
@@ -478,7 +515,9 @@ IHdtrSurv <- function(data,
     "avgKM_diff" = matrix(nrow = 2, ncol = 2),
     "valueTrain_list" = list(),
     "long_data" = long_data,
-    "prev_probs" = matrix(nrow = nTimes, ncol = nDP * nrow(long_data %>% filter(stage == 1)))
+
+    ## empty matrix since we don't use previous probabilities
+    "prev_probs" = matrix(nrow = 2, ncol = 2)
   )
 
 
@@ -543,6 +582,8 @@ IHdtrSurv <- function(data,
       # If the condition is met, continue the loop
       continue_iterations <- TRUE
 
+      print(avg_diff)
+
 
 
       ## increment the iteration counter
@@ -589,7 +630,7 @@ IHdtrSurv <- function(data,
   ## the first row of the survival probability is set to 1
   ## then, we convert these by subtracting from the row above so it's a difference in probs
 
-  ## first, we initialize a matrix of probabilities, with ncol == ## pts in strata 2, and each patient gets nDP stages
+  ## first, we initialize a matrix of probabilities, with ncol == each patient gets nDP stages
 
   input.strata2 <- matrix(0, nrow = nTimes, ncol = nrow(long_data %>% filter(stage == 1))*nDP )
 
@@ -621,6 +662,7 @@ IHdtrSurv <- function(data,
 
 
   ## now, for every 10th column (equivalent to pulling all pt stage 10), we overwrite with 1 in first row for eligible pt
+  ## meaning, for all patients who are eligible in stage 10 (and have non-NA values, we know they survived so we put 1)
   input.strata2[, seq( (nDP),
                        ncol(input.strata2), by = (nDP))][, which(stage.elig == 1)][1L, ] <- 1.0
 
@@ -831,8 +873,8 @@ IHdtrSurv <- function(data,
     sampleSize = 1,
     ## we are in the first step of pooling patient data after running HC code
     pool1 = F,
-    appendstep1 = TRUE,
-    inputpr = input.strata2[, colSums(input.strata2) != 0]
+    appendstep1 = F
+    #inputpr = input.strata2[, colSums(input.strata2) != 0]
   )
 
   ## now, for strata 2, we want to track the optimal and eligibility
@@ -842,9 +884,18 @@ IHdtrSurv <- function(data,
   eligibility_s1.strata2 <- s1.strata2@eligibility
 
   # Update actions for A.s1.strata1 for rows where strata1 == 1 and eligibility_final is TRUE
+
+  ###############
+  ################ check to see if the eligibility matches with the dimensions... might need filter for NA (T)?
+  ###############
+
   long_data$A.s1.strata2[which(long_data$strata2 == 1)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
   ## also update the "A" column to be used for the convergence aspect
   long_data$A[which(long_data$strata2 == 1)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
+
+  #################
+  #################
+  #################
 
 
   # Initialize the shifted probability matrix
@@ -890,7 +941,7 @@ IHdtrSurv <- function(data,
     "avgKM_diff" = matrix(nrow = 2, ncol = 2),
     "valueTrain_list" = list(),
     "long_data" = long_data,
-    "prev_probs" = matrix(nrow = nTimes, ncol = nDP * nrow(long_data %>% filter(stage == 1)))
+    "prev_probs" = res.strata1.1@prev_probs
   )
 
   ## after backwards recursion is complete, calculate the estimated value from the first stage
@@ -939,7 +990,7 @@ IHdtrSurv <- function(data,
                                  models = models, mTry = mTry, strata = 2,
                                  # use the most recent long_data
                                  long_data = res.strata2.1@long_data,
-                                 prev_probs = res.strata1.1@prev_probs)
+                                 prev_probs = res.strata2.1@prev_probs)
 
     ## now we want to create a matrix for areas where each row is one iteration of the forest
     area_mat <- rbind(res.strata2.1@integral_KM, convergence_res@integral_KM)
@@ -992,6 +1043,8 @@ IHdtrSurv <- function(data,
       continue_iterations <- TRUE
 
 
+      print(avg_diff)
+
 
       ## increment the iteration counter
 
@@ -1036,8 +1089,11 @@ IHdtrSurv <- function(data,
   res <- new(
     Class = "DTRSurvRes",
 
+  ## strata 1 forest
 
     "Forest1" = res.strata1.1,
+
+  ## strata 2 forest
     "Forest2" = res.strata2.1,
     "call" = cl,
     "params" = params,
@@ -1045,7 +1101,7 @@ IHdtrSurv <- function(data,
     "prev_probs" = res.strata2.1@prev_probs,
     "n_it" = NA,
     "avgKM_diff" = matrix(0),
-    "cutoff" = starting_thresh
+    "cutoff" = selected_thresh
   )
 
 

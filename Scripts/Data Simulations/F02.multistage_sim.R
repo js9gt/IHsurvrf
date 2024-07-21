@@ -214,23 +214,31 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       
       
       ### NOTE: depending on the strata, we should use the forest from that strata.
-      ## for the very first stage, since the cumulative time is 0, we should use strata 2
+      ## for the very first stage, since the cumulative time is 0, we should use strata 2 forest
       
       if (stage == 1) {
         
-        forest <- policy@Forest1
+        forest <- policy@Forest2
         
       } else {
         
         ## Calculate the cumulative time
-        cumulative_time <- output[, "cumulative.time", stage] * 100
+        ## since cumulative time is a proportion with tau as the denom, we need to multiply by tau
+        cumulative_time <- output[, "cumulative.time", stage] * tau
+        #print(cumulative_time)
+        #print(policy@cutoff)
         
         ## Assign the appropriate forest based on the cumulative time
         if (!is.na(cumulative_time)) {
           if (cumulative_time < policy@cutoff) {
             forest <- policy@Forest2
+            
+            message("using strata 2 forest")
+            
           } else {
             forest <- policy@Forest1
+            
+            message("using strata 1 forest")
           }
         }
         
@@ -351,6 +359,8 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
         ## find the maximum of the event times-- for whatever the maximum is, we should use that action
         true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
+        
+        #### we want to print out what the survival times are, and take the average 
 
         ## use the true policy as the input policy for people at risk
         ### we omit the NA values since that's what's included for patients who are ineligible
@@ -380,17 +390,17 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       }
 
 
-    # Call the function and store the returned value
-    true.opt2 <- compute_true_opt(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
-                                 a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno)
+  #  # Call the function and store the returned value
+  #  true.opt2 <- compute_true_opt(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
+  #                               a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno)
+#
 
-
-    # Assume true.opt and true.opt2 have been computed previously
-    if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
-      selected.opt <- true.opt2
-    } else {
-      selected.opt <- true.opt
-    }
+#    # Assume true.opt and true.opt2 have been computed previously
+#    if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
+#      selected.opt <- true.opt2
+#    } else {
+#      selected.opt <- true.opt
+#    }
 
     # Now selected.opt is either true.opt or true.opt2 based on the condition
     # You can use selected.opt in the subsequent code
@@ -401,7 +411,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
       a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
       a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-      input.policy.action = input.policy.action, input_opt = selected.opt
+      input.policy.action = input.policy.action, input_opt = NA
     ) %>% t
 
 
@@ -491,38 +501,39 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   }
 }
 
-compute_true_opt <- function(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
-                             a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno) {
-  true.opt <- NULL  # Initialize true.opt
-
-  if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
-    # Generate the values of stage.output1 and stage.output2
-    stage.output1 <- one_stage.vec(
-      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
-      prior.visit.length = prior.visit.length,
-      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-      input.policy.action = 1
-    ) %>% t
-
-    stage.output2 <- one_stage.vec(
-      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
-      prior.visit.length = prior.visit.length,
-      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-      input.policy.action = 0
-    ) %>% t
-
-    # Compute true.opt based on stage.output1 and stage.output2
-    true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
-  }
-
-  return(true.opt)  # Return true.opt
-}
+## computing true opt is only each stage's maximum so it's not actually useful
+#compute_true_opt <- function(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
+#                             a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno) {
+#  true.opt <- NULL  # Initialize true.opt
+#
+#  if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
+#    # Generate the values of stage.output1 and stage.output2
+#    stage.output1 <- one_stage.vec(
+#      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+#      prior.visit.length = prior.visit.length,
+#      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+#      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+#      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+#      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+#      input.policy.action = 1
+#    ) %>% t
+#
+#    stage.output2 <- one_stage.vec(
+#      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+#      prior.visit.length = prior.visit.length,
+#      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+#      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+#      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+#      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+#      input.policy.action = 0
+#    ) %>% t
+#
+#    # Compute true.opt based on stage.output1 and stage.output2
+#    true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
+#  }
+#
+#  return(true.opt)  # Return true.opt
+#}
 
 
 #set.seed(123)
