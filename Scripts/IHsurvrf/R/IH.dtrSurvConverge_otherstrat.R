@@ -81,7 +81,7 @@ IHdtrConv_otherstrata <- function(data,
   ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
   ###############
 
-  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1] [which(eligibility == 1)] <- optimal_treatments
+  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1][which(eligibility == 1)] <- optimal_treatments
 
 
   ##############
@@ -225,16 +225,11 @@ IHdtrConv_otherstrata <- function(data,
       optimal_treatments <- last.stage.pred$optimal@optimalTx
 
 
-      ################
-      ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
-      ###############
 
       # also update "A" column
+      ### these are the same dimension already with the total number of pts
       long_data$A[long_data$stage == (i+1)][which(nextstrat_same == 1)] <- optimal_treatments
 
-      ################
-      #################
-      ###############
 
 
       ##########################################
@@ -423,8 +418,6 @@ IHdtrConv_otherstrata <- function(data,
       ## skip this prediction if there are no patients that are new this stage (predict stub)
 
 
-      ###### CHECK THIS SECTION
-
       if (dim(x)[1] != 0) {
         ## remove stage suffixto use in prediction
         new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
@@ -548,18 +541,13 @@ IHdtrConv_otherstrata <- function(data,
   # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
   ## also update the "A" column
 
-  ##########
-  ########## check to see if eligibility matches dimensions bc it should only be for pts in the strata
-  ##########
 
+  long_data$A.final[long_data[[paste0("strata", strata)]] == 1 &
+                      !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
 
-  long_data$A.final[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
-  long_data$A[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+  long_data$A[long_data[[paste0("strata", strata)]] == 1 &
+                !is.na(long_data$T)][which(eligibility_final == 1)]<- get(forest.name)@optimal@optimalTx
 
-
-  #################
-  #################
-  #################
 
   ######## now, we want to output this into a grid, so that all patients have all stages present
   ### for stages that are not in this strata, they will just take on values of 0
