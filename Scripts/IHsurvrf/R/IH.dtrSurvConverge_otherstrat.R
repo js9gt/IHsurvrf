@@ -579,7 +579,7 @@ IHdtrConv_otherstrata <- function(data,
 
 
   ## the result after appyling the area function to each column of the matrix of survival probabilities
-  areas <- apply(shiftedprobfinal[, colSums(shiftedprobfinal) != 0], 2, function(surv_prob_col) {
+  areas <- apply(t(get(forest.name)@optimal@optimalY), 2, function(surv_prob_col) {
     area_under_curve(surv_prob_col, params@timePoints)
   })
 

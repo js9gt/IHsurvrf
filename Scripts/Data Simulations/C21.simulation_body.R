@@ -150,6 +150,7 @@ set.seed(sim*10000)
 ## observed data uses "n" number of patients which is the sample size
 obs.data <- do.call(simulate_patients, arg.obs)
 
+
 # observed policy value
 ##### simulate a set of data again, when there is no censoring (AKA) using a censoring value of -10 for all surv.prev
 ## also use n.eval as number of samples: 10000
@@ -168,7 +169,6 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 ## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
 result[sim, "observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
 
-
 result[sim, "avg.prop.match.opt.obs"] <- mean(count_matches_without_asterisks(obs.data.rep$summary$actions, obs.data.rep$summary$true.opt)/sapply(obs.data.rep$summary[, "actions"], count_numbers))
 
 ## note: 0 = censored, 1 = not censored, so we calculate the proportion of 1's from the generated observed data, then subtract from 1
@@ -181,6 +181,7 @@ result[sim, paste0("n_", 1:n.stages)] <-
   ## for each stage, calculate the proportion of observations in each stage (s = whatever iteration of the n.stages we are in)
   ### AKA this is the proportion of patients who have their terminal stage at stage s
   sapply(1:n.stages, function(s) mean(obs.data$summary$terminal.stage == s))
+
 
 
 result[sim, "time.obs"] <- tt(2, reset = TRUE)["elapsed"]
@@ -430,8 +431,7 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/500pt_newsimforest_tau", row.names=FALSE)
-
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/5stage_500_noconvergence_res", row.names=FALSE)
 
 
 

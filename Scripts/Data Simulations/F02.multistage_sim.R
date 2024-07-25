@@ -97,13 +97,14 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ##        number of samples being simulated (input)
   ##        dim(tmp)[2]: number of columns in the tmp opject (AKA the output variables from dynamics.vec)
   ##        n.stages: number of stages (input) in simulation
-  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2 + 1, max_stages),
+  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2 + 2, max_stages),
                    ## row and column names for the array
                    dimnames = list(1:n.sample, c("subj.id", "rep.id", "baseline1", "baseline2", colnames(tmp), "at.risk",
                                                  ## new column to track number of each treatment
                                                  "action.1.count",
                                                  "action.0.count",
-                                                 "cumulative.time", "IHsurvrf.A"),
+                                                 "cumulative.time", "IHsurvrf.A",
+                                                 "trt.diff"),
                                                  #colnames(baseline_covariates)),
                                    1:max_stages))
 
@@ -402,6 +403,63 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 #      selected.opt <- true.opt
 #    }
 
+    ### if we want to know what the true optimal is and generate observational data following that,
+    stage.output1 <-
+      
+      ## generate values for current stage
+      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
+      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
+                    prior.visit.length = prior.visit.length,
+                    #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
+                    terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+                    a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+                    a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+                    a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+                    
+                    ## inputting action == 1
+                    input.policy.action = 1, input_opt = NA) %>% t
+    
+    
+    stage.output2 <-
+      
+      ## generate values for current stage
+      ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
+      one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
+                    prior.visit.length = prior.visit.length,
+                    #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
+                    terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
+                    a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
+                    a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
+                    a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
+                    
+                    ## inputting action == 0
+                    input.policy.action = 0, input_opt = NA) %>% t
+    
+    
+#    ## avg difference in survival time between the two treatments
+#    # Identify the indices where 'event.time' is NA in stage.output1
+#    na_indices1 <- which(is.na(stage.output1[, "event.time"]))
+#    
+#    # Identify the indices where 'event.time' is NA in stage.output2
+#    na_indices2 <- which(is.na(stage.output2[, "event.time"]))
+#    
+#    # Combine the indices and get unique ones, or create an empty vector if there are no NAs
+#    all_na_indices <- if(length(na_indices1) == 0 & length(na_indices2) == 0) {
+#      integer(0)
+#    } else {
+#      unique(c(na_indices1, na_indices2))
+#    }
+#    
+#    # Remove the rows with these indices from both dataframes, if there are any indices to remove
+#    if(length(all_na_indices) > 0) {
+#      stage.output1_clean <- stage.output1[, "event.time"][-all_na_indices]
+#      stage.output2_clean <- stage.output2[, "event.time"][-all_na_indices]
+#    } else {
+#      stage.output1_clean <- stage.output1[, "event.time"]
+#      stage.output2_clean <- stage.output2[, "event.time"]
+#    }
+    
+    
     # Now selected.opt is either true.opt or true.opt2 based on the condition
     # You can use selected.opt in the subsequent code
     stage.output <- one_stage.vec(
@@ -425,6 +483,26 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     # Only those with gamma == 0 is at risk. Those with gamma = NA or 1 are not available.
     ## once delta is 0, the patient is no longer at risk also, only those who are non-censored (delta == 1) are at are risk
     at.risk <- (stage.output[, "gamma"] == 0 & stage.output[, "delta"] == 1)
+    
+    
+    #### calculating the difference in treatment
+    ####
+    ####
+    
+    # Compute the absolute difference
+    absolute_difference <- abs(stage.output1[, "event.time"] - stage.output2[, "event.time"])
+    
+    # Replace with NA where stage.output[, "delta"] == 0
+    result <- ifelse(stage.output[, "delta"] == 0, NA, absolute_difference)
+    
+    ## output the treatment differences; but if delta == 0 (pt was censored, we don't calculate a treatment diff and put NA instead)
+    output[, "trt.diff", stage] <- result
+    
+    ####
+    ####
+    
+    ### if there are any treatment differences that a
+    
 
     ## replaces NA values in at.risk with 0 (not at risk)
     at.risk[is.na(at.risk)] = 0
@@ -537,40 +615,40 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
 
 #set.seed(123)
-pts <- simulate_patients(n.sample = 50, max_stages = 25, tau = 1000,
-                  ## initially all patients are at risk
-                  at.risk = 1,
-                  ## Life so far lived at the beginning of the stage
-                  cumulative.time = 0,
-                  prior.visit.length = 0,
-                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
-
-                  #### Failure rate parameters get really small fairly quickly
-                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
-                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
-                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
-
-                  ## -4.5, b1 = -1, c1 = -0.5, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
-
-                  a1 = -6, b1 = -0.3, c1 = -0.5, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
-                  ## 2 for time to next visit
-
-                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
-                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
-                  ## I wonder if due to this, there should be less variation?
-
-                  a2 = -3, b2 = -0.3, c2 = -0.05, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01,
-                  a3 = -8, b3 = -0.3, c3 = -0.6,z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
-                  rho = 0.75,
-                  # action-specific effects
-                  D0 = 0,
-                  D1 = 1,
-                  g = 0.25,
-                  ## FALSE means we only have administrative censoring
-                  censoringyesno = FALSE,
-                  policy = NULL,
-                  summary = TRUE)
-
+#pts <- simulate_patients(n.sample = 50, max_stages = 25, tau = 1000,
+#                  ## initially all patients are at risk
+#                  at.risk = 1,
+#                  ## Life so far lived at the beginning of the stage
+#                  cumulative.time = 0,
+#                  prior.visit.length = 0,
+#                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
+#
+#                  #### Failure rate parameters get really small fairly quickly
+#                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
+#                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
+#                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
+#
+#                  ## -4.5, b1 = -1, c1 = -0.5, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
+#
+#                  a1 = -6, b1 = -0.3, c1 = -0.5, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
+#                  ## 2 for time to next visit
+#
+#                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
+#                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
+#                  ## I wonder if due to this, there should be less variation?
+#
+#                  a2 = -3, b2 = -0.3, c2 = -0.05, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01,
+#                  a3 = -8, b3 = -0.3, c3 = -0.6,z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
+#                  rho = 0.75,
+#                  # action-specific effects
+#                  D0 = 0,
+#                  D1 = 1,
+#                  g = 0.25,
+#                  ## FALSE means we only have administrative censoring
+#                  censoringyesno = FALSE,
+#                  policy = NULL,
+#                  summary = TRUE)
+#
 
 
 

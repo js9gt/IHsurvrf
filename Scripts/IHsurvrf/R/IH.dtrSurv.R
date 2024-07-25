@@ -318,7 +318,7 @@ IHdtrSurv <- function(data,
     # Check if the event percentage meets the threshold
     ## NOTE: that the dimensions of these will not match the original data just because the original data contains rows of NAs
     ## this is because we simulate every patient to have 10 stages but if they have event/censored earlier they just have NA
-    if (event_percentage >= 0.5) {
+    if (event_percentage >= 0.7) {
       # Assign strata membership
       long_data$strata1[ (long_data$cumulative.time * tau) >= i] <- 1
       long_data$strata2[ (long_data$cumulative.time * tau) < i] <- 1
@@ -593,6 +593,8 @@ IHdtrSurv <- function(data,
     } else {
       # If the condition is not met, stop the loop
       continue_iterations <- FALSE
+
+      print(avg_diff)
 
 
       # Update res@integral_KM with area_mat
@@ -873,8 +875,10 @@ IHdtrSurv <- function(data,
     sampleSize = 1,
     ## we are in the first step of pooling patient data after running HC code
     pool1 = F,
+
+    ## this is true if we are inputting survival probabilities
     appendstep1 = F
-    #inputpr = input.strata2[, colSums(input.strata2) != 0]
+#    inputpr = input.strata2[, colSums(input.strata2) != 0]
   )
 
   ## now, for strata 2, we want to track the optimal and eligibility
@@ -885,17 +889,14 @@ IHdtrSurv <- function(data,
 
   # Update actions for A.s1.strata1 for rows where strata1 == 1 and eligibility_final is TRUE
 
-  ###############
-  ################ check to see if the eligibility matches with the dimensions... might need filter for NA (T)?
-  ###############
 
-  long_data$A.s1.strata2[which(long_data$strata2 == 1)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
+
+  # Update actions for A.s1.strata1 for rows where strata1 == 1 and eligibility_final is TRUE
+  ### the eligibility is only for patients in strata 1 AND not NA, so we have to filter for that too
+  long_data$A.s1.strata2[long_data$strata2 == 1 & !is.na(long_data$T)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
   ## also update the "A" column to be used for the convergence aspect
-  long_data$A[which(long_data$strata2 == 1)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
+  long_data$A[long_data$strata2 == 1 & !is.na(long_data$T)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
 
-  #################
-  #################
-  #################
 
 
   # Initialize the shifted probability matrix
@@ -1035,50 +1036,77 @@ IHdtrSurv <- function(data,
 
 
 
-
-    ## wait until the absolute change (not avg is less than 0.01%)
-
-    if(avg_diff > 2) {
-      # If the condition is met, continue the loop
-      continue_iterations <- TRUE
+    ### if the absolute change starts fluctuating and the last 10 iteration don't change by more than 0.5, we stop
+    ## OR, if the forest itself has converging curves
+    change_last5 <- mean(abs(diff(tail(as.matrix(avg_diff_values), 3))))
 
 
-      print(avg_diff)
+    ## wait until the absolute change in survival curves is less than something or the average change gets small
 
+    if (avg_diff > 0.1) {
+      if (is.na(change_last5) || is.nan(change_last5) || abs(change_last5) > 0.5) {
+        # If change_last5 is NaN or abs(change_last5) > 0.5, continue the loop
+        continue_iterations <- TRUE
 
-      ## increment the iteration counter
+        cat("Difference in survival curve:", avg_diff, "\n")
+        cat("Last 5 stages change:", change_last5, "\n")
 
-      conv_iterations <- conv_iterations + 1
+        # Increment the iteration counter
+        conv_iterations <- conv_iterations + 1
+      } else {
+        # If avg_diff > 0.1 but abs(change_last5) <= 0.5, stop the loop
+        continue_iterations <- FALSE
 
+        cat("Difference in survival curve:", avg_diff, "\n")
+        cat("Last 5 stages change:", change_last5, "\n")
+
+        # Update res@integral_KM with area_mat
+        res.strata2.1@integral_KM <- area_mat
+
+        # Update res@FinalForest with the forest in convergence_res@FinalForest
+        res.strata2.1@FinalForest <- convergence_res@FinalForest
+
+        # Update the value with the most recent estimated value in the convergence step
+        res.strata2.1@value <- convergence_res@value
+
+        # Update the long_data
+        res.strata2.1@long_data <- convergence_res@long_data
+
+        # Update the optimal output probabilities
+        res.strata2.1@prev_probs <- convergence_res@prev_probs
+
+        # Track these values in the forest output
+        res.strata2.1@n_it <- conv_iterations
+        res.strata2.1@avgKM_diff <- as.matrix(avg_diff_values)
+        res.strata2.1@valueTrain_list <- valueTrain_values
+      }
     } else {
-      # If the condition is not met, stop the loop
+      # If avg_diff <= 0.1, stop the loop
       continue_iterations <- FALSE
 
+      cat("Difference in survival curve:", avg_diff, "\n")
+      cat("Last 5 stages change:", change_last5, "\n")
 
       # Update res@integral_KM with area_mat
       res.strata2.1@integral_KM <- area_mat
 
-
-      ## we update the final forest used with the most recent forest estimated in the convergence step
       # Update res@FinalForest with the forest in convergence_res@FinalForest
       res.strata2.1@FinalForest <- convergence_res@FinalForest
 
-      ## we update the value with the most recent estimated value in the convergence steo
+      # Update the value with the most recent estimated value in the convergence step
       res.strata2.1@value <- convergence_res@value
 
-      ## we also update the long_data
+      # Update the long_data
       res.strata2.1@long_data <- convergence_res@long_data
 
-      # update the optimal output probabilities
+      # Update the optimal output probabilities
       res.strata2.1@prev_probs <- convergence_res@prev_probs
 
-      ## track these values in the forest output
+      # Track these values in the forest output
       res.strata2.1@n_it <- conv_iterations
       res.strata2.1@avgKM_diff <- as.matrix(avg_diff_values)
       res.strata2.1@valueTrain_list <- valueTrain_values
-
     }
-
   }
 
   ## now, we need to return both forests depending on the strata

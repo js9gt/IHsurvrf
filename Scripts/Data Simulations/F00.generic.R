@@ -71,8 +71,11 @@ flowchart <- function(outputData) {
   n.sample = dim(outputData)[1]
   result <- data.frame(stage = c(1:n.stages, "Total", "Percent"),
                        total = rep(NA, n.stages + 2), percentage = NA,
-                       censored = NA, died = NA, nextStage = NA)
+                       censored = NA, died = NA, nextStage = NA, mean.trtdiff = NA)
   for (stage in 1:n.stages) {
+    ## mean treatment difference is the mean of everyone in that stage
+    result[stage, "mean.trtdiff"] = mean(outputData[,,stage][,"trt.diff"], na.rm = T)
+    
     result[stage, "total"]  = dim(outputData)[1]
     result[stage, "percentage"]  = round(result[stage, "total"] / n.sample,2)
     cens <- outputData[, "delta", stage] == 0
@@ -84,6 +87,8 @@ flowchart <- function(outputData) {
     result[stage, "censored"]  = sum(cens, na.rm = TRUE)
     result[stage, "died"]      = sum(died, na.rm = TRUE)
     result[stage, "nextStage"] = sum(!died, na.rm = TRUE)
+  
+    
   }
   result[n.stages + 1, c("censored", "died")] <- apply(result[, c("censored", "died")], 2, sum, na.rm = TRUE)
   result[n.stages + 2, c("censored", "died")] <- round(result[n.stages + 1, c("censored", "died")]/n.sample, 2)
