@@ -431,5 +431,6 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/10stage_50pctcensor_results", row.names=FALSE)
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/10stage_results_confirmation", row.names=FALSE)
+
 

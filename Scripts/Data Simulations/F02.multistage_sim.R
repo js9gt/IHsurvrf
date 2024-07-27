@@ -49,6 +49,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                               ## stage start-- if this is input, then we only calculate up to that for the summary function
                               stage.start = NULL) {
 
+
   ## if the stage.start is input,we generate that number of stages instead of max_stages (AKA change value of max_stages)
 
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
@@ -463,7 +464,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     # Now selected.opt is either true.opt or true.opt2 based on the condition
     # You can use selected.opt in the subsequent code
     stage.output <- one_stage.vec(
-      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
+      nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
       prior.visit.length = prior.visit.length,
       terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
       a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
@@ -471,6 +472,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
       input.policy.action = input.policy.action, input_opt = NA
     ) %>% t
+    
 
 
 
@@ -491,6 +493,8 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     
     # Compute the absolute difference
     absolute_difference <- abs(stage.output1[, "event.time"] - stage.output2[, "event.time"])
+    
+
     
     # Replace with NA where stage.output[, "delta"] == 0
     result <- ifelse(stage.output[, "delta"] == 0, NA, absolute_difference)

@@ -111,7 +111,7 @@ one_stage <- function(
 
 
         ## we input values for the state. For the first state, the value is generated from U(0, 1) distribution
-        ## this is input here for single stage data generation, then will be updated based on depepdency in the next stage
+        ## this is input here for single stage data generation, then will be updated based on dependency in the next stage
       ## then, the updates state values from the dependency will be input here
        state1 = input.state.value
        state2 = input.state.value2
