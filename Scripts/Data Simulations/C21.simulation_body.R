@@ -225,7 +225,7 @@ if (!skip.IHsurvrf) {
                   ## distribution to draw timepoints from
                   timePoints = "uni",
                   ## number of timepoints from 0 to tau
-                  nTimes = 500,
+                  nTimes = tau,
 
                   ## mean,surv.prob, or surv.mean
                   criticalValue = criterion,
@@ -431,7 +431,5 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/5stage_500_noconvergence_res", row.names=FALSE)
-
-
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/10stage_50pctcensor_results", row.names=FALSE)
 

@@ -1038,18 +1038,18 @@ IHdtrSurv <- function(data,
 
     ### if the absolute change starts fluctuating and the last 10 iteration don't change by more than 0.5, we stop
     ## OR, if the forest itself has converging curves
-    change_last5 <- mean(abs(diff(tail(as.matrix(avg_diff_values), 3))))
+    change_last <- mean(abs(diff(tail(as.matrix(avg_diff_values), 3))))
 
 
     ## wait until the absolute change in survival curves is less than something or the average change gets small
 
     if (avg_diff > 0.1) {
-      if (is.na(change_last5) || is.nan(change_last5) || abs(change_last5) > 0.5) {
+      if (is.na(change_last) || is.nan(change_last) || abs(change_last) > 0.5) {
         # If change_last5 is NaN or abs(change_last5) > 0.5, continue the loop
         continue_iterations <- TRUE
 
         cat("Difference in survival curve:", avg_diff, "\n")
-        cat("Last 5 stages change:", change_last5, "\n")
+        cat("Last 3 stages change:", change_last, "\n")
 
         # Increment the iteration counter
         conv_iterations <- conv_iterations + 1
@@ -1058,7 +1058,7 @@ IHdtrSurv <- function(data,
         continue_iterations <- FALSE
 
         cat("Difference in survival curve:", avg_diff, "\n")
-        cat("Last 5 stages change:", change_last5, "\n")
+        cat("Last 5 stages change:", change_last, "\n")
 
         # Update res@integral_KM with area_mat
         res.strata2.1@integral_KM <- area_mat
@@ -1085,7 +1085,7 @@ IHdtrSurv <- function(data,
       continue_iterations <- FALSE
 
       cat("Difference in survival curve:", avg_diff, "\n")
-      cat("Last 5 stages change:", change_last5, "\n")
+      cat("Last 5 stages change:", change_last, "\n")
 
       # Update res@integral_KM with area_mat
       res.strata2.1@integral_KM <- area_mat
@@ -1131,7 +1131,6 @@ IHdtrSurv <- function(data,
     "avgKM_diff" = matrix(0),
     "cutoff" = selected_thresh
   )
-
 
 
 

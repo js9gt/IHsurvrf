@@ -18,9 +18,9 @@
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
-  message(" 500 patients, max stages = 7, 200 simulation replicates, 10,000 eval, 
-          no censoring (only administrative), obs setting (not RCT),
-          changing g to be positive")
+  message(" 300 patients, max stages = 10, 200 simulation replicates, 10,000 eval, 
+          50% censoring, obs setting (not RCT),
+          with full convergence and forest 2 appending")
   message("After adjusting integral change to proportion and fixing proportion censor, true opt should be doing better now")
   arg = c(1, 1, 1, 1) # by default
   print(arg)
@@ -45,9 +45,9 @@ default <- list(
   ## number of simulation replicates: 200
   n.sim = 200,
   ## tau (days): total study length
-  tau = 2000,
+  tau = 1000,
   ## maximum number of stages
-  n.stages = 5,
+  n.stages = 10,
   ## the stage we start at since we don't want issues with too small sample size
   ss = NULL)
 
@@ -60,7 +60,7 @@ crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "trunca
 # arg3 size: a list containing 2 training sample sizes
 size <- list(
   ## small ss is 75
-    small.sample.size = list(n = 500),
+    small.sample.size = list(n = 300),
   ## large ss is 10,000
              large.sample.size = list(n = 10000))
 
@@ -89,7 +89,7 @@ coefs <- list(
     ),
     coef_censoring = list(
       ## a = -8 for 10% censoring
-      a = -8, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -6, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   ),
 
