@@ -624,239 +624,239 @@ IHdtrSurv <- function(data,
   }
 
 
-  ###########
-  ########### now, we use the previously optimized convergence probabilities to use as input for the new forest
-  ## for the observations in strata 2, if their k+1 stage is in strata 1, we append the strata 2 observation
-  ## we create a bunch of "double stubs" but not through prediction, through appending
-  #### for patients whose next stage is NOT in strata 1, we just treat them like in HC code where the
-  ## the first row of the survival probability is set to 1
-  ## then, we convert these by subtracting from the row above so it's a difference in probs
-
-  ## first, we initialize a matrix of probabilities, with ncol == each patient gets nDP stages
-
-  input.strata2 <- matrix(0, nrow = nTimes, ncol = nrow(long_data %>% filter(stage == 1))*nDP )
-
-
-  ## for stage 10, get the current eligibility; if the patient is in strata 2, give them first row == 1
-  stage.elig <- long_data %>%
-    # Filter the data to include only rows where stage is equal to i
-    filter(stage == nDP) %>%
-
-    # Mutate the data to add a new column 'eligibility'
-    mutate(
-      eligibility = as.numeric(
-        # Use ifelse to check two conditions for assigning eligibility
-        ifelse(
-          # Condition 1: Check if strata 2 == 1
-          !!sym(paste0("strata", 2)) == 1 &
-            # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-            complete.cases(dplyr::select(., -matches("^A\\."))),
-          # If both conditions are TRUE, assign 1
-          1,
-          # Otherwise, assign 0
-          0
-        )
-      )
-    ) %>%
-
-    # Extract the 'eligibility' column as a vector
-    pull(eligibility)
-
-
-  ## now, for every 10th column (equivalent to pulling all pt stage 10), we overwrite with 1 in first row for eligible pt
-  ## meaning, for all patients who are eligible in stage 10 (and have non-NA values, we know they survived so we put 1)
-  input.strata2[, seq( (nDP),
-                       ncol(input.strata2), by = (nDP))][, which(stage.elig == 1)][1L, ] <- 1.0
-
-  ## now, we loop through each stage:
-
-  for (i in (nDP-1):1){
-
-    message("Prep for strata 2, appending for stage", i)
-
-    ## for the current stage, we first get an eligibility for the current observations if theyy're in strata 2
-
-    stage.elig <- long_data %>%
-      # Filter the data to include only rows where stage is equal to i
-      filter(stage == i) %>%
-
-      # Mutate the data to add a new column 'eligibility'
-      mutate(
-        eligibility = as.numeric(
-          # Use ifelse to check two conditions for assigning eligibility
-          ifelse(
-            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
-            !!sym(paste0("strata", 2)) == 1 &
-              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-              complete.cases(dplyr::select(., -matches("^A\\."))),
-            # If both conditions are TRUE, assign 1
-            1,
-            # Otherwise, assign 0
-            0
-          )
-        )
-      ) %>%
-
-      # Extract the 'eligibility' column as a vector
-      pull(eligibility)
-
-
-
-
-    next.stage.elig <- long_data %>%
-      # Filter the data to include only rows where stage is equal to i
-      filter(stage == (i+1)) %>%
-
-      # Mutate the data to add a new column 'eligibility'
-      mutate(
-        eligibility = as.numeric(
-          # Use ifelse to check two conditions for assigning eligibility
-          ifelse(
-            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
-            !!sym(paste0("strata", 1)) == 1 &
-              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-              complete.cases(dplyr::select(., -matches("^A\\."))),
-            # If both conditions are TRUE, assign 1
-            1,
-            # Otherwise, assign 0
-            0
-          )
-        )
-      ) %>%
-
-      # Extract the 'eligibility' column as a vector
-      pull(eligibility)
-
-
-
-    ## if both are true (both == 1), then we need to extract the survival probability, and append the observed
-    ## meaning, the current stage has a patient in strata 2, next stage is in strata 1
-    ## this then is the input survival probability
-    app.elig <- ifelse(stage.elig == 1 & next.stage.elig == 1, TRUE, FALSE)
-
-    ## first, we subset the stage i survival matrix, then overwrite it with the optimal for cases where this is true
-    ## we overwrite it with the eligible
-    input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, which(app.elig == 1)] <-
-
-      res.strata1.1@prev_probs[, seq( (i+1), ncol(input.strata2), by = nDP)][, which(app.elig == 1)]
-
-    ## then, for these patients, we append, but don't transform into difference of probabilities (we do this manually after)
-    x_append1 <- stats::model.frame(formula = models,
-                                    ## ## we want to exclude the A.opt.HC column and A.pool1 column, and only consider data from the prev timepoint
-                                    data = long_data %>% filter(stage == i) %>% dplyr::select(-matches("^A\\.")),
-                                    na.action = na.pass)
-
-    # extract response and delta from model frame
-
-    ## extract survival response for all 300 patients
-    ### however, those that are not in elig_append1 = TRUE will receive an NA
-    response_append1 <- stats::model.response(data = x_append1)
-    ## if there are any that are not eligible for this stage, we turn into NA
-    response_append1[!app.elig, ] <- NA
-
-    ## extract censoring indicator (delta) from the second column of the "response" data
-    ## "L" is used to indicate that 2 is an integer
-    delta_append1 <- response_append1[, 2L]
-    delta_append1[!app.elig] <- NA
-
-    ## updates the "response" variable to only include the first column of the original "response" data which represents survival times
-    response_append1 <- response_append1[, 1L]
-    response_append1[!app.elig] <- NA
-
-    # remove response from x
-
-    ## if first column of the model frame (x) is the response variable, remove this column
-    ## probablhy to construct predicte response from the predictors, since the response has nothing to do with the prediction itself
-    if (attr(x = terms(x = models), which = "response") == 1L) {
-      x_append1 <- x_append1[,-1L, drop = FALSE]
-    }
-
-    ## marks zeroed survival times and updates eligibility
-
-    # responses that are zero (effectively) indicate censored at a previous stage
-
-    ## 1e-8 is the tolerance, if these responses are smaller than a very small number, this is marked as TRUE
-    zeroed <- abs(x = response_append1) < 1e-8
-
-    ## update eligibiity vector so that cases that are eligible can't have been marked as zeroed
-
-    app.elig <- app.elig & !zeroed
-
-
-    ### if sum(app.elig) is 0, we skip over this, we should just leave the probabilities as 0
-
-    if (sum(app.elig) != 0){
-
-    ## now, we overwrite these probabilities for eligible patients with appended probs
-    input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, which(app.elig == 1)] <- .shiftMat(
-      timePoints = .TimePoints(object = params),
-
-      ## extracts columns from survMatrix corresponding to cases that are eligible
-      ## this is a matrix matrix where each column represents survival function for an individual
-      survMatrix = input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, app.elig, drop = FALSE],
-
-      ## extracts survival times corresponding to eligible cases
-      ## this is how much to shift survival function for each individual
-      shiftVector = response_append1[app.elig],
-
-      ## probably transforming survival times into probabilities?
-      surv2prob = FALSE
-    )
-
-    }
-
-
-    #### we create another eligibility if the next stage is in the same strata
-    next.stage.same.strata <- long_data %>%
-      # Filter the data to include only rows where stage is equal to i
-      filter(stage == (i+1)) %>%
-
-      # Mutate the data to add a new column 'eligibility'
-      mutate(
-        eligibility = as.numeric(
-          # Use ifelse to check two conditions for assigning eligibility
-          ifelse(
-            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
-            !!sym(paste0("strata", 2)) == 1 &
-              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-              complete.cases(dplyr::select(., -matches("^A\\."))),
-            # If both conditions are TRUE, assign 1
-            1,
-            # Otherwise, assign 0
-            0
-          )
-        )
-      ) %>%
-
-      # Extract the 'eligibility' column as a vector
-      pull(eligibility)
-
-
-
-
-    ## otherwise, if the current stage is in strata 2, but the next stage isn't in strata 1, we just use vector (1, 0000)
-    ## also, if the current stage is in strata 2, and there is no next stage
-    no.app.1 <- ifelse(stage.elig == 1 & next.stage.elig == 0, TRUE, FALSE)
-
-    ## now, for these patients, we just change their first row to 1
-    ## now, for every 10th column (equivalent to pulling all pt stage 10), we overwrite with 1 in first row for eligible pt
-    input.strata2[, seq( (i),
-                         ncol(input.strata2), by = (nDP))][, which(no.app.1 == 1)][1L, ] <- 1.0
-
-
-    ## note, that patients who are not in the strata will eventually be filtered out as we will only use cols where
-    ## the sum of the column is not 0
-
-
-
-  }
-
-  ## now, we need to shift these probabilities to become differences
-  input.strata2 <- input.strata2 - rbind( as.matrix(input.strata2[-1L,]), 0.0)
-
-  ## sets very small values in pr to 0
-
-  input.strata2[abs(input.strata2) < 1e-8] <- 0.0
+#  ###########
+#  ########### now, we use the previously optimized convergence probabilities to use as input for the new forest
+#  ## for the observations in strata 2, if their k+1 stage is in strata 1, we append the strata 2 observation
+#  ## we create a bunch of "double stubs" but not through prediction, through appending
+#  #### for patients whose next stage is NOT in strata 1, we just treat them like in HC code where the
+#  ## the first row of the survival probability is set to 1
+#  ## then, we convert these by subtracting from the row above so it's a difference in probs
+#
+#  ## first, we initialize a matrix of probabilities, with ncol == each patient gets nDP stages
+#
+#  input.strata2 <- matrix(0, nrow = nTimes, ncol = nrow(long_data %>% filter(stage == 1))*nDP )
+#
+#
+#  ## for stage 10, get the current eligibility; if the patient is in strata 2, give them first row == 1
+#  stage.elig <- long_data %>%
+#    # Filter the data to include only rows where stage is equal to i
+#    filter(stage == nDP) %>%
+#
+#    # Mutate the data to add a new column 'eligibility'
+#    mutate(
+#      eligibility = as.numeric(
+#        # Use ifelse to check two conditions for assigning eligibility
+#        ifelse(
+#          # Condition 1: Check if strata 2 == 1
+#          !!sym(paste0("strata", 2)) == 1 &
+#            # Condition 2: Check if the row has complete cases excluding columns starting with "A"
+#            complete.cases(dplyr::select(., -matches("^A\\."))),
+#          # If both conditions are TRUE, assign 1
+#          1,
+#          # Otherwise, assign 0
+#          0
+#        )
+#      )
+#    ) %>%
+#
+#    # Extract the 'eligibility' column as a vector
+#    pull(eligibility)
+#
+#
+#  ## now, for every 10th column (equivalent to pulling all pt stage 10), we overwrite with 1 in first row for eligible pt
+#  ## meaning, for all patients who are eligible in stage 10 (and have non-NA values, we know they survived so we put 1)
+#  input.strata2[, seq( (nDP),
+#                       ncol(input.strata2), by = (nDP))][, which(stage.elig == 1)][1L, ] <- 1.0
+#
+#  ## now, we loop through each stage:
+#
+#  for (i in (nDP-1):1){
+#
+#    message("Prep for strata 2, appending for stage", i)
+#
+#    ## for the current stage, we first get an eligibility for the current observations if theyy're in strata 2
+#
+#    stage.elig <- long_data %>%
+#      # Filter the data to include only rows where stage is equal to i
+#      filter(stage == i) %>%
+#
+#      # Mutate the data to add a new column 'eligibility'
+#      mutate(
+#        eligibility = as.numeric(
+#          # Use ifelse to check two conditions for assigning eligibility
+#          ifelse(
+#            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
+#            !!sym(paste0("strata", 2)) == 1 &
+#              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
+#              complete.cases(dplyr::select(., -matches("^A\\."))),
+#            # If both conditions are TRUE, assign 1
+#            1,
+#            # Otherwise, assign 0
+#            0
+#          )
+#        )
+#      ) %>%
+#
+#      # Extract the 'eligibility' column as a vector
+#      pull(eligibility)
+#
+#
+#
+#
+#    next.stage.elig <- long_data %>%
+#      # Filter the data to include only rows where stage is equal to i
+#      filter(stage == (i+1)) %>%
+#
+#      # Mutate the data to add a new column 'eligibility'
+#      mutate(
+#        eligibility = as.numeric(
+#          # Use ifelse to check two conditions for assigning eligibility
+#          ifelse(
+#            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
+#            !!sym(paste0("strata", 1)) == 1 &
+#              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
+#              complete.cases(dplyr::select(., -matches("^A\\."))),
+#            # If both conditions are TRUE, assign 1
+#            1,
+#            # Otherwise, assign 0
+#            0
+#          )
+#        )
+#      ) %>%
+#
+#      # Extract the 'eligibility' column as a vector
+#      pull(eligibility)
+#
+#
+#
+#    ## if both are true (both == 1), then we need to extract the survival probability, and append the observed
+#    ## meaning, the current stage has a patient in strata 2, next stage is in strata 1
+#    ## this then is the input survival probability
+#    app.elig <- ifelse(stage.elig == 1 & next.stage.elig == 1, TRUE, FALSE)
+#
+#    ## first, we subset the stage i survival matrix, then overwrite it with the optimal for cases where this is true
+#    ## we overwrite it with the eligible
+#    input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, which(app.elig == 1)] <-
+#
+#      res.strata1.1@prev_probs[, seq( (i+1), ncol(input.strata2), by = nDP)][, which(app.elig == 1)]
+#
+#    ## then, for these patients, we append, but don't transform into difference of probabilities (we do this manually after)
+#    x_append1 <- stats::model.frame(formula = models,
+#                                    ## ## we want to exclude the A.opt.HC column and A.pool1 column, and only consider data from the prev timepoint
+#                                    data = long_data %>% filter(stage == i) %>% dplyr::select(-matches("^A\\.")),
+#                                    na.action = na.pass)
+#
+#    # extract response and delta from model frame
+#
+#    ## extract survival response for all 300 patients
+#    ### however, those that are not in elig_append1 = TRUE will receive an NA
+#    response_append1 <- stats::model.response(data = x_append1)
+#    ## if there are any that are not eligible for this stage, we turn into NA
+#    response_append1[!app.elig, ] <- NA
+#
+#    ## extract censoring indicator (delta) from the second column of the "response" data
+#    ## "L" is used to indicate that 2 is an integer
+#    delta_append1 <- response_append1[, 2L]
+#    delta_append1[!app.elig] <- NA
+#
+#    ## updates the "response" variable to only include the first column of the original "response" data which represents survival times
+#    response_append1 <- response_append1[, 1L]
+#    response_append1[!app.elig] <- NA
+#
+#    # remove response from x
+#
+#    ## if first column of the model frame (x) is the response variable, remove this column
+#    ## probablhy to construct predicte response from the predictors, since the response has nothing to do with the prediction itself
+#    if (attr(x = terms(x = models), which = "response") == 1L) {
+#      x_append1 <- x_append1[,-1L, drop = FALSE]
+#    }
+#
+#    ## marks zeroed survival times and updates eligibility
+#
+#    # responses that are zero (effectively) indicate censored at a previous stage
+#
+#    ## 1e-8 is the tolerance, if these responses are smaller than a very small number, this is marked as TRUE
+#    zeroed <- abs(x = response_append1) < 1e-8
+#
+#    ## update eligibiity vector so that cases that are eligible can't have been marked as zeroed
+#
+#    app.elig <- app.elig & !zeroed
+#
+#
+#    ### if sum(app.elig) is 0, we skip over this, we should just leave the probabilities as 0
+#
+#    if (sum(app.elig) != 0){
+#
+#    ## now, we overwrite these probabilities for eligible patients with appended probs
+#    input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, which(app.elig == 1)] <- .shiftMat(
+#      timePoints = .TimePoints(object = params),
+#
+#      ## extracts columns from survMatrix corresponding to cases that are eligible
+#      ## this is a matrix matrix where each column represents survival function for an individual
+#      survMatrix = input.strata2[, seq( i, ncol(input.strata2), by = nDP)][, app.elig, drop = FALSE],
+#
+#      ## extracts survival times corresponding to eligible cases
+#      ## this is how much to shift survival function for each individual
+#      shiftVector = response_append1[app.elig],
+#
+#      ## probably transforming survival times into probabilities?
+#      surv2prob = FALSE
+#    )
+#
+#    }
+#
+#
+#    #### we create another eligibility if the next stage is in the same strata
+#    next.stage.same.strata <- long_data %>%
+#      # Filter the data to include only rows where stage is equal to i
+#      filter(stage == (i+1)) %>%
+#
+#      # Mutate the data to add a new column 'eligibility'
+#      mutate(
+#        eligibility = as.numeric(
+#          # Use ifelse to check two conditions for assigning eligibility
+#          ifelse(
+#            # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
+#            !!sym(paste0("strata", 2)) == 1 &
+#              # Condition 2: Check if the row has complete cases excluding columns starting with "A"
+#              complete.cases(dplyr::select(., -matches("^A\\."))),
+#            # If both conditions are TRUE, assign 1
+#            1,
+#            # Otherwise, assign 0
+#            0
+#          )
+#        )
+#      ) %>%
+#
+#      # Extract the 'eligibility' column as a vector
+#      pull(eligibility)
+#
+#
+#
+#
+#    ## otherwise, if the current stage is in strata 2, but the next stage isn't in strata 1, we just use vector (1, 0000)
+#    ## also, if the current stage is in strata 2, and there is no next stage
+#    no.app.1 <- ifelse(stage.elig == 1 & next.stage.elig == 0, TRUE, FALSE)
+#
+#    ## now, for these patients, we just change their first row to 1
+#    ## now, for every 10th column (equivalent to pulling all pt stage 10), we overwrite with 1 in first row for eligible pt
+#    input.strata2[, seq( (i),
+#                         ncol(input.strata2), by = (nDP))][, which(no.app.1 == 1)][1L, ] <- 1.0
+#
+#
+#    ## note, that patients who are not in the strata will eventually be filtered out as we will only use cols where
+#    ## the sum of the column is not 0
+#
+#
+#
+#  }
+#
+#  ## now, we need to shift these probabilities to become differences
+#  input.strata2 <- input.strata2 - rbind( as.matrix(input.strata2[-1L,]), 0.0)
+#
+#  ## sets very small values in pr to 0
+#
+#  input.strata2[abs(input.strata2) < 1e-8] <- 0.0
 
 
 
@@ -1044,7 +1044,7 @@ IHdtrSurv <- function(data,
     ## wait until the absolute change in survival curves is less than something or the average change gets small
 
     if (avg_diff > 0.1) {
-      if (is.na(change_last) || is.nan(change_last) || abs(change_last) > 0.5) {
+      if (is.na(change_last) || is.nan(change_last) || abs(change_last) > 1) {
         # If change_last5 is NaN or abs(change_last5) > 0.5, continue the loop
         continue_iterations <- TRUE
 

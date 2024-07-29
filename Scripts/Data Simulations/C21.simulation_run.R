@@ -18,11 +18,10 @@
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
-  message(" 300 patients, max stages = 10, 200 simulation replicates, 10,000 eval, 
-          50% censoring, obs setting (not RCT),
-          with full convergence and forest 2 appending")
-  message("After adjusting integral change to proportion and fixing proportion censor, true opt should be doing better now")
-  arg = c(1, 1, 1, 1) # by default
+  message(" 300 patients, max stages = 10, tau = 2,000, 200 simulation replicates, 10,000 eval, 
+          40% censoring, obs setting (not RCT),
+          with full convergence no forest 2 appending")
+   arg = c(1, 1, 1, 1) # by default
   print(arg)
 }
 
@@ -45,7 +44,7 @@ default <- list(
   ## number of simulation replicates: 200
   n.sim = 200,
   ## tau (days): total study length
-  tau = 1000,
+  tau = 2000,
   ## maximum number of stages
   n.stages = 10,
   ## the stage we start at since we don't want issues with too small sample size
@@ -88,8 +87,8 @@ coefs <- list(
       a = -1.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_censoring = list(
-      ## a = -8 for 10% censoring
-      a = -6, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      ## a = -6 for 40% censoring with tau = 2000
+      a = -17, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   ),
 
