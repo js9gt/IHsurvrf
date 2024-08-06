@@ -28,7 +28,7 @@ output2observable <- function(output, stage = NULL) {
 
   ## names of the covariates
   nm.covar = c("baseline1", "baseline2", "state1", "state2", "prior.visit.length", "cumulative.time", "nstages", "action.1.count", "action.0.count")
-  nm.stage =  c("event.time", "delta", "action", nm.covar)
+  nm.stage =  c("event.time", "delta", "gamma", "action", nm.covar)
 
   # initializes empty DF with subject ID column for the first stage, taken from "output"
   df <- data.frame(subj.id = output[, "subj.id", 1])
@@ -38,7 +38,7 @@ output2observable <- function(output, stage = NULL) {
   # mergecolumns of this into main dataframe (DF)
   for (i in stage) {
     df.i <- data.frame(matrix(output[, nm.stage, i], ncol = length(nm.stage), byrow = FALSE))
-    names(df.i) <- paste(c("T", "delta", "A", nm.covar), i, sep = "_")
+    names(df.i) <- paste(c("T", "delta", "gamma", "A", nm.covar), i, sep = "_")
     df <- cbind(df, df.i)
   }
 

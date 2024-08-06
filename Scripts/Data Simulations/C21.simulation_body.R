@@ -431,6 +431,7 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/29Jul_10stage_30pctcensor_results_SMALLERCONVthresh", row.names=FALSE)
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/06Aug_500pt_25stage_hicens_obs_RESUTS", row.names=FALSE)
+
 
 

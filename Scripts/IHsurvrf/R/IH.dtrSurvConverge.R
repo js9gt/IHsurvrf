@@ -59,10 +59,22 @@ IHdtrConv <- function(data,
   ## remove stage suffixto use in prediction
   new_col_names <- gsub(paste0("_", (nDP), "$"), "", colnames(x))
   colnames(x) <- new_col_names
+
+    # Initialize a matrix to store the combined results, with a matrix of NAs
+  ## putting 0's in all locations-- ones that belong to certain stages will be overwritten
+  pr_pooled <- matrix(0, nrow = nTimes, ncol = nrow(data)*nDP)
+
+  message("cases in stage: ", dim(x)[1])
+
+
+  ##### we only want to run this prediction if there's available data, otherwise skip this step
+
+  if (dim(x)[1] != 0){
   last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
                               newdata = x,
                               params = params,
                               findOptimal = T)
+
 
 
   ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
@@ -127,10 +139,6 @@ IHdtrConv <- function(data,
   ## add the shifted optimals into the pooled optimals together
   #### each patient will have the same number of stages by design, but ones that aren't included in the strata will just have 0s
 
-  # Initialize a matrix to store the combined results, with a matrix of NAs
-  ## putting 0's in all locations-- ones that belong to certain stages will be overwritten
-  pr_pooled <- matrix(0, nrow = nTimes, ncol = ncol(shiftedprob_done)*nDP)
-
 
   # Define the index to insert columns from the previous optimal
   ## this should be for the last stage
@@ -147,6 +155,8 @@ IHdtrConv <- function(data,
 
     # Increment the counter for columns from append1_pr
     col_counter <- col_counter + 1
+  }
+
   }
 
 
@@ -281,7 +291,7 @@ IHdtrConv <- function(data,
             # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
             !!sym(paste0("strata", strata)) == 1 &
               # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-              complete.cases(dplyr::select(., -matches("^A\\."))),
+              complete.cases(dplyr::select(., -matches("^A\\.|^gamma"))),
             # If both conditions are TRUE, assign 1
             1,
             # Otherwise, assign 0

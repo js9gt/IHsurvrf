@@ -277,7 +277,7 @@ IHdtrConv_otherstrata <- function(data,
               # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
               !!sym(paste0("strata", strata)) == 1 &
                 # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-                complete.cases(dplyr::select(., -matches("^A\\."))),
+                complete.cases(dplyr::select(., -matches("^A\\.|^gamma"))),
               # If both conditions are TRUE, assign 1
               1,
               # Otherwise, assign 0

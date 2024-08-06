@@ -18,10 +18,10 @@
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
-  message(" 300 patients, max stages = 10, tau = 2,000, 200 simulation replicates, 10,000 eval, 
-          40% censoring, obs setting (not RCT),
+  message(" 500 patients, max stages = 25, tau = 3,000, 200 simulation replicates, 10,000 eval, 
+          30% censoring, obs,
           with full convergence no forest 2 appending")
-   arg = c(1, 1, 1, 1) # by default
+   arg = c(2, 1, 2, 1) # by default
   print(arg)
 }
 
@@ -44,9 +44,9 @@ default <- list(
   ## number of simulation replicates: 200
   n.sim = 200,
   ## tau (days): total study length
-  tau = 2000,
+  tau = 3000,
   ## maximum number of stages
-  n.stages = 10,
+  n.stages = 25,
   ## the stage we start at since we don't want issues with too small sample size
   ss = NULL)
 
@@ -61,7 +61,7 @@ size <- list(
   ## small ss is 75
     small.sample.size = list(n = 300),
   ## large ss is 10,000
-             large.sample.size = list(n = 10000))
+             large.sample.size = list(n = 500))
 
 # arg2 propensity
 propensity <-   # (int), state
@@ -76,19 +76,18 @@ coefs <- list(
   setting1 = list(
     coef_failure = list(
 
-      ### 10% censoring
 
       ##  a1 + b1 * state + c1*state2 + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
       ###    r1 * action * state * nstages * cumulative.length*prior.visit.length
 
-      a = -6, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -5.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_nextvisit = list(
       a = -1.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_censoring = list(
       ## a = -6 for 40% censoring with tau = 2000
-      a = -17, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -10.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   ),
 
@@ -96,16 +95,22 @@ coefs <- list(
   setting2 = list(
     coef_failure = list(
 
+      ### we are using this setting for the 25 stage 
       ##  a1 + b1 * state + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
       ###    r1 * action * state * nstages * cumulative.length*prior.visit.length
-
-      a = -7, b = -0.3, c = -0.5, z = -0.025, p = 0.02, g = -0.2, h = 0.008, r = 0.01
+    
+      ## for 30% set a = -5, tau = 5000
+      ## for 45% set -6, tau = 5000
+      a = -6, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_nextvisit = list(
-      a = -5, b = -0.3, c = -0.05, z = -0.015, p = 0.025, g = -0.2, h = 0.008, r = 0.01
+      a = -1.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_censoring = list(
-      a = -9.5, b = -0.3, c = -0.6, z = -0.04, p = 0.02, g = -0.2, h = 0.008, r = 0.01
+      
+      ## for 30% set a = -18
+      ## for 45% set -10, tay = 5000
+      a = -10, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   )
 )
@@ -162,4 +167,5 @@ skip.opt <- TRUE
 cv.nodesize = FALSE
 
 source("~/survrf/Scripts/Data Simulations/C21.simulation_body.R")
+
 
