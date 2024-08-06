@@ -318,7 +318,7 @@ IHdtrSurv <- function(data,
     # Check if the event percentage meets the threshold
     ## NOTE: that the dimensions of these will not match the original data just because the original data contains rows of NAs
     ## this is because we simulate every patient to have 10 stages but if they have event/censored earlier they just have NA
-    if (event_percentage >= 0.7) {
+    if (event_percentage >= 0.5) {
       # Assign strata membership
       long_data$strata1[ (long_data$cumulative.time * tau) >= i] <- 1
       long_data$strata2[ (long_data$cumulative.time * tau) < i] <- 1
