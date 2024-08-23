@@ -133,7 +133,8 @@ mindeath = round(sqrt(c(nodesize)), 0)
 
 # flow: obs (1) -> optimal (n.mc), obs.no.censor (n.mc)
 print(Sys.time())
-for (sim in 1:n.sim) {
+#sim in 1:n.sim
+for (sim in 41:51) {
   cat("###########################  simulation ", sim, "########################### \n")
   cat("########################### (criterion ", criterion, crit.value, ")################## \n")
 
@@ -431,7 +432,6 @@ gc()
 result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/06Aug_500pt_25stage_hicens_obs_RESUTS", row.names=FALSE)
-
+write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/20Aug_500pt_25stage_lowcens_obs_RESUTS_V6", row.names=FALSE)
 
 

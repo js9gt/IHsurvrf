@@ -578,7 +578,7 @@ IHdtrSurv <- function(data,
 
     ## wait until the absolute change (not avg is less than 0.01%)
 
-    if(avg_diff > 0.1) {
+    if(avg_diff > 0.25) {
       # If the condition is met, continue the loop
       continue_iterations <- TRUE
 
@@ -1043,8 +1043,8 @@ IHdtrSurv <- function(data,
 
     ## wait until the absolute change in survival curves is less than something or the average change gets small
 
-    if (avg_diff > 0.1) {
-      if (is.na(change_last) || is.nan(change_last) || abs(change_last) > 1) {
+    if (avg_diff > 0.25) {
+      if (is.na(change_last) || is.nan(change_last) || abs(change_last) > 2.5) {
         # If change_last5 is NaN or abs(change_last5) > 0.5, continue the loop
         continue_iterations <- TRUE
 
