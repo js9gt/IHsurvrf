@@ -19,9 +19,8 @@ arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
   message(" 500 patients, max stages = 25, tau = 3,000, 10,000 eval, 
-          low censoring, obs, 0.7 (original) data split threshold,
-          with full convergence no forest 2 appending")
-   arg = c(1, 1, 1, 1) # by default
+          high censoring, 1 strata")
+   arg = c(2, 1, 2, 1) # by default
   print(arg)
 }
 
@@ -42,11 +41,11 @@ default <- list(
   ## evaluation sample size: 10000
   n.eval = 10000,
   ## number of simulation replicates: 200
-  n.sim = 100,
+  n.sim = 200,
   ## tau (days): total study length
-  tau = 1000,
+  tau = 3000,
   ## maximum number of stages
-  n.stages = 10,
+  n.stages = 25,
   ## the stage we start at since we don't want issues with too small sample size
   ss = NULL)
 
@@ -66,7 +65,14 @@ size <- list(
 # arg2 propensity
 propensity <-   # (int), state
   list(obs = list(beta.propensity = function(p) c(0, -rep(0.5, p))),  # no unmeasured confounder
-       rct  = list(beta.propensity = function(p) c(0, rep(0, p))))    # RCT
+       rct  = list(beta.propensity = function(p) c(0, rep(0, p))),
+       mult_trt = list(beta.propensity = function(p)
+           matrix(c(0, -rep(0.5, p),   # Coefficients for treatment 0
+                    0, -rep(0.3, p),   # Coefficients for treatment 1
+                    0, rep(0.2, p),    # Coefficients for treatment 2
+                    0, rep(0.5, p)),   # Coefficients for treatment 3
+                  ncol = 4)            # 4 treatments (columns)
+         ))    
 
 ### NOTE: *I think* that we would change different settings for alpha (similar to arg1 beta) to get different censoring rates
 ## maybe also dif # of baseline variables, and different number of random state variables?
@@ -101,7 +107,7 @@ coefs <- list(
     
       ## for 30% set a = -5, tau = 5000
       ## for 45% set -6, tau = 5000
-      a = -5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -6, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_nextvisit = list(
       a = -1.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
@@ -110,7 +116,7 @@ coefs <- list(
       
       ## for 30% set a = -18
       ## for 45% set -10, tay = 5000
-      a = -11, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -10, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   )
 )
@@ -141,10 +147,32 @@ beta.propensity <- beta.propensity(p)
 #filename = paste0("output/simResult_", arg.date, "_beta", arg1, "_prop", arg2,
 #                  "_n", arg3, "_crit", arg4, ".rds")
 
+
 predictedPropensity <- function(state1, state2) {
   # Compute the predicted probability using the logistic function
   plogis(cbind(1, state1,state2) %*% beta.propensity)
 }
+
+
+## testing predicted propensity for multiple treatments
+
+#softmax <- function(logits) {
+#  exp_logits <- exp(logits)
+#  exp_logits / rowSums(exp_logits)
+#}
+#
+#predictedPropensity <- function(state1, state2) {
+#  X <- cbind(1, state1, state2)  # Add intercept and covariates
+#  
+#  # Calculate logits for each treatment
+#  logits <- X %*% beta.propensity  # Compute based on covariates
+#  
+#  # Compute probabilities using the softmax function
+#  probabilities <- softmax(logits)
+#  
+#  return(probabilities)
+#}
+
 
 ### we don't need the predicted hazard, censoring, etc.
 
@@ -157,6 +185,7 @@ for (i in 1:n.stages) {
   predictedPropensityvec[[i]] <- predictedPropensity
 }
 
+
 ### 3. Run the simulation
 skip.IHsurvrf <- FALSE
 skip.trt1 <- FALSE
@@ -167,3 +196,4 @@ skip.opt <- TRUE
 cv.nodesize = FALSE
 
 source("~/survrf/Scripts/Data Simulations/C21.simulation_body.R")
+

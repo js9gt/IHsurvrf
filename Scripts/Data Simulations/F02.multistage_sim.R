@@ -215,36 +215,140 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ### we want to retrieve vars_stage variables, since we have a common model across all treatment times
       
       
+      ##############
+      ##############
+      ##############
+      
+      ###### for this section, we have different approaches based on the number of strata
+      #### we somehow have to input an attachment to detect the number of strata we're using
+      ## if strata == 1, we just use the results from the single forest
+      ## if strata == 2, we use this original code
+      ## if strata == 5, we use the results based on the each of the 4 cutoff values
+      
+      
+      ##############
+      ##############
+      ##############
+      
+      
+      
       ### NOTE: depending on the strata, we should use the forest from that strata.
+      ### we have some if statments depending on the number of strata we have (from the number of cutoffs)
       ## for the very first stage, since the cumulative time is 0, we should use strata 2 forest
       
-      if (stage == 1) {
+      
+      if (policy@cutoff == 0) {
         
-        forest <- policy@Forest2
+        message("One strata total")
         
-      } else {
+        ## we only have one forest avaialble for use
+        forest <- policy@Forest1
         
-        ## Calculate the cumulative time
-        ## since cumulative time is a proportion with tau as the denom, we need to multiply by tau
-        cumulative_time <- output[, "cumulative.time", stage] * tau
-        #print(cumulative_time)
-        #print(policy@cutoff)
+      } else if (length(policy@cutoff) == 1 & policy@cutoff != 0) {
         
-        ## Assign the appropriate forest based on the cumulative time
-        if (!is.na(cumulative_time)) {
-          if (cumulative_time < policy@cutoff) {
-            forest <- policy@Forest2
-            
-            message("using strata 2 forest")
-            
-          } else {
-            forest <- policy@Forest1
-            
-            message("using strata 1 forest")
+        message("Two strata total")
+        
+        ## start the code for identifying the correct forest for the two strata
+        
+        if (stage == 1) {
+          
+          forest <- policy@Forest2
+          
+        } else {
+          
+          ## Calculate the cumulative time
+          ## since cumulative time is a proportion with tau as the denom, we need to multiply by tau
+          cumulative_time <- output[, "cumulative.time", stage] * tau
+          #print(cumulative_time)
+          #print(policy@cutoff)
+          
+          ## Assign the appropriate forest based on the cumulative time
+          if (!is.na(cumulative_time)) {
+            if (cumulative_time < policy@cutoff) {
+              forest <- policy@Forest2
+              
+              message("using strata 2 forest: 2 strata total")
+              
+            } else {
+              forest <- policy@Forest1
+              
+              message("using strata 1 forest: 2 strata total")
+            }
           }
+          
         }
         
+        ## end the code for identifying the forest for the two strata
+        
+    
+       
+      } else if (length(policy@cutoff) == 4) {
+        
+        message("Five strata total")
+        
+        ###### start the code for identifying the correct forest for the 5 strata
+        
+        if (stage == 1) {
+          
+          ## if it's the first stage, we use the final strata
+          forest <- policy@Forest5
+          
+        } else {
+          
+          ## Calculate the cumulative time
+          ## since cumulative time is a proportion with tau as the denom, we need to multiply by tau
+          cumulative_time <- output[, "cumulative.time", stage] * tau
+          
+
+          ## Assign the appropriate forest based on the cumulative time
+          if (!is.na(cumulative_time)) {
+            
+            
+            #### if our cumulative time is less than the first cutoff, we should still use the 5th forest
+            
+            
+            if (cumulative_time < policy@cutoff[4]) {
+              forest <- policy@Forest5
+              
+              message("using strata 5 forest: 5 strata total")
+              
+              #### if our cumulative time is greater than the first cutoff, but less than second cutoff, use 4th forest
+              
+            } else if (cumulative_time > policy@cutoff[4] & cumulative_time > policy@cutoff[3]) {
+              forest <- policy@Forest4
+              
+              message("using strata 4 forest: 5 strata total")
+              
+              #### if our cumulative time is greater than the second cutoff, but less than third cutoff, use 3rd forest
+              
+            } else if (cumulative_time > policy@cutoff[3] & cumulative_time > policy@cutoff[2]) {
+              forest <- policy@Forest3
+              
+              message("using strata 3 forest: 5 strata total")
+              
+              #### if our cumulative time is greater than the third cutoff, but less than fourth cutoff, use 2nd forest
+              
+            } else if (cumulative_time > policy@cutoff[2] & cumulative_time > policy@cutoff[1]) {
+              forest <- policy@Forest2
+              
+              message("using strata 2 forest: 5 strata total")
+            } else if (cumulative_time > policy@cutoff[1]) {
+              forest <- policy@Forest1
+              
+              message("using strata 1 forest: 5 strata total")
+            }
+          }
+          
+        }
+        
+        ####### end the code identifying the forests for 5 strata
+        
+        
       }
+      
+      
+      
+
 
 
       # Extract the response variable from the formula

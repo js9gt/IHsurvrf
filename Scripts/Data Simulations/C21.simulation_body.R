@@ -1,4 +1,6 @@
 
+library(parallel)
+
 setwd("~/survrf/Scripts/IHsurvrf")
 source("R/IH.dtrSurv.R")
 
@@ -58,18 +60,18 @@ stat.stage <- matrix(NA, nrow = n.sim, ncol = n.stages,
 ########## simulation ##################
 ## initialize a data.frame called "result"  with columns for various statistics
 ## gets a result for each iteration of the simulation (AKA one row = values for one sim)
-result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
-                     ### we also include the proportions of the actions that match the identified true optimal
-                     avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
-                     time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
+#result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
+#                     ### we also include the proportions of the actions that match the identified true optimal
+#                     avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
+#                     time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
 
 ## assign an attribute to "result" containing a list of 2 elements
 ## stores value of criterion used
 ## stores value of critical value used
-attr(result, "criterion") <- list(criterion = criterion, crit.value = crit.value)
+#attr(result, "criterion") <- list(criterion = criterion, crit.value = crit.value)
 
 ## loop from 1 to n.stages to add columns to result, including columns named n_1, n_2, ...n.stages initialized with NA
-for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
+#for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
 
 ## initialize a list called arg.obs with various parameters and settings used for analysis
 ## assigns the same value of the initialization list to all of these different variables:
@@ -133,8 +135,21 @@ mindeath = round(sqrt(c(nodesize)), 0)
 
 # flow: obs (1) -> optimal (n.mc), obs.no.censor (n.mc)
 print(Sys.time())
-#sim in 1:n.sim
-for (sim in 41:51) {
+
+# Define the function that runs a single simulation
+run_simulation <- function(sim){
+  result <- data.frame(no = sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
+                       ### we also include the proportions of the actions that match the identified true optimal
+                       avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
+                       time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
+                       
+  
+  attr(result, "criterion") <- list(criterion = criterion, crit.value = crit.value)
+  
+  for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
+  
+  
+#for (sim in 41:51) {
   cat("###########################  simulation ", sim, "########################### \n")
   cat("########################### (criterion ", criterion, crit.value, ")################## \n")
 
@@ -168,24 +183,24 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 
 ## this observed policy is based on n.eval number of reps to calculate a single value of observed policy
 ## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
-result[sim, "observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
+result["observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
 
-result[sim, "avg.prop.match.opt.obs"] <- mean(count_matches_without_asterisks(obs.data.rep$summary$actions, obs.data.rep$summary$true.opt)/sapply(obs.data.rep$summary[, "actions"], count_numbers))
+result["avg.prop.match.opt.obs"] <- mean(count_matches_without_asterisks(obs.data.rep$summary$actions, obs.data.rep$summary$true.opt)/sapply(obs.data.rep$summary[, "actions"], count_numbers))
 
 ## note: 0 = censored, 1 = not censored, so we calculate the proportion of 1's from the generated observed data, then subtract from 1
 ####### USES OBSERVED DATA, not policy data
-result[sim, "proportion.censor"] <- 1 - mean(obs.data$summary$censor.status, na.rm = TRUE)
+result["proportion.censor"] <- 1 - mean(obs.data$summary$censor.status, na.rm = TRUE)
 
 
 # select columns named "n_1", "n_2"... "n_nstages" which we created earlier
-result[sim, paste0("n_", 1:n.stages)] <-
+result[paste0("n_", 1:n.stages)] <-
   ## for each stage, calculate the proportion of observations in each stage (s = whatever iteration of the n.stages we are in)
   ### AKA this is the proportion of patients who have their terminal stage at stage s
   sapply(1:n.stages, function(s) mean(obs.data$summary$terminal.stage == s))
 
 
 
-result[sim, "time.obs"] <- tt(2, reset = TRUE)["elapsed"]
+result["time.obs"] <- tt(2, reset = TRUE)["elapsed"]
 
 print(flowchart(obs.data$output))
 
@@ -269,7 +284,10 @@ if (!skip.IHsurvrf) {
                   stratifiedSplit = 0.1,
                   stageLabel = "_",
                   stage.start = ss,
-                  nstrata = 2,
+                  
+                  #########
+                  ######### NOTE: we need to change this nstrata if we want to test different things
+                  nstrata = 1,
                   windowsize = 10)
 
   ## setting a different seed
@@ -316,17 +334,17 @@ if (!skip.IHsurvrf) {
 
         ## calculate value function of the new generated data-- generated based on predicted optimal policy
         ## this should acount for ss as one of the inputs in arg.IHsurvrf which truncates the summary data to only look at 1:ss stages
-        if (!IHsurvrf.error) result[sim, "IHsurvrf"] <- val.fn(IHsurvrf.data.rep$summary$cumulative.event.time)
+        if (!IHsurvrf.error) result["IHsurvrf"] <- val.fn(IHsurvrf.data.rep$summary$cumulative.event.time)
 
         ## tt(2, reset = TRUE): resets timer for later measurements, and retreives the elapsed time in terms of mins for the time it takes to estimate and evaluate the policy
-        result[sim, "time.IHsurvrf"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+        result["time.IHsurvrf"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-        result[sim, "change.integral"] <- unique(IHsurvrf.data.rep$summary$avg.last.iter.change)
+        result["change.integral"] <- unique(IHsurvrf.data.rep$summary$avg.last.iter.change)
 
         ####### gets the number of iterations from the training data for convergence
-        result[sim, "num.convergence.it"] <- unique(IHsurvrf.data.rep$summary$convergence.iterations)
+        result["num.convergence.it"] <- unique(IHsurvrf.data.rep$summary$convergence.iterations)
 
-        result[sim, "avg.prop.match.opt.IHsurvrf"] <- mean(count_matches_without_asterisks(IHsurvrf.data.rep$summary$actions, IHsurvrf.data.rep$summary$true.opt)/sapply(IHsurvrf.data.rep$summary[, "actions"], count_numbers))
+        result["avg.prop.match.opt.IHsurvrf"] <- mean(count_matches_without_asterisks(IHsurvrf.data.rep$summary$actions, IHsurvrf.data.rep$summary$true.opt)/sapply(IHsurvrf.data.rep$summary[, "actions"], count_numbers))
 
         ## reset the policy to NULL and clean
         arg.IHsurvrf$policy <- NULL; gc()
@@ -358,10 +376,10 @@ if (!skip.trt1) {
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
   trt1.data.rep <- do.call(simulate_patients, arg.trt1)
 
-  result[sim, "trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
-  result[sim, "time.trt1"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  result["trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
+  result["time.trt1"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-  result[sim, "avg.prop.match.opt.trt1"] <- mean(count_matches_without_asterisks(trt1.data.rep$summary$actions, trt1.data.rep$summary$true.opt)/sapply(trt1.data.rep$summary[, "actions"], count_numbers))
+  result["avg.prop.match.opt.trt1"] <- mean(count_matches_without_asterisks(trt1.data.rep$summary$actions, trt1.data.rep$summary$true.opt)/sapply(trt1.data.rep$summary[, "actions"], count_numbers))
 
   arg.trt1$policy <- NULL; gc()
   rm(trt1.data.rep); gc()
@@ -385,10 +403,10 @@ if (!skip.trt0) {
   ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
   trt0.data.rep <- do.call(simulate_patients, arg.trt0)
 
-  result[sim, "trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
-  result[sim, "time.trt0"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  result["trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
+  result["time.trt0"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-  result[sim, "avg.prop.match.opt.trt0"] <- mean(count_matches_without_asterisks(trt0.data.rep$summary$actions, trt0.data.rep$summary$true.opt)/sapply(trt0.data.rep$summary[, "actions"], count_numbers))
+  result["avg.prop.match.opt.trt0"] <- mean(count_matches_without_asterisks(trt0.data.rep$summary$actions, trt0.data.rep$summary$true.opt)/sapply(trt0.data.rep$summary[, "actions"], count_numbers))
   arg.trt0$policy <- NULL; gc()
   rm(trt0.data.rep); gc()
 }
@@ -412,26 +430,36 @@ if (!skip.opt) {
   arg.trueopt.data.rep <- do.call(simulate_patients, arg.trueopt)
 
 
-  result[sim, "trueopt"] <- val.fn(arg.trueopt.data.rep$summary$cumulative.event.time)
-  result[sim, "time.trueopt"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
-  result[sim, "avg.prop.match.opt.trueopt"] <- mean(count_matches_without_asterisks(arg.trueopt.data.rep$summary$actions, arg.trueopt.data.rep$summary$true.opt)/sapply(arg.trueopt.data.rep$summary[, "actions"], count_numbers))
+  result["trueopt"] <- val.fn(arg.trueopt.data.rep$summary$cumulative.event.time)
+  result["time.trueopt"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
+  result["avg.prop.match.opt.trueopt"] <- mean(count_matches_without_asterisks(arg.trueopt.data.rep$summary$actions, arg.trueopt.data.rep$summary$true.opt)/sapply(arg.trueopt.data.rep$summary[, "actions"], count_numbers))
   arg.trueopt$policy <- NULL; gc()
   rm(arg.trueopt.data.rep); gc()
 }
 
 
 ### saving and cleaning
-print(result[sim, ])
+print(result)
 
 ## mean of each column
-print(apply(result, 2, mean, na.rm = TRUE))
+#print(apply(result, 2, mean, na.rm = TRUE))
 #saveRDS(result, filename.tmp) # saving the temporary results
 gc()
 # }
+
+return(result)
 }
-result
 
 
-write.csv(result, "/nas/longleaf/home/js9gt/survrf/Outputs/20Aug_500pt_25stage_lowcens_obs_RESUTS_V6", row.names=FALSE)
+# Number of cores to use for parallelization
+num_cores <- 6
+
+# Run the simulations in parallel
+results_list <- mclapply(20:30, run_simulation, mc.cores = num_cores)
+
+# Combine the results into a single dataframe
+final_results <- do.call(rbind, results_list)
+
+write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/1STRATA_25stage_500pt_highcens_V3", row.names=FALSE)
 
 

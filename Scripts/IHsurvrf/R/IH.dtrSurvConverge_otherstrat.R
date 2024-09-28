@@ -53,11 +53,17 @@ IHdtrConv_otherstrata <- function(data,
   terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
   terms_with_stage <- paste0(terms, "_", (nDP))
   updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
-  x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",nDP)) == 1))
+
+
+  x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",nDP)) == 1 & !is.na(!!sym(paste0(as.character(attr(terms(models), "variables")[[2]][[2]]),"_",(nDP) )))))
+
   ## remove stage suffixto use in prediction
   new_col_names <- gsub(paste0("_", (nDP), "$"), "", colnames(x))
   colnames(x) <- new_col_names
-  last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+
+  message("cases in stage: ", dim(x)[1])
+
+  last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                               newdata = x,
                               params = params,
                               findOptimal = T)
@@ -81,7 +87,7 @@ IHdtrConv_otherstrata <- function(data,
   ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
   ###############
 
-  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1][which(eligibility == 1)] <- optimal_treatments
+  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]])][which(eligibility == 1)] <- optimal_treatments
 
 
   ##############
@@ -199,6 +205,11 @@ IHdtrConv_otherstrata <- function(data,
     nextstrat_same <- with(merged_data, current_strata == 1 & next_strata == 0 & !is.na(current_T) & !is.na(next_T))
 
 
+    response_with_stage <- paste0(response_var, "_", i+1)
+    terms_with_stage <- paste0(terms, "_", i+1)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+
     ### NOTE: we only predict for those patients who have the same next strata
     ###
     x = get_all_vars(updated_formula, data)[which(nextstrat_same == 1), ]
@@ -208,12 +219,13 @@ IHdtrConv_otherstrata <- function(data,
     ####
 
 
+
     if (dim(x)[1] != 0){
 
       ## remove stage suffixto use in prediction
       new_col_names <- gsub(paste0("_", (i+1), "$"), "", colnames(x))
       colnames(x) <- new_col_names
-      last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+      last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                                   newdata = x,
                                   params = params,
                                   findOptimal = T)
@@ -422,7 +434,7 @@ IHdtrConv_otherstrata <- function(data,
         ## remove stage suffixto use in prediction
         new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
         colnames(x) <- new_col_names
-        last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+        last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                                     newdata = x,
                                     params = params,
                                     findOptimal = T)
@@ -515,11 +527,21 @@ IHdtrConv_otherstrata <- function(data,
   # Define the dynamic variable name
   forest.name <- paste0("s2.strata", strata)
 
+  elig_pr <- long_data %>%
+    transmute(elig = !!sym(paste0("strata", strata)) == 1 &
+                !is.na(as.character(attr(terms(models), "variables")[[2]][[2]]))) %>%
+    pull(elig)
+
+  # Get the variable name as a character
+  resp_name <- deparse(attr(terms(models), "variables")[[2]][[2]])
+
   # Perform the desired operation and assign the result to the dynamic variable
   ## we train a forest for all observations in strata 2
   assign(forest.name, .dtrSurvStep(
     model = models,
-    data = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(T)),
+    data = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(!!sym(resp_name))),
+
+
     priorStep = NULL,
     params = params,
     txName = "A",
@@ -529,7 +551,7 @@ IHdtrConv_otherstrata <- function(data,
     #### in the original IH.dtrSurv this is FALSE, so let's try changing it to FALSE to match
     pool1 = FALSE,
     appendstep1 = TRUE,
-    inputpr = pr_pooled[, colSums(pr_pooled) != 0]
+    inputpr = pr_pooled[, elig_pr]
   ))
 
   # Set the column name in long_data
@@ -542,10 +564,10 @@ IHdtrConv_otherstrata <- function(data,
   ## also update the "A" column
 
 
-  long_data$A.final[long_data[[paste0("strata", strata)]] == 1 &
+  long_data$A.final[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
                       !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
 
-  long_data$A[long_data[[paste0("strata", strata)]] == 1 &
+  long_data$A[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
                 !is.na(long_data$T)][which(eligibility_final == 1)]<- get(forest.name)@optimal@optimalTx
 
 

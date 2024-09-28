@@ -39,7 +39,10 @@ source("R/class_IH.SurvRF.R")
                       ## An integer object. The number of samples to draw for each
                       #    tree
 
-                      sampleSize) {
+                      sampleSize,
+
+                    ## allow for an input for propensity score which is a numeric
+                    prop) {
   ## use fortran functions "setUpInners" and "survTree"
   ## prepares and initializes data structures and variables for later steps where we actually grow the forest
 

@@ -126,6 +126,21 @@ one_stage <- function(
       ## suppressWarnings(rbinom(1, 1, propensity_scores) * 2 - 1)
 
       action = rbinom(1, 1, propensity_scores)
+      
+      
+      ## ------------ allowing for multiple treatments (0, 1, 2, 3) ------------ ##
+      # Draw actions from a multinomial distribution using the propensity scores
+      # Multinomial action sampling instead of binary treatment
+      #draw_treatment <- function(propensity_scores) {
+      #  apply(propensity_scores, 1, function(p) {
+      #    sample(-1:2, size = 1, prob = p)  # Draw treatment (-1, 0,1, 2) based on the probabilities
+      #  })
+      #}
+      #
+      ## Draw the action based on the propensity scores
+      #action = draw_treatment(propensity_scores)
+      
+      ## ----------------------------------------------------------------------- ##
 
       optimal.action= input_opt
 
