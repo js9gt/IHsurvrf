@@ -611,7 +611,13 @@ IHdtrConv <- function(data,
 
     ## we are inputting survival probabilities
     appendstep1 = TRUE,
-    inputpr = pr_pooled[, colSums(pr_pooled) != 0]
+    inputpr = pr_pooled[, colSums(pr_pooled) != 0],
+
+    ## use the propensity score (either input or all 1s) for the eligible observations
+    input_prop = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(.data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])) %>%
+      select(propscore) %>%
+      pull() %>%
+      as.numeric()
   ))
 
   # Set the column name in long_data

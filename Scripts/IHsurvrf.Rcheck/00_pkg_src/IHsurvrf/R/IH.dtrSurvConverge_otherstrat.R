@@ -53,11 +53,17 @@ IHdtrConv_otherstrata <- function(data,
   terms <- attr(terms(prev.iteration@FinalForest@model), "term.labels")
   terms_with_stage <- paste0(terms, "_", (nDP))
   updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
-  x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",nDP)) == 1))
+
+
+  x = get_all_vars(updated_formula, data %>% filter(!!sym(paste0("strata", strata,"_",nDP)) == 1 & !is.na(!!sym(paste0(as.character(attr(terms(models), "variables")[[2]][[2]]),"_",(nDP) )))))
+
   ## remove stage suffixto use in prediction
   new_col_names <- gsub(paste0("_", (nDP), "$"), "", colnames(x))
   colnames(x) <- new_col_names
-  last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+
+  message("cases in stage: ", dim(x)[1])
+
+  last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                               newdata = x,
                               params = params,
                               findOptimal = T)
@@ -76,8 +82,17 @@ IHdtrConv_otherstrata <- function(data,
   # also update "A" column
   ### we select the eligible values which are in the current stage, and strata
   ### then we subset t only those eligible (have complete cases)
-  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1] [which(eligibility == 1)] <- optimal_treatments
 
+  ################
+  ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
+  ###############
+
+  long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]])][which(eligibility == 1)] <- optimal_treatments
+
+
+  ##############
+  #############
+  ##############
 
   #### now, we want to extract the eligibility for the whole stage
   #### this means they have to BOTH have compelte cases, AND have strata1 == 1
@@ -170,6 +185,7 @@ IHdtrConv_otherstrata <- function(data,
     # Filter for the next stage (i + 1)
     next_stage <- long_data %>%
       filter(stage == i + 1) %>%
+      ### select the subjects in the previous strata
       select(subj.id, paste0("strata", strata - 1), T)
 
     # Rename columns for clarity in join
@@ -189,6 +205,11 @@ IHdtrConv_otherstrata <- function(data,
     nextstrat_same <- with(merged_data, current_strata == 1 & next_strata == 0 & !is.na(current_T) & !is.na(next_T))
 
 
+    response_with_stage <- paste0(response_var, "_", i+1)
+    terms_with_stage <- paste0(terms, "_", i+1)
+    updated_formula <- paste("Surv(", paste(response_with_stage, collapse = " , "), ") ~ ", paste(terms_with_stage, collapse = " + "))
+
+
     ### NOTE: we only predict for those patients who have the same next strata
     ###
     x = get_all_vars(updated_formula, data)[which(nextstrat_same == 1), ]
@@ -198,12 +219,13 @@ IHdtrConv_otherstrata <- function(data,
     ####
 
 
+
     if (dim(x)[1] != 0){
 
       ## remove stage suffixto use in prediction
       new_col_names <- gsub(paste0("_", (i+1), "$"), "", colnames(x))
       colnames(x) <- new_col_names
-      last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+      last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                                   newdata = x,
                                   params = params,
                                   findOptimal = T)
@@ -214,7 +236,10 @@ IHdtrConv_otherstrata <- function(data,
       # Extract optimal treatments for the current stage
       optimal_treatments <- last.stage.pred$optimal@optimalTx
 
+
+
       # also update "A" column
+      ### these are the same dimension already with the total number of pts
       long_data$A[long_data$stage == (i+1)][which(nextstrat_same == 1)] <- optimal_treatments
 
 
@@ -264,7 +289,7 @@ IHdtrConv_otherstrata <- function(data,
               # Condition 1: Check if the strata column (constructed dynamically) is equal to 1
               !!sym(paste0("strata", strata)) == 1 &
                 # Condition 2: Check if the row has complete cases excluding columns starting with "A"
-                complete.cases(dplyr::select(., -matches("^A\\."))),
+                complete.cases(dplyr::select(., -matches("^A\\.|^gamma"))),
               # If both conditions are TRUE, assign 1
               1,
               # Otherwise, assign 0
@@ -347,7 +372,7 @@ IHdtrConv_otherstrata <- function(data,
       ## first we update the survival matrix with previously predicted values from the same strata
       ## recall, we only predict if they had the same strata both times
 
-      survMatrix[, which(nextstrat_same == 1)] <-  shiftedprob1[, colSums(shiftedprob1, na.rm = T) != 0]
+      survMatrix[, which(nextstrat_same == 1)] <-  shiftedprob1[, which(nextstrat_same == 1) ]
 
 
       ## next, we update the survival matrix with the strata 1 output values for stage i + 1
@@ -405,13 +430,11 @@ IHdtrConv_otherstrata <- function(data,
       ## skip this prediction if there are no patients that are new this stage (predict stub)
 
 
-      ###### CHECK THIS SECTION
-
       if (dim(x)[1] != 0) {
         ## remove stage suffixto use in prediction
         new_col_names <- gsub(paste0("_", i, "$"), "", colnames(x))
         colnames(x) <- new_col_names
-        last.stage.pred <- .Predict(object = prev.iteration@FinalForest,
+        last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                                     newdata = x,
                                     params = params,
                                     findOptimal = T)
@@ -504,19 +527,36 @@ IHdtrConv_otherstrata <- function(data,
   # Define the dynamic variable name
   forest.name <- paste0("s2.strata", strata)
 
+  elig_pr <- long_data %>%
+    transmute(elig = !!sym(paste0("strata", strata)) == 1 &
+                !is.na(as.character(attr(terms(models), "variables")[[2]][[2]]))) %>%
+    pull(elig)
+
+  # Get the variable name as a character
+  resp_name <- deparse(attr(terms(models), "variables")[[2]][[2]])
+
   # Perform the desired operation and assign the result to the dynamic variable
   ## we train a forest for all observations in strata 2
   assign(forest.name, .dtrSurvStep(
     model = models,
-    data = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(T)),
+    data = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(!!sym(resp_name))),
+
+
     priorStep = NULL,
     params = params,
     txName = "A",
     mTry = mTry[[nDP]],
     sampleSize = 1,
-    pool1 = TRUE,
+
+    #### in the original IH.dtrSurv this is FALSE, so let's try changing it to FALSE to match
+    pool1 = FALSE,
     appendstep1 = TRUE,
-    inputpr = pr_pooled[, colSums(pr_pooled) != 0]
+    inputpr = pr_pooled[, elig_pr],
+    ## use the propensity score (either input or all 1s) for the eligible observations
+    input_prop = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(!!sym(resp_name))) %>%
+      select(propscore) %>%
+      pull() %>%
+      as.numeric()
   ))
 
   # Set the column name in long_data
@@ -527,8 +567,14 @@ IHdtrConv_otherstrata <- function(data,
 
   # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
   ## also update the "A" column
-  long_data$A.final[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
-  long_data$A[which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+
+
+  long_data$A.final[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
+                      !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+
+  long_data$A[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
+                !is.na(long_data$T)][which(eligibility_final == 1)]<- get(forest.name)@optimal@optimalTx
+
 
   ######## now, we want to output this into a grid, so that all patients have all stages present
   ### for stages that are not in this strata, they will just take on values of 0
@@ -560,7 +606,7 @@ IHdtrConv_otherstrata <- function(data,
 
 
   ## the result after appyling the area function to each column of the matrix of survival probabilities
-  areas <- apply(shiftedprobfinal[, colSums(shiftedprobfinal) != 0], 2, function(surv_prob_col) {
+  areas <- apply(t(get(forest.name)@optimal@optimalY), 2, function(surv_prob_col) {
     area_under_curve(surv_prob_col, params@timePoints)
   })
 

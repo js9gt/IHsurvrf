@@ -287,7 +287,7 @@ if (!skip.IHsurvrf) {
                   
                   #########
                   ######### NOTE: we need to change this nstrata if we want to test different things
-                  nstrata = 1,
+                  nstrata = 2,
                   windowsize = 10)
 
   ## setting a different seed
@@ -452,14 +452,14 @@ return(result)
 
 
 # Number of cores to use for parallelization
-num_cores <- 6
+num_cores <- 5
 
 # Run the simulations in parallel
-results_list <- mclapply(20:30, run_simulation, mc.cores = num_cores)
+results_list <- mclapply(176:200, run_simulation, mc.cores = num_cores)
 
 # Combine the results into a single dataframe
 final_results <- do.call(rbind, results_list)
 
-write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/1STRATA_25stage_500pt_highcens_V3", row.names=FALSE)
+write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/15stage_500pt_highcens_176:200", row.names=FALSE)
 
 

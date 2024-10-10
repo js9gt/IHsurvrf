@@ -1,6 +1,10 @@
 * using log directory ‘/nas/longleaf/home/js9gt/survrf/Scripts/IHsurvrf.Rcheck’
-* using R version 4.1.0 (2021-05-18)
-* using platform: x86_64-pc-linux-gnu (64-bit)
+* using R version 4.4.0 (2024-04-24)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (GCC) 11.2.0
+    GNU Fortran (GCC) 11.2.0
+* running under: Red Hat Enterprise Linux 8.9 (Ootpa)
 * using session charset: UTF-8
 * using options ‘--no-manual --as-cran’
 * checking for file ‘IHsurvrf/DESCRIPTION’ ... OK
@@ -15,7 +19,9 @@
 * checking for portable file names ... OK
 * checking for sufficient/correct file permissions ... OK
 * checking serialization versions ... OK
-* checking whether package ‘IHsurvrf’ can be installed ... OK
+* checking whether package ‘IHsurvrf’ can be installed ... [10s/13s] OK
+* used C compiler: ‘gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-20)’
+* used Fortran compiler: ‘GNU Fortran (GCC) 8.5.0 20210514 (Red Hat 8.5.0-20)’
 * checking installed package size ... OK
 * checking package directory ... OK
 * checking for future file timestamps ... OK
@@ -28,7 +34,7 @@ Standardizable: FALSE
 * checking for left-over files ... OK
 * checking index information ... OK
 * checking package subdirectories ... OK
-* checking R files for non-ASCII characters ... OK
+* checking code files for non-ASCII characters ... OK
 * checking R files for syntax errors ... OK
 * checking whether the package can be loaded ... OK
 * checking whether the package can be loaded with stated dependencies ... OK
@@ -36,15 +42,19 @@ Standardizable: FALSE
 * checking whether the namespace can be loaded with stated dependencies ... OK
 * checking whether the namespace can be unloaded cleanly ... OK
 * checking loading without being on the library search path ... OK
-* checking dependencies in R code ... OK
+* checking dependencies in R code ... NOTE
+Namespaces in Imports field not imported from:
+  ‘methods’ ‘survival’ ‘tidyr’
+  All declared Imports should be used.
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
-* checking R code for possible problems ... NOTE
+* checking R code for possible problems ... [11s/12s] NOTE
 .criticalValueMean: no visible global function definition for ‘new’
 .criticalValueSurvival: no visible global function definition for ‘new’
 .dtrSurvStep: no visible binding for global variable ‘na.pass’
 .dtrSurvStep: no visible global function definition for ‘terms’
+.dtrSurvStep: no visible binding for global variable ‘prop’
 .dtrSurvStep: no visible global function definition for ‘new’
 .optimal: no visible global function definition for ‘new’
 .parameters: no visible global function definition for ‘is’
@@ -65,6 +75,9 @@ IHdtrConv: no visible binding for global variable ‘na.pass’
 IHdtrConv: no visible global function definition for ‘mutate’
 IHdtrConv: no visible global function definition for ‘complete.cases’
 IHdtrConv: no visible binding for global variable ‘.’
+IHdtrConv: no visible binding for global variable ‘.data’
+IHdtrConv: no visible global function definition for ‘select’
+IHdtrConv: no visible binding for global variable ‘propscore’
 IHdtrConv: no visible global function definition for ‘new’
 IHdtrConv_otherstrata: no visible global function definition for
   ‘formula’
@@ -89,28 +102,30 @@ IHdtrConv_otherstrata: no visible global function definition for
 IHdtrConv_otherstrata: no visible global function definition for
   ‘complete.cases’
 IHdtrConv_otherstrata: no visible binding for global variable ‘.’
+IHdtrConv_otherstrata: no visible global function definition for
+  ‘transmute’
+IHdtrConv_otherstrata: no visible binding for global variable ‘elig’
+IHdtrConv_otherstrata: no visible binding for global variable
+  ‘propscore’
 IHdtrConv_otherstrata: no visible global function definition for ‘new’
 IHdtrSurv: no visible global function definition for ‘%>%’
 IHdtrSurv: no visible global function definition for ‘pivot_longer’
 IHdtrSurv: no visible global function definition for ‘starts_with’
 IHdtrSurv: no visible global function definition for ‘mutate’
-IHdtrSurv: no visible binding for global variable ‘stage’
 IHdtrSurv: no visible binding for global variable ‘A’
 IHdtrSurv: no visible global function definition for ‘arrange’
 IHdtrSurv: no visible binding for global variable ‘subj.id’
 IHdtrSurv: no visible global function definition for ‘filter’
 IHdtrSurv: no visible binding for global variable ‘cumulative.time’
 IHdtrSurv: no visible global function definition for ‘pivot_wider’
-IHdtrSurv: no visible binding for global variable ‘delta’
-IHdtrSurv: no visible binding for global variable ‘baseline1’
-IHdtrSurv: no visible binding for global variable ‘baseline2’
-IHdtrSurv: no visible binding for global variable ‘state1’
-IHdtrSurv: no visible binding for global variable ‘state2’
-IHdtrSurv: no visible binding for global variable ‘prior.visit.length’
-IHdtrSurv: no visible binding for global variable ‘nstages’
-IHdtrSurv: no visible binding for global variable ‘action.1.count’
-IHdtrSurv: no visible binding for global variable ‘action.0.count’
+IHdtrSurv: no visible global function definition for ‘all_of’
+IHdtrSurv: no visible global function definition for ‘terms’
+IHdtrSurv: no visible binding for global variable ‘.data’
 IHdtrSurv: no visible global function definition for ‘new’
+IHdtrSurv: no visible global function definition for ‘sym’
+IHdtrSurv: no visible global function definition for ‘tail’
+PredDTRSurvStep: no visible global function definition for ‘update’
+PredDTRSurvStep: no visible global function definition for ‘terms’
 commonFormula: no visible global function definition for ‘terms’
 .Predict,DTRSurvStep-data.frame: no visible global function definition
   for ‘update’
@@ -130,16 +145,17 @@ initialize,CriticalValueSurvival : <anonymous>: no visible global
 initialize,CriticalValueSurvival: no visible binding for global
   variable ‘is’
 Undefined global functions or variables:
-  %>% . A action.0.count action.1.count arrange baseline1 baseline2
-  complete.cases cumulative.time delta filter formula get_all_vars is
-  left_join matches model.frame model.response mutate na.pass new
-  nstages pivot_longer pivot_wider prior.visit.length pull select stage
-  starts_with state1 state2 subj.id sym terms update
+  %>% . .data A all_of arrange complete.cases cumulative.time elig
+  filter formula get_all_vars is left_join matches model.frame
+  model.response mutate na.pass new pivot_longer pivot_wider prop
+  propscore pull select stage starts_with subj.id sym tail terms
+  transmute update
 Consider adding
   importFrom("methods", "is", "new")
   importFrom("stats", "complete.cases", "filter", "formula",
              "get_all_vars", "model.frame", "model.response", "na.pass",
              "terms", "update")
+  importFrom("utils", "tail")
 to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
 contains 'methods').
 * checking Rd files ... OK
@@ -149,15 +165,15 @@ contains 'methods').
 * checking for missing documentation entries ... OK
 * checking for code/documentation mismatches ... OK
 * checking Rd \usage sections ... WARNING
-Undocumented arguments in documentation object '.VerifyTimePoints'
+Undocumented arguments in Rd file 'dot-VerifyTimePoints.Rd'
   ‘timePoints’ ‘nTimes’ ‘...’
 
-Undocumented arguments in documentation object '.parameters'
+Undocumented arguments in Rd file 'dot-parameters.Rd'
   ‘timePoints’ ‘tau’ ‘nTimes’ ‘response’ ‘nTree’ ‘ERT’ ‘uniformSplit’
   ‘randomSplit’ ‘splitRule’ ‘replace’ ‘nodeSize’ ‘minEvent’ ‘tieMethod’
   ‘criticalValue’ ‘survivalTime’ ‘nSamples’ ‘pooled’ ‘stratifiedSplit’
 
-Undocumented arguments in documentation object 'predict,DTRSurv-method'
+Undocumented arguments in Rd file 'predict-DTRSurv-method.Rd'
   ‘object’ ‘...’ ‘newdata’ ‘stage’ ‘findOptimal’
 
 Functions with \usage entries need to have the appropriate \alias
@@ -178,8 +194,9 @@ It is good practice to register native routines and to disable symbol
 search.
 
 See ‘Writing portable packages’ in the ‘Writing R Extensions’ manual.
+* checking usage of KIND in Fortran files ... OK
 * checking examples ... NONE
 * checking for non-standard things in the check directory ... OK
 * checking for detritus in the temp directory ... OK
 * DONE
-Status: 2 WARNINGs, 2 NOTEs
+Status: 2 WARNINGs, 3 NOTEs

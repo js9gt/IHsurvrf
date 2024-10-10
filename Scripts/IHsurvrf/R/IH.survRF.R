@@ -42,9 +42,12 @@ source("R/class_IH.SurvRF.R")
                       sampleSize,
 
                     ## allow for an input for propensity score which is a numeric
-                    prop) {
+                    prop
+                    ) {
   ## use fortran functions "setUpInners" and "survTree"
   ## prepares and initializes data structures and variables for later steps where we actually grow the forest
+
+  prop <- prop
 
 
   # if x_i is an unordered factor, nCat_i is the number of levels
@@ -70,6 +73,66 @@ source("R/class_IH.SurvRF.R")
            yes = 1L,
            no = nCat)
 
+
+  ## what we need to replicate:
+  # 1. x itself (replicate the rows): x is (n x p)
+  # 2. pr itself replicate the columns since it's nt x n
+  # 3. delta
+
+  #------- 1: replicating x ------- #
+
+  ## first we convert propensity score to integers, and replicate by 10x the propensity score to get 1st decimal accuracy
+#  if (sum(prop) == length(prop)) {
+#    prop_weight <- prop
+#  } else {
+#    prop_weight <- as.integer(round(prop * 10))
+#  }
+#
+#  # Step 2: Filter out rows where the weight is zero
+#  non_zero <- prop_weight > 0  # Logical vector indicating which rows have non-zero weights
+#
+#  # Step 3: Apply the replication only to the rows with non-zero weights
+#  #--- NOTE: we replicate the ROWS, so now it's {(n*weight) x p}
+#  x <- x[rep(seq_len(nrow(x))[non_zero], times = prop_weight[non_zero]), , drop = FALSE]
+#
+#  #------- 1: replicating pr ------- #
+#
+#  # Step 4: Pre-allocate the result matrix with the correct dimensions
+#  pr_rep <- matrix(0L, nrow = nrow(pr), ncol = sum(prop_weight[non_zero]))
+#
+#
+#  # Step 5: Fill in the result matrix iteratively
+#  start_idx <- 1  # Keeps track of the starting column index for each replication
+#  for (i in seq_along(prop_weight[non_zero])) {
+#    rep_count <- prop_weight[non_zero][i]  # Get the number of replications for this column
+#    end_idx <- start_idx + rep_count - 1  # Calculate the end index
+#
+#    # Copy the column `i` from the original matrix to the appropriate positions in the result
+#    pr_rep[, start_idx:end_idx] <- pr[, non_zero][, i]
+#
+#    # Update the starting index for the next iteration
+#    start_idx <- end_idx + 1
+#
+#    # Remove unnecessary objects to free up memory
+#    rm(rep_count, end_idx)  # Free memory used by intermediate variables
+#
+#    # Optionally clear memory periodically during iterations
+#    if (i %% 100 == 0) {  # Adjust the frequency as needed
+#      gc()  # Call garbage collector to free up memory
+#    }
+#  }
+#
+#  #------- 1: replicating delta ------- #
+#  delta_rep <- rep(delta[non_zero], times = prop_weight[non_zero])
+#
+#  ## clean up memory
+#  rm(pr)
+#  rm(delta)
+#  gc()
+
+
+
+
   ## calculates total number of samples (individuals) in the dataset
 
   # number of individuals in training data
@@ -77,7 +140,7 @@ source("R/class_IH.SurvRF.R")
 
   ## calculates total number of unique time points from the probability mass vector (designed for .shiftMatrix output)
 
-  # number of time points
+  # number of time points: this doesn't change from the replicate pr so it doesn't matter which one we use
   nTimes <- nrow(x = pr)
 
   # total number of trees to be grown in the forest
@@ -125,6 +188,8 @@ source("R/class_IH.SurvRF.R")
 
 
 
+
+
   res = .Fortran(
     "setUpInners",
     # number of cases under consideration
@@ -134,8 +199,14 @@ source("R/class_IH.SurvRF.R")
     # the covariates
     t_x = as.double(x = x),
     # probability mass vector of the survival functions
+    ## ---------- NOTE: this was originally pr, but we input the replicated one which has replications based on propensity score ---------------- ##
     t_pr = as.double(x = t(x = pr)),
+
+    ## input propensity score matrix
+    t_propensity = as.integer(x = prop),
+
     # indicator of censoring
+    ## ---------- NOTE: this was originally pr, but we input the replicated one which has replications based on propensity score ---------------- ##
     t_delta = as.integer(x = delta),
     # maximum number of covariates to try for splitting
     t_mTry = as.integer(x = mTry),

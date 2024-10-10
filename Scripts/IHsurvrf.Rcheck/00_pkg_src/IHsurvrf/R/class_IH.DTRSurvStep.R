@@ -171,6 +171,56 @@ setMethod(f = ".Predict",
            }          })
 
 
+# Define a new function for DTRSurvStep
+PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
+
+  # Ensure object is of the correct class
+  if (!inherits(object, "DTRSurvStep")) {
+    stop("object must be of class 'DTRSurvStep'")
+  }
+
+  # Check if newdata is of the correct type
+  if (!is.data.frame(newdata) && !is.null(newdata)) {
+    stop("newdata must be a data.frame or NULL")
+  }
+
+  # Code for handling NULL newdata case
+  if (is.null(newdata)) {
+    return(.Predict(object = object@survRF, newdata = NULL, ...))
+  }
+
+  # Update model to remove response
+  mod <- update(object@model, NULL ~ .)
+
+  # Ensure data contains all model covariates
+  x <- tryCatch(expr = stats::model.frame(formula = mod,
+                                          data = newdata),
+                error = function(e) {
+                  stop("variables in the training data missing in newdata",
+                       call. = FALSE)
+                })
+
+  # Remove response from x if necessary
+  if (attr(x = terms(x = mod), which = "response") == 1L) {
+    x <- x[,-1L,drop = FALSE]
+  }
+
+  # If findOptimal is TRUE, return the optimal predictions
+  if (findOptimal) {
+    resV <- .PredictAll(object = object@survRF,
+                        newdata = newdata,
+                        params = params,
+                        model = mod,
+                        txName = object@txName,
+                        txLevels = object@txLevels)
+    return(list("value" = resV$predicted, "optimal" = resV$optimal))
+  } else {
+    return(.Predict(object = object@survRF,
+                    newdata = x,
+                    params = params, ...))
+  }
+}
+
 
 
 #-------------------------------------------------------------------------------
@@ -223,9 +273,14 @@ setMethod(f = ".Predict",
                          sampleSize,
                          pool1 = FALSE,
                          appendstep1 = FALSE,
-                         inputpr = NULL) {
+                         inputpr = NULL
+                         #input_prop
+                         ) {
   # model is input
   mod <- model
+
+  ## read in the propensity score
+  #prop <-input_prop
 
   ## extract first order terms (main effect) from the model for splitting in the random forest algorithm
 
@@ -480,8 +535,23 @@ setMethod(f = ".Predict",
   ## pr is expected to be a matrix of probabilities and therefore between 0 and 1
 
   if (any(pr > 1.0) || any(pr < 0.0)) {
-    stop("pr must obey 0 <= pr <= 1 -- contact maintainer", call. = FALSE)
+    # Print values that are out of bounds
+    print(pr[pr > 1.0 | pr < 0.0])
+
+    # Clip values outside the range [0, 1]
+    pr[pr > 1.0] <- 1.0
+    pr[pr < 0.0] <- 0.0
+
+    # Optional: Print a message indicating values were clipped
+    message("Some pr values were outside the range [0, 1] and have been clipped.")
   }
+
+
+  ## now, we want to reformat the propensity score input for each patient
+  ## the dimension are the same as "pr" which is nt x n
+  prop_matrix <- matrix(rep(prop, each = length(params@timePoints)), nrow = length(params@timePoints), ncol = length(prop))
+
+
 
   ## if txName variable is a factor,
 
@@ -492,7 +562,7 @@ setMethod(f = ".Predict",
   } else if ( !is.factor(x = data[, txName]) & !pool1) {  # Add condition to execute else block only if pool1 is FALSE
 
     ## if txName is not a factor and pool1 is FALSE, find unique values of the treatment for eligible cases & sort them to use as treatment levels
-    txLevels <- sort(x = as.numeric(unlist(unique(data[elig, txName]))))
+    txLevels <- sort(x = as.numeric(as.character(unlist(unique(data[elig, txName])))))
   }else  if (pool1) {  # If pool1 is TRUE
     ## if pool1 is TRUE, sort unique values of A.opt.HC for eligible cases
     txLevels <- sort(x = as.numeric(unlist(unique(data[elig, txName]))))
@@ -563,6 +633,9 @@ setMethod(f = ".Predict",
       txLevels = txLevels,
       model = mod,
       sampleSize = sampleSize
+
+      ## new argument "prop" that takes the input "prop" from .dtrSurvStep containing the propensity score for eligible pts & stages
+      #prop = prop_matrix
     )
 
     ## if not pooled,

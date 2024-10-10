@@ -672,9 +672,12 @@ plot_grid(lowcens_300pt_10stage_2strata + guides(fill = FALSE),
 
 ######### data preprocessing for the .txt files that didn't finish running
 a <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_locens_obs_V7.txt", header=FALSE, comment.char="#")
+b <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_lowcens_376:531.txt", header=FALSE, comment.char="#")
+
 
 # Find row indices where the pattern "Estimation-True Optimal" appears in any column
 matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
+matching_indices_V2 <- which(apply(b, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
 
 # Initialize an empty vector to store the selected rows
 selected_rows_V1 <- data.frame()
@@ -685,16 +688,25 @@ for (index in matching_indices_V1) {
   selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
 }
 
+selected_rows_V2 <- data.frame()
+
+# Loop through each matching index
+for (index in matching_indices_V2) {
+  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
+  selected_rows_V2 <- rbind(selected_rows_V2, b[index:min(index+1, nrow(b)), ])
+}
+
 
 ## splitting the values of the second column which contain the numeric results of the sims
 #########
 ######### NOTE: this subsetting the column name part most likely to make errors
 #########
 split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1.205..1137.04.1315.774.1315.179.1303.026......NA......................0.), " ")
-
+split_values_V2 <- strsplit(as.character(selected_rows_V2$X.1.376.1163.111.1196.877.1290.115.1316.58......NA......................0.), " ")
 
 # Remove any blank elements ("") from each split string
 cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
+cleaned_split_values_V2 <- lapply(split_values_V2, function(x) x[x != ""])
 
 ## now, we subset the observed and the IHsurvrf
 
@@ -702,29 +714,32 @@ cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
 ## observed is column 2's 3rd number
 # Extract the third value from each split string
 third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
+third_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[3])
 
 # Convert to numeric if the values are numeric
 observed1 <- as.numeric(third_values_V1)
+observed2 <- as.numeric(third_values_V2)
 
 ##### IHsurvrf #######
 ## IHsurvrf is column 2's 4th number
 fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
+fourth_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[4])
 
 # Convert to numeric if the values are numeric
 IHsurvrf1 <- as.numeric(fourth_values_V1)
-
+IHsurvrf2 <- as.numeric(fourth_values_V2)
 
 pt500_25stage_low_observed <- c(1179.303, 1174.092, 1186.392, 1168.456, 1164.47,
                                 1173.317, 1159.486, 1135.751, 1172.255, 1170.847,
                                 1165.927, 1180.468, 1161.419, 1167.43, 1188.548, 1163.283,
                                 1166.918, 1167.967, 1165.285, 1153.544, 1158.596,
-                                1159.414, 1172.082, 1150.766, 1162.323, observed1)
+                                1159.414, 1172.082, 1150.766, 1162.323, observed1, observed2)
 
 pt500_25stage_low_IHsurvrf <- c(1228.147, 1157.587, 1228.418, 1293.653, 1167.892,
                                 1160.929, 1197.294, 1240.757, 1254.862, 1217.989,
                                 1296.912, 1297.104, 1301.163, 1304.961, 1252.483, 1329.84,
                                 1241.718, 1253.786, 1306.99, 1320.823, 1289.146,
-                                1198.282, 1238.886, 1270.393, 1260.407, IHsurvrf1)
+                                1198.282, 1238.886, 1270.393, 1260.407, IHsurvrf1, IHsurvrf2)
 
 
 
@@ -778,15 +793,58 @@ lowcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = G
 
 two_strat_25stage_hicens_1 <- read.csv("~/survrf/Outputs/2STRATA_01Sep_25stage_500pt_hicens_PAR1")
 
+######### data preprocessing for the .txt files that didn't finish running
+a <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_hicens_201:372.txt", header=FALSE, comment.char="#")
+
+# Find row indices where the pattern "Estimation-True Optimal" appears in any column
+matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
+
+# Initialize an empty vector to store the selected rows
+selected_rows_V1 <- data.frame()
+
+# Loop through each matching index
+for (index in matching_indices_V1) {
+  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
+  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
+}
+
+
+## splitting the values of the second column which contain the numeric results of the sims
+#########
+######### NOTE: this subsetting the column name part most likely to make errors
+#########
+split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1.205.1718.032.1831.851.1886.584.1857.042......NA......................0.), " ")
+
+
+# Remove any blank elements ("") from each split string
+cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
+
+## now, we subset the observed and the IHsurvrf
+
+##### observed #######
+## observed is column 2's 3rd number
+# Extract the third value from each split string
+third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
+
+# Convert to numeric if the values are numeric
+observed1 <- as.numeric(third_values_V1)
+
+##### IHsurvrf #######
+## IHsurvrf is column 2's 4th number
+fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
+
+# Convert to numeric if the values are numeric
+IHsurvrf1 <- as.numeric(fourth_values_V1)
+
 ## using a threshold of 0.25
 ## 5 sims done
 ## 105 sims done
 pt500_25stage_hi_observed <- c(1707.919, 1691.335, 1675.723, 1703.018,
                                1695.49, 1691.993, 1692.666, 1713.72,
-                               1711.027, 1712.989, two_strat_25stage_hicens_1$observed)
+                               1711.027, 1712.989, two_strat_25stage_hicens_1$observed, observed1)
 pt500_25stage_hi_IHsurvrf <- c(1808.825, 1817.265, 1747.049, 1723.135,
                                1790.413, 1816.506, 1844.138, 1757.585,
-                               1860.377, 1806.534, two_strat_25stage_hicens_1$IHsurvrf)
+                               1860.377, 1806.534, two_strat_25stage_hicens_1$IHsurvrf, IHsurvrf1)
 
 
 
@@ -831,6 +889,87 @@ highcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = 
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
                                Value = c(mean(pt500_25stage_hi_observed), mean(pt500_25stage_hi_IHsurvrf))),
+             aes(x = Group, y = Value), color = "black", size = 3) 
+
+
+##################################################################
+## 1 strata: plots for 500 pts, 25 stages, low censoring ##
+## observational,                               ##
+##################################################################
+
+
+######### data preprocessing for the .txt files that didn't finish running
+a <- read.delim2("~/survrf/Outputs/done_runnning/1STRATA_25stage_500pt_locens_V1.txt", header=FALSE, comment.char="#")
+
+# Find row indices where the pattern "Estimation-True Optimal" appears in any column
+matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
+
+# Initialize an empty vector to store the selected rows
+selected_rows_V1 <- data.frame()
+
+# Loop through each matching index
+for (index in matching_indices_V1) {
+  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
+  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
+}
+
+
+## splitting the values of the second column which contain the numeric results of the sims
+#########
+######### NOTE: this subsetting the column name part most likely to make errors
+#########
+split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..3.1186.392.1210.587.1311.914.1287.359......NA......................0.), " ")
+
+
+# Remove any blank elements ("") from each split string
+cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
+
+## now, we subset the observed and the IHsurvrf
+
+##### observed #######
+## observed is column 2's 3rd number
+# Extract the third value from each split string
+third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
+
+# Convert to numeric if the values are numeric
+observed1 <- as.numeric(third_values_V1)
+
+##### IHsurvrf #######
+## IHsurvrf is column 2's 4th number
+fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
+
+# Convert to numeric if the values are numeric
+IHsurvrf1 <- as.numeric(fourth_values_V1)
+
+pt500_25_lo1_observed <- observed1
+pt500_25_lo1_IHsurvrf <- IHsurvrf1
+
+
+# Combine data into a dataframe
+data <- data.frame(
+  Group = c(rep("observed", length(pt500_25_lo1_observed)), rep("IHsurvrf", length(pt500_25_lo1_IHsurvrf))),
+  Value = c(pt500_25_lo1_observed, pt500_25_lo1_IHsurvrf),
+  n = rep("n = 500", 2*length(pt500_25_lo1_observed)),
+  design = rep("25 stages: Low Censoring Rate", 2*length(pt500_25_lo1_observed)),
+  setting = rep("1 Strata", 2*length(pt500_25_lo1_observed))
+)
+
+
+locens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
+  scale_y_continuous(breaks = seq(1150, 1300, by = 30), limits = c(1150, 1300)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
+  facet_grid(setting ~ design + n) +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        axis.title.x = element_blank()) + theme(legend.position = "none") +
+  geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
+                              Value = c(mean(pt500_25_lo1_observed), mean(pt500_25_lo1_IHsurvrf))),
+            aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
+  geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
+                               Value = c(mean(pt500_25_lo1_observed), mean(pt500_25_lo1_IHsurvrf))),
              aes(x = Group, y = Value), color = "black", size = 3) 
   
 
@@ -924,6 +1063,7 @@ hicens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Gr
 plot_grid(lowcens_500pt_25stage_2strata + guides(fill = FALSE), 
           highcens_500pt_25stage_2strata + guides(fill = FALSE),
           hicens_500pt_15stage_1strata, 
+          locens_500pt_15stage_1strata,
           align = "h", nrow = 2, ncol = 2)
 
 ## ---------------------------------------------------------------##

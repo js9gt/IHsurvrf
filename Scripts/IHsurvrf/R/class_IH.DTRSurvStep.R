@@ -274,7 +274,8 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
                          pool1 = FALSE,
                          appendstep1 = FALSE,
                          inputpr = NULL,
-                         input_prop) {
+                         input_prop
+                         ) {
   # model is input
   mod <- model
 
@@ -544,6 +545,8 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
     # Optional: Print a message indicating values were clipped
     message("Some pr values were outside the range [0, 1] and have been clipped.")
   }
+
+
   ## if txName variable is a factor,
 
   # identify tx levels in limited data
@@ -625,7 +628,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
       model = mod,
       sampleSize = sampleSize,
 
-      ## new argument "prop" that takes the input "prop" from .dtrSurvStep containing the propensity score for eligible pts & stages
       prop = prop
     )
 
