@@ -53,7 +53,7 @@ MODULE IH_INNERS
   INTEGER, DIMENSION(:), ALLOCATABLE, SAVE :: deltaAll
 
         ! propensity score for sampled cases
-  INTEGER, DIMENSION(:), ALLOCATABLE, SAVE :: propensityALL
+  !INTEGER, DIMENSION(:), ALLOCATABLE, SAVE :: propensityALL
 
   ! -------------------------------------------------------!
 
@@ -1322,11 +1322,9 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
     !!!!!!!
 
     ! Print values of variables
-    !print *, "Number of at events at each time point calcvaluesingle:"
-    !print *, "Oj =", Oj
-    !print *, "Number of cases at risk at each time point calcvaluesingle:"
-    !print *, "Nj =", Nj
-
+    !print *, "Rb (Probability at risk at each time point):", Rb
+    !print *, "Nj (Number at risk at each time point):", Nj
+    !print *, "Oj (Number of events at each time point):", Oj
 
     !!!!!!!
     !!!!!!!
@@ -1351,6 +1349,10 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
   ! where dt are the time intervals (global variable)
 
   mean = sum(survFunc * dt)
+
+  !!!!!! more printing !!!!!!!!!
+  !print *, "survFunc (Calculated survival function):", survFunc
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   RETURN
 END SUBROUTINE
@@ -1531,7 +1533,7 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       delta = deltaAll(xrand)
 
       ! select the propensity score corresponding to the random pt index
-      propensity = propensityAll(xrand)
+      !propensity = propensityAll(xrand)
 
 
 
@@ -1548,7 +1550,7 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       x = xAll(xrand,:)
       pr = prAll(xrand,:)
       delta = deltaAll(xrand)
-      propensity = propensityAll(xrand)
+      !propensity = propensityAll(xrand)
 
       ! if replacement not allowed AND total cases = samp size,
 
@@ -1560,7 +1562,7 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       x = xAll
       pr = prAll
       delta = deltaAll
-      propensity = propensityAll
+      !propensity = propensityAll
 
       ! end if statement about sampling with/without relacement
     END IF
@@ -1577,8 +1579,12 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
     ! indices for all cases
 
+    ! Calculate the total number of replications
+    ! total_cases = SUM(propensity)-- prop score, but we can incorporate this directly
+
     ! initialize arrays to store indices for cases
-    indices = (/(i,i=1,n)/)
+    !indices = (/(i,i=1,total_cases)/)-- for prop score; but we can incorporate this directly
+    !indices = (/(i,i=1,n)/)
     jdex = indices
 
     ! indices for all covariates
@@ -1593,10 +1599,17 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       ! call the "calcValueSingle" subroutine which returns an estimated survival function and mean survival time as output
     ! n = nCases: as number of elements in indices of subset (number of cases)
+    ! ----- this becomes the sum of the propensity scores which has the replications-- if this is 1, then we just have n
     ! indices = casesIn: indices of subset for which value is calculated (number of events)
 
 
     ! ---------------- to do: input the propensity score (same dimensions as delta) ------------------ !
+    !- we need to replicate n, indices, and pr based on the propensity score
+    !- NOTE: that pr is already replicated based on the input
+
+    !print *, "number of samples-replicated = ", total_cases
+
+
     CALL calcValueSingle(n, indices, survFunc(:,1), mean(1))
 
     !!!!!!!
@@ -2120,16 +2133,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     WHERE (nMatrix(:,1) .EQ. -2) nMatrix(:,1) = -1
 
 
-    !! ------- Now, we want to loop through each of the terminal nodes to create duplicated observations ------ !!
-
-    ! 1. loop through each of the terminal nodes for processing
-    ! 2. Retrieve observations for the terminal node
-    ! 3. Retrieve propensity scores for the observations
-    ! 4. Create duplicated observations
-    ! 5. call calcvaluesingle on all the observations within the node & output this into ncurr
-
-    ! ---------------------------------------------------------------------------------------------------------- !!
-
     ! store survival function values for each node of current tree
 
     trees(iTree)%survFunc = survFunc(:,1:ncur)
@@ -2518,7 +2521,7 @@ END SUBROUTINE setUpBasics
 ! t_nrNodes, integer, the maximum number of nodes
 
 
-SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_propensity, t_mTry, t_nCat,  t_sampleSize, t_nTree, t_nrNodes)
+SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta,t_mTry, t_nCat,  t_sampleSize, t_nTree, t_nrNodes)
 
   ! use the "IH_INNERS" module to allow access to subroutines defined there
 
@@ -2536,7 +2539,7 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_propensity, t_mTry, t_nC
   REAL(dp), DIMENSION(1:nt*t_n), INTENT(IN) :: t_pr
 
   ! the propensity score should be the same dimension as delta: one at each time point
-  INTEGER, DIMENSION(1:t_n), INTENT(IN) :: t_propensity
+  ! INTEGER, DIMENSION(1:t_n), INTENT(IN) :: t_propensity
   INTEGER, DIMENSION(1:t_n), INTENT(IN) :: t_delta
   INTEGER, INTENT(IN) :: t_mTry
   INTEGER, DIMENSION(1:t_np), INTENT(IN) :: t_nCat
@@ -2556,7 +2559,7 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_propensity, t_mTry, t_nC
 
 ! note this should have propensityAll
   IF (isAllocated) THEN
-    DEALLOCATE(xAll, prAll, deltaAll, propensityALL, nCat, forest%survFunc, forest%mean,  &
+    DEALLOCATE(xAll, prAll, deltaAll, nCat, forest%survFunc, forest%mean,  &
              & forest%survProb, trees)
 
              ! end if statement about allocation
@@ -2571,7 +2574,7 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_propensity, t_mTry, t_nC
   ALLOCATE(prAll(1:nAll, 1:nt))
 
   ! propensityAll will hold propensity scores for all patients & stages
-  ALLOCATE(propensityAll(1:nAll))
+  !ALLOCATE(propensityAll(1:nAll))
 
   ! deltaAll will hold indicator of censoring
   ALLOCATE(deltaAll(1:nAll))
@@ -2594,7 +2597,7 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta, t_propensity, t_mTry, t_nC
 
 
     ! propensity score from input t_propensity
-  propensityAll = t_propensity
+  !propensityAll = t_propensity
 
 
   ! censoring indicator from t_delta
