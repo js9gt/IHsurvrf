@@ -70,6 +70,22 @@ IHdtrConv <- function(data,
 
 
   ##### we only want to run this prediction if there's available data, otherwise skip this step
+  ### predicting the final stage's stub & double stub
+  ## if this is the first conv_iterations, we will freeze (use the prediction for the final stage stub) in the OUTPUT after refitting
+  ## if this is the 2nd conv_iteration, we will keep the frozen final stage stub, we will also use the frozen 2nd to last stage in the OUTPUT after refitting
+
+  ## meaning, we need to create, at each step, a "frozen" matrix as input and output that we can use in the function
+  ## this should have the same dim as the output probability matrix
+  ## after the pooling iteration, we will fill this will each patient's final stage prediction in dtrSurvConverge using an eligibility vector which is input
+          ## for the first refitting iteration (conv_iteration 1: forest 2), this will tell us that we should use the final stage
+          ## for the second refitting iteration (conv_iteration2: forest 3), this will tell us that we should use the both the 2nd to last and the final stage
+      ## then, after the refitting in dtrSurvConverge at the end, we will overwrite the output probabilities with the frozen ones and output this for the next loop using the eligibility
+  ## then, for the third refitting iteration (conv_iteration3: forest 4), we will use the 3rd to last, 2nd to last, and final stage
+      ## after refittnig the forest, we will overwrite the output probabilities with the frozen ones
+      ## the eligibility vector should only keep changing for a patient until we reach their total number of stages. For example, if a patient has 3 stages, the eligibility shouldn't change
+      ## based on the eligibility vector, we can insert the predicted values from pr_pooled where there are empty 0's in the frozen matrix
+  ## then, usint the same eligibility vector, this tells us which columns to overwrite in the output probabilities
+
 
   if (dim(x)[1] != 0){
   last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,

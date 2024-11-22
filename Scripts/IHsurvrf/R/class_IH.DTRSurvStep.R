@@ -446,79 +446,84 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
       # {nTimes x nElig}
       pr <- rbind(tSurv[-1L,], 1) - tSurv
 
-    } else {
-      # PriorStep is not NULL when q < Q
-      ### priorStep is of class DTRSurvStep AKA the results from the prior step of the analysis
-      #
-      # the number of timepoints
-      # .NTimes() is a getter method defined for Parameters objects
+    } } else {
 
-      ## retrieve the number of timepoints from the params object
-      ## defined in class_TimeInfo.R
-
-      nTimes <- .NTimes(object = params)
-
-      # create an empty matrix for all previously eligible cases
-
-      ## initializes a survival matrix called "survMatrix" with 0's
-
-      survMatrix <- matrix(data = 0.0,
-                           nrow = nTimes,
-                           ncol = nrow(x = x))
-
-      ## sets the first row to 1.0
-
-      survMatrix[1L,] <- 1.0
-
-      ## updates survMatrix with survival functions estimated from the previous step
-      ## priorStep: A DTRSurvStep object. The analysis from a previous step
-
-      # retrieve estimated OPTIMAL survival function from previous step
-      ## then accesses the "eligibility" slot (logical) to select only the columns where the patient is still eligible
-      ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
-      ## transpose the output of .OptimalY to align with the structure: AKA number of rows = timepoints
-      ## when it’s retrieved with .OptimalY shows up as rows = pts, and columns = timepoints, so we just transpose it back to its normal shape
-      ## .OptimalY defined in class_Optimal.R
-      ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
-      ## optimal slot is  object of class optimal
-      ## .OptimalY acts to return the optimalY slot
-
-      survMatrix[, priorStep@eligibility] <-
-        t(.OptimalY(object = priorStep@optimal))
-
-      # shift the survival function down in time (T_i - Tq) and
-      # transform to a probability mass vector for only those
-      # eligible for this stage
-      # .shiftMat is an internal function defined in shiftMat.R
-
-      ## transforms the survival functions in survMatrix to probability mass format for the current stage
-      ## shifts the survival function based on the observed survival times
-      ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
-
-      pr <- .shiftMat(
-        timePoints = .TimePoints(object = params),
-
-        ## extracts columns from survMatrix corresponding to cases that are eligible
-        ## this is a matrix matrix where each column represents survival function for an individual
-        survMatrix = survMatrix[, elig, drop = FALSE],
-
-        ## extracts survival times corresponding to eligible cases
-        ## this is how much to shift survival function for each individual
-        shiftVector = response[elig],
-
-        ## probably transforming survival times into probabilities?
-        surv2prob = TRUE
-      )
-
-      ## sets very small values in pr to 0
-
-      pr[abs(pr) < 1e-8] <- 0.0
-
-    }
-  } else {
+#      {
+#      # PriorStep is not NULL when q < Q
+#      ### priorStep is of class DTRSurvStep AKA the results from the prior step of the analysis
+#      #
+#      # the number of timepoints
+#      # .NTimes() is a getter method defined for Parameters objects
+#
+#      ## retrieve the number of timepoints from the params object
+#      ## defined in class_TimeInfo.R
+#
+#      nTimes <- .NTimes(object = params)
+#
+#      # create an empty matrix for all previously eligible cases
+#
+#      ## initializes a survival matrix called "survMatrix" with 0's
+#
+#      survMatrix <- matrix(data = 0.0,
+#                           nrow = nTimes,
+#                           ncol = nrow(x = x))
+#
+#      ## sets the first row to 1.0
+#
+#      survMatrix[1L,] <- 1.0
+#
+#      ## updates survMatrix with survival functions estimated from the previous step
+#      ## priorStep: A DTRSurvStep object. The analysis from a previous step
+#
+#      # retrieve estimated OPTIMAL survival function from previous step
+#      ## then accesses the "eligibility" slot (logical) to select only the columns where the patient is still eligible
+#      ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
+#      ## transpose the output of .OptimalY to align with the structure: AKA number of rows = timepoints
+#      ## when it’s retrieved with .OptimalY shows up as rows = pts, and columns = timepoints, so we just transpose it back to its normal shape
+#      ## .OptimalY defined in class_Optimal.R
+#      ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
+#      ## optimal slot is  object of class optimal
+#      ## .OptimalY acts to return the optimalY slot
+#
+#      survMatrix[, priorStep@eligibility] <-
+#        t(.OptimalY(object = priorStep@optimal))
+#
+#      # shift the survival function down in time (T_i - Tq) and
+#      # transform to a probability mass vector for only those
+#      # eligible for this stage
+#      # .shiftMat is an internal function defined in shiftMat.R
+#
+#      ## transforms the survival functions in survMatrix to probability mass format for the current stage
+#      ## shifts the survival function based on the observed survival times
+#      ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
+#
+#      pr <- .shiftMat(
+#        timePoints = .TimePoints(object = params),
+#
+#        ## extracts columns from survMatrix corresponding to cases that are eligible
+#        ## this is a matrix matrix where each column represents survival function for an individual
+#        survMatrix = survMatrix[, elig, drop = FALSE],
+#
+#        ## extracts survival times corresponding to eligible cases
+#        ## this is how much to shift survival function for each individual
+#        shiftVector = response[elig],
+#
+#        ## probably transforming survival times into probabilities?
+#        surv2prob = TRUE
+#      )
+#
+#      ## sets very small values in pr to 0
+#
+#      pr[abs(pr) < 1e-8] <- 0.0
+#
+#    }
+#  } else
     # Use the input value of "pr" for further calculations
 
     pr <- inputpr
+
+    pr[abs(pr) < 1e-8] <- 0.0
+
     if (is.null(inputpr)) {
       stop("Input value for 'pr' is required when 'appendstep1' is TRUE.")
     }

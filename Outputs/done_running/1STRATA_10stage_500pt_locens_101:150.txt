@@ -1,0 +1,3601 @@
+[1] 1 1 2 1
+setting (beta, propensity, size, crit)  1 1 2 1 
+<environment: R_GlobalEnv>
+[1] "2024-11-04 10:50:12 EST"
+###########################  simulation  101 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+###########################  simulation  102 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+###########################  simulation  103 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  1 
+###########################  simulation  104 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+###########################  simulation  105 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+###########################  simulation  106 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+###########################  simulation  107 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  1 
+stage  2 
+stage  2stage   
+2 
+stage  2 
+stage  2stage   
+2 
+stage  2 
+stage  3 
+stage  4 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  5 
+stage  4 stage 
+ 4 
+stage  4 
+stage  4 
+stage  4 
+stage  4 
+stage  6 
+stage  7 
+stage  5 
+stage  5 
+stage  5 
+stage  5 
+stage  5 
+stage  5 
+stage  8 
+stage  6 
+stage  6 
+stage  6 
+stage  6 
+stage  6 
+stage  6 
+stage  9 
+stage  10 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+stage  1 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+stage  1 
+stage  1 
+stage  1 
+stage  1 
+stage  1 
+stage  1 
+stage  2 
+stage  2 
+stage  2 
+stage  2 
+stage stage   22  
+
+stage  2 
+stage  3 
+stage  4 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  3 
+stage  5 
+stage  4 
+stage  6 
+stage  4 
+stage  4 
+stage  4 
+stage  4 
+stage  4 
+stage  7 
+stage  5 
+stage  5 
+stage stage   55  
+
+stage  5 
+stage  5 
+stage  8 
+stage  6 
+stage  6 
+stage  9 
+stage  6 
+stage  6 
+stage  6 
+stage  6 
+stage  10 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+stage  7 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  10.00       490     4.159187
+2        2   490       0.98     0.00  15.00       475     6.830280
+3        3   475       0.95     1.00   3.00       471    12.314912
+4        4   471       0.94     6.00   3.00       462    16.653791
+5        5   462       0.92    10.00   6.00       446    12.486484
+6        6   446       0.89    12.00  11.00       423    11.704205
+7        7   423       0.85     9.00   2.00       412    13.372043
+8        8   412       0.82    15.00   6.00       391    14.461689
+9        9   391       0.78    14.00  10.00       367    13.708388
+10      10   367       0.73    64.00 303.00         0   305.781538
+11   Total    NA         NA   131.00 369.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  8 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  9 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.552591
+2        2   493       0.99     0.00   5.00       488     6.287343
+3        3   488       0.98     3.00   9.00       476    11.518314
+4        4   476       0.95     6.00   9.00       461    13.434464
+5        5   461       0.92     8.00  14.00       439    14.051708
+6        6   439       0.88    16.00   8.00       415    14.835746
+7        7   415       0.83    20.00   8.00       387    13.157604
+8        8   387       0.77     5.00   7.00       375    18.654121
+9        9   375       0.75    19.00   8.00       348    13.739813
+10      10   348       0.70    62.00 286.00         0   294.270900
+11   Total    NA         NA   139.00 361.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.432315
+2        2   492       0.98     0.00   6.00       486     6.049466
+3        3   486       0.97     3.00   8.00       475     8.404170
+4        4   475       0.95     4.00   7.00       464    11.924398
+5        5   464       0.93    11.00  12.00       441    13.198348
+6        6   441       0.88    10.00   7.00       424    17.558906
+7        7   424       0.85    14.00   7.00       403    14.952287
+8        8   403       0.81    11.00  12.00       380    14.663316
+9        9   380       0.76     7.00   8.00       365    17.981059
+10      10   365       0.73    75.00 290.00         0   310.064113
+11   Total    NA         NA   135.00 365.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.294175
+2        2   493       0.99     0.00   8.00       485     6.495348
+3        3   485       0.97     1.00  16.00       468    10.422108
+4        4   468       0.94    13.00   8.00       447    11.021125
+5        5   447       0.89    13.00   9.00       425    17.972471
+6        6   425       0.85    13.00   6.00       406    14.293475
+7        7   406       0.81    18.00   8.00       380    14.663142
+8        8   380       0.76     7.00   4.00       369    14.290068
+9        9   369       0.74    12.00   6.00       351    18.939974
+10      10   351       0.70    53.00 298.00         0   306.340458
+11   Total    NA         NA   130.00 370.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   5.00       495     4.321643
+2        2   495       0.99     0.00   7.00       488     6.944130
+3        3   488       0.98     3.00   8.00       477    11.389241
+4        4   477       0.95     4.00   6.00       467    11.146813
+5        5   467       0.93    12.00   9.00       446    14.047957
+6        6   446       0.89    12.00  12.00       422    15.054870
+7        7   422       0.84    15.00  10.00       397    20.072356
+8        8   397       0.79    25.00   6.00       366    12.585852
+9        9   366       0.73    11.00   5.00       350    19.411830
+10      10   350       0.70    81.00 269.00         0   287.004335
+11   Total    NA         NA   163.00 337.00        NA           NA
+12 Percent    NA         NA     0.33   0.67        NA           NA
+     stage total percentage censored  died nextStage mean.trtdiff
+1        1   500       1.00      0.0   9.0       491     4.814329
+2        2   491       0.98      0.0   8.0       483     6.739071
+3        3   483       0.97      0.0   8.0       475     9.640195
+4        4   475       0.95     10.0   7.0       458    11.944085
+5        5   458       0.92     17.0   9.0       432    14.226149
+6        6   432       0.86     18.0   8.0       406    15.269056
+7        7   406       0.81      8.0   5.0       393    17.872640
+8        8   393       0.79     13.0   8.0       372    12.024119
+9        9   372       0.74     10.0   5.0       357    21.111686
+10      10   357       0.71     74.0 283.0         0   285.819161
+11   Total    NA         NA    150.0 350.0        NA           NA
+12 Percent    NA         NA      0.3   0.7        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.239109
+2        2   493       0.99     0.00  11.00       482     6.769486
+3        3   482       0.96     1.00   9.00       472     9.168163
+4        4   472       0.94     7.00  12.00       453    10.671239
+5        5   453       0.91    15.00   8.00       430    15.823945
+6        6   430       0.86     8.00   8.00       414    14.709898
+7        7   414       0.83    14.00  13.00       387    13.031160
+8        8   387       0.77    16.00  10.00       361    18.218543
+9        9   361       0.72    11.00   7.00       343    17.398952
+10      10   343       0.69    69.00 274.00         0   284.384566
+11   Total    NA         NA   141.00 359.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 436.6612
+[1] 433.6141
+[1] 414.4776
+[1] 410.5479
+[1] 451.5464
+[1] 430.44
+[1] 412.1599
+[1] 188.1962
+[1] 194.492
+[1] 109.4383
+[1] 190.0944
+[1] 186.0571
+[1] 199.5727
+[1] 185.8695
+[1] 192.3123
+[1] 73.87529
+[1] 106.5073
+[1] 112.8321
+[1] 113.8158
+[1] 111.0756
+[1] 110.7237
+[1] 120.6425
+[1] 38.7155
+[1] 28.33343
+[1] 71.25592
+[1] 65.18536
+[1] 69.56329
+[1] 73.91336
+[1] 69.56624
+[1] 72.57931
+[1] 16.58075
+[1] 43.39304
+[1] 37.85056
+[1] 42.86076
+[1] 39.7805
+[1] 35.82688
+[1] 44.10841
+[1] 13.86973
+[1] 24.51221
+[1] 7.503163
+[1] 22.15375
+[1] 30.76758
+[1] 25.02289
+[1] 25.09503
+[1] 22.64585
+[1] 4.933716
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+[1] 17.82821
+stage  6 
+stage  7 
+[1] 16.24875
+stage  8 
+stage  9 
+[1] 19.95725
+[1] 16.48826
+[1] 17.47031
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 105 477.3697 499.3423 489.4833 501.7391      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.45086 secs 189.0152 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2035188 mins 0.2082121 mins           NA              0.27
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8  n_9 n_10
+1                 NA 0.016 0.012 0.022 0.022 0.046 0.034 0.042 0.046 0.03 0.73
+###########################  simulation  112 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  10.00       490     4.454792
+2        2   490       0.98     0.00  12.00       478     6.411821
+3        3   478       0.96     2.00   7.00       469    10.116718
+4        4   469       0.94     6.00   5.00       458    11.517968
+5        5   458       0.92    14.00   6.00       438    16.884181
+6        6   438       0.88    17.00   7.00       414    11.331161
+7        7   414       0.83    10.00   5.00       399    17.069479
+8        8   399       0.80    13.00   6.00       380    16.259701
+9        9   380       0.76    18.00   9.00       353    19.019101
+10      10   353       0.71    76.00 277.00         0   272.316007
+11   Total    NA         NA   156.00 344.00        NA           NA
+12 Percent    NA         NA     0.31   0.69        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 17.09825
+[1] 12.01002
+[1] 10.6008
+[1] 13.92653
+[1] 13.68572
+[1] 14.59732
+[1] 9.939723
+[1] 445.7625
+[1] 10.36025
+[1] 7.962753
+[1] 8.652668
+[1] 189.3377
+[1] 8.63071
+[1] 8.742036
+[1] 7.117488
+[1] 104.0824
+[1] 5.436528
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 4.793332
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  3 
+stage  2 
+[1] 5.542915
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 5.817112
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  4 
+stage  3 
+[1] 5.875248
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  2 
+stage  5 
+stage  4 
+stage  2 
+stage  3 
+stage  3 
+stage  6 
+stage  5 
+[1] 3.72203
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  3 
+stage  7 
+stage  4 
+stage  4 
+stage  6 
+stage  2 
+stage  8 
+stage  4 
+[1] 75.08874
+stage  5 
+stage  5 
+stage  9 
+stage  7 
+stage  5 
+stage  3 
+stage  6 
+stage  6 
+stage  10 
+stage  8 
+stage  6 
+stage  7 
+stage  7 
+stage  4 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  9 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 101 473.5441 484.3806 485.2962 509.0162      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.48925 secs 272.6221 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2834396 mins 0.2709846 mins           NA              0.26
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.014 0.016 0.034 0.042 0.044 0.038 0.052 0.022 0.036
+   n_10
+1 0.702
+###########################  simulation  108 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  8 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  15.00       485     4.938423
+2        2   485       0.97     0.00  13.00       472     7.081981
+3        3   472       0.94     2.00   5.00       465     9.471446
+4        4   465       0.93     8.00   6.00       451    12.871136
+5        5   451       0.90     8.00   8.00       435    10.603007
+6        6   435       0.87    14.00  12.00       409    11.982338
+7        7   409       0.82     9.00   4.00       396    17.089144
+8        8   396       0.79    16.00   6.00       374    14.774093
+9        9   374       0.75    13.00   7.00       354    15.851536
+10      10   354       0.71    66.00 288.00         0   305.339044
+11   Total    NA         NA   136.00 364.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  7 
+stage  8 
+stage  5 
+stage  10 
+stage  9 
+stage  8 
+stage  9 
+stage  6 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  10 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 107 467.8348 489.6503 488.3649 508.0605      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.57458 secs 276.3643 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2755005 mins 0.2690054 mins           NA             0.282
+  num.convergence.it   n_1   n_2  n_3   n_4   n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.014 0.022 0.02 0.038 0.046 0.032 0.054 0.052 0.036 0.686
+###########################  simulation  114 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  11.00       489     4.736037
+2        2   489       0.98     0.00  13.00       476     7.188138
+3        3   476       0.95     1.00  11.00       464     9.375655
+4        4   464       0.93     2.00   4.00       458    13.600413
+5        5   458       0.92    15.00   9.00       434    15.915256
+6        6   434       0.87     6.00   2.00       426    15.734076
+7        7   426       0.85    14.00  13.00       399    17.132259
+8        8   399       0.80    13.00   5.00       381    15.943779
+9        9   381       0.76    15.00   8.00       358    14.162509
+10      10   358       0.72    63.00 295.00         0   296.247415
+11   Total    NA         NA   129.00 371.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  9 
+stage  7 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 102 477.9329 495.2248 489.6081 512.1923      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.53189 secs 278.1941 mins
+       time.trt1     time.trt0 time.trueopt proportion.censor
+1 0.2323231 mins 0.238349 mins           NA               0.3
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8  n_9  n_10
+1                 NA 0.018 0.016 0.016 0.034 0.052 0.052 0.026 0.042 0.03 0.714
+###########################  simulation  109 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  3 
+stage  2 
+stage  4 
+stage  3 
+stage  5 
+stage  4 
+stage  6 
+stage  5 
+stage  7 
+stage  6 
+stage  8 
+stage  7 
+stage  9 
+stage  8 
+stage  10 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.468167
+2        2   492       0.98     0.00   8.00       484     6.947656
+3        3   484       0.97     2.00  10.00       472     9.874417
+4        4   472       0.94     9.00   6.00       457    11.262305
+5        5   457       0.91    13.00  14.00       430    14.475310
+6        6   430       0.86    11.00  10.00       409    14.016290
+7        7   409       0.82    14.00  12.00       383    15.858775
+8        8   383       0.77    17.00   9.00       357    13.550871
+9        9   357       0.71    10.00   5.00       342    13.475216
+10      10   342       0.68    64.00 278.00         0   307.460364
+11   Total    NA         NA   140.00 360.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 103 475.1781 509.8535 489.7704 509.1414      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.41855 secs 278.7044 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2574741 mins 0.2701478 mins           NA             0.278
+  num.convergence.it   n_1  n_2   n_3  n_4   n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.014 0.01 0.024 0.03 0.044 0.048 0.056 0.024 0.054 0.696
+###########################  simulation  110 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  11.00       489     4.662782
+2        2   489       0.98     0.00  13.00       476     7.835306
+3        3   476       0.95     3.00   5.00       468     9.489336
+4        4   468       0.94     7.00   9.00       452    16.246604
+5        5   452       0.90    17.00   2.00       433    12.592682
+6        6   433       0.87     9.00   3.00       421    11.597863
+7        7   421       0.84    11.00  12.00       398    15.786808
+8        8   398       0.80    12.00   6.00       380    13.812873
+9        9   380       0.76    11.00   2.00       367    13.864054
+10      10   367       0.73    58.00 309.00         0   285.303605
+11   Total    NA         NA   128.00 372.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  8 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 104 477.2401 480.8236 483.4679 515.8055      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.38172 secs 280.5215 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2454505 mins 0.2392812 mins           NA             0.262
+  num.convergence.it  n_1  n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.02 0.03 0.008 0.018 0.032 0.046 0.022 0.042 0.048 0.734
+###########################  simulation  111 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     5.135302
+2        2   492       0.98     0.00   8.00       484     6.500062
+3        3   484       0.97     2.00  10.00       472    10.904841
+4        4   472       0.94     6.00   6.00       460    12.242759
+5        5   460       0.92    11.00   2.00       447    15.492518
+6        6   447       0.89    13.00  11.00       423    13.031069
+7        7   423       0.85    14.00   6.00       403    12.561575
+8        8   403       0.81     9.00   6.00       388    12.649765
+9        9   388       0.78    10.00   7.00       371    15.408011
+10      10   371       0.74    79.00 292.00         0   283.786257
+11   Total    NA         NA   144.00 356.00        NA           NA
+12 Percent    NA         NA     0.29   0.71        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  10 
+[1] 36.21441
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 106 480.2542 506.9178 485.2981 513.4975      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.50106 secs 284.0778 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2436989 mins 0.2473468 mins           NA             0.326
+  num.convergence.it  n_1   n_2   n_3  n_4   n_5   n_6  n_7   n_8   n_9 n_10
+1                 NA 0.01 0.014 0.022 0.02 0.042 0.048 0.05 0.062 0.032  0.7
+###########################  simulation  113 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.390325
+2        2   491       0.98     0.00   9.00       482     6.274370
+3        3   482       0.96     0.00   8.00       474    11.023079
+4        4   474       0.95     9.00  10.00       455    10.059641
+5        5   455       0.91     7.00  11.00       437    19.221573
+6        6   437       0.87    17.00   4.00       416    16.512381
+7        7   416       0.83    12.00   7.00       397    16.746563
+8        8   397       0.79    10.00   9.00       378    15.401064
+9        9   378       0.76    16.00  10.00       352    13.710403
+10      10   352       0.70    69.00 283.00         0   278.798340
+11   Total    NA         NA   140.00 360.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 24.47228
+[1] 14.45854
+[1] 454.4953
+[1] 447.3753
+[1] 421.4277
+[1] 440.1437
+[1] 442.8344
+[1] 464.219
+[1] 12.32538
+[1] 182.9111
+[1] 184.8052
+[1] 190.685
+[1] 6.750469
+[1] 192.4645
+[1] 187.5146
+[1] 185.1306
+[1] 4.649402
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 108.6704
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+[1] 99.76003
+[1] 109.8562
+stage  7 
+stage  8 
+stage  9 
+[1] 112.4444
+[1] 115.3443
+stage  10 
+[1] 125.5883
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 112 476.7131  505.774 491.2655 513.9559      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 13.39767 secs 192.1804 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1967487 mins 0.2005028 mins           NA             0.312
+  num.convergence.it  n_1   n_2   n_3   n_4  n_5   n_6  n_7   n_8   n_9  n_10
+1                 NA 0.02 0.024 0.018 0.022 0.04 0.048 0.03 0.038 0.054 0.706
+###########################  simulation  119 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.690347
+2        2   493       0.99     0.00   6.00       487     6.579732
+3        3   487       0.97     1.00  15.00       471    11.863902
+4        4   471       0.94     7.00   4.00       460    11.655243
+5        5   460       0.92     7.00   4.00       449    12.782793
+6        6   449       0.90     9.00   4.00       436    14.703282
+7        7   436       0.87    15.00  13.00       408    18.989344
+8        8   408       0.82    17.00   7.00       384    21.275365
+9        9   384       0.77    14.00   8.00       362    14.998074
+10      10   362       0.72    71.00 291.00         0   272.195805
+11   Total    NA         NA   141.00 359.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 67.44039
+[1] 70.48249
+[1] 66.23512
+[1] 66.29154
+[1] 67.48663
+[1] 69.80934
+[1] 419.6809
+[1] 37.82004
+[1] 35.47434
+[1] 41.89613
+[1] 193.9582
+[1] 38.34317
+[1] 35.8117
+[1] 46.61914
+[1] 26.14861
+[1] 104.8129
+[1] 26.24943
+[1] 29.24703
+[1] 24.19606
+[1] 24.48254
+[1] 28.0602
+[1] 74.77041
+[1] 16.91546
+[1] 16.20259
+[1] 18.19044
+[1] 40.29553
+[1] 12.79636
+[1] 15.31919
+[1] 20.4631
+[1] 12.87946
+[1] 29.62253
+[1] 13.19867
+[1] 12.27126
+[1] 11.41968
+[1] 10.81834
+[1] 13.54168
+[1] 18.61825
+[1] 8.679528
+[1] 9.339886
+[1] 14.02607
+[1] 9.154619
+[1] 6.548699
+[1] 8.864424
+[1] 8.283987
+[1] 5.66002
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 8.065948
+[1] 5.939776
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 5.218901
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  2 
+stage  3 
+stage  4 
+[1] 5.082044
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  5 
+stage  4 
+[1] 5.564274
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  6 
+stage  5 
+[1] 5.120129
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  7 
+stage  2 
+stage  6 
+stage  8 
+stage  3 
+stage  3 
+stage  9 
+stage  7 
+stage  4 
+stage  4 
+stage  10 
+stage  8 
+stage  5 
+stage  5 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  9 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 109 480.5316 495.0133 491.6391 503.0702      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral     time.obs time.IHsurvrf
+1                         NA               0 15.6512 secs 285.3158 mins
+       time.trt1     time.trt0 time.trueopt proportion.censor
+1 0.2446726 mins 0.238741 mins           NA              0.28
+  num.convergence.it   n_1   n_2   n_3  n_4   n_5   n_6   n_7   n_8  n_9  n_10
+1                 NA 0.016 0.016 0.024 0.03 0.054 0.042 0.052 0.052 0.03 0.684
+###########################  simulation  116 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  12.00       488     4.769646
+2        2   488       0.98     0.00  12.00       476     6.380451
+3        3   476       0.95     1.00   9.00       466    12.026597
+4        4   466       0.93     6.00  10.00       450    13.861461
+5        5   450       0.90    15.00   6.00       429    11.754797
+6        6   429       0.86    12.00   7.00       410    13.187408
+7        7   410       0.82    12.00   7.00       391    12.533088
+8        8   391       0.78    12.00   8.00       371    16.330999
+9        9   371       0.74     8.00  14.00       349    13.799110
+10      10   349       0.70    76.00 273.00         0   274.623725
+11   Total    NA         NA   142.00 358.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  6 
+stage  6 
+stage  10 
+stage  7 
+[1] 4.566379
+  2. IHsurvrf - Evaluation 
+stage  1 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 114 474.6342 496.3138 489.0523 509.5951      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 18.29729 secs 289.7415 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1873225 mins 0.1832505 mins           NA             0.258
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.022 0.026 0.024 0.012 0.048 0.016 0.054 0.036 0.046
+   n_10
+1 0.716
+###########################  simulation  121 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  7 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  12.00       488     4.662567
+2        2   488       0.98     0.00  13.00       475     6.596404
+3        3   475       0.95     1.00   8.00       466     9.115128
+4        4   466       0.93     9.00   4.00       453    10.373504
+5        5   453       0.91    10.00  12.00       431    14.172537
+6        6   431       0.86    10.00   8.00       413    17.794535
+7        7   413       0.83    17.00   3.00       393    14.954078
+8        8   393       0.79     8.00   4.00       381    10.913446
+9        9   381       0.76     9.00  12.00       360    14.944261
+10      10   360       0.72    72.00 288.00         0   285.605481
+11   Total    NA         NA   136.00 364.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  8 
+stage  2 
+stage  8 
+stage  9 
+stage  3 
+stage  9 
+stage  10 
+stage  10 
+stage  4 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 111 476.0282   494.09 490.0502 504.6353      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.31198 secs 290.3562 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1792371 mins 0.1706651 mins           NA             0.288
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6  n_7  n_8   n_9  n_10
+1                 NA 0.016 0.016 0.024 0.024 0.026 0.048 0.04 0.03 0.034 0.742
+###########################  simulation  118 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  10 
+stage  2 
+stage  3 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.303317
+2        2   492       0.98     0.00  12.00       480     6.711312
+3        3   480       0.96     1.00  10.00       469    11.140660
+4        4   469       0.94    13.00   8.00       448    13.864656
+5        5   448       0.90    13.00  13.00       422    17.330023
+6        6   422       0.84     4.00   6.00       412    22.188569
+7        7   412       0.82    18.00   9.00       385    18.419023
+8        8   385       0.77    21.00   8.00       356    16.261639
+9        9   356       0.71    10.00   5.00       341    14.581103
+10      10   341       0.68    77.00 264.00         0   304.834036
+11   Total    NA         NA   157.00 343.00        NA           NA
+12 Percent    NA         NA     0.31   0.69        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 110  476.073  488.795 492.1247 509.5305      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 17.90874 secs 292.5011 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1689281 mins 0.1753343 mins           NA             0.256
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.022 0.026 0.016 0.032 0.038 0.024 0.046 0.036 0.026
+   n_10
+1 0.734
+###########################  simulation  117 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  11.00       489     4.673668
+2        2   489       0.98     0.00   6.00       483     6.750760
+3        3   483       0.97     1.00   7.00       475    12.011420
+4        4   475       0.95     3.00   6.00       466    14.149325
+5        5   466       0.93    11.00  10.00       445     9.200987
+6        6   445       0.89    12.00   6.00       427    10.311045
+7        7   427       0.85    10.00   9.00       408    13.093500
+8        8   408       0.82     7.00   5.00       396    12.226149
+9        9   396       0.79    13.00   9.00       374    18.922289
+10      10   374       0.75    56.00 318.00         0   302.805338
+11   Total    NA         NA   113.00 387.00        NA           NA
+12 Percent    NA         NA     0.23   0.77        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 119 484.4358 478.6226 489.6116 498.2616      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 13.46668 secs 197.4694 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1688257 mins 0.1735341 mins           NA             0.282
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.014 0.012 0.032 0.022 0.022 0.026 0.056 0.048 0.044
+   n_10
+1 0.724
+###########################  simulation  126 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  10.00       490     4.648778
+2        2   490       0.98     0.00   8.00       482     6.538990
+3        3   482       0.96     3.00   7.00       472     8.586142
+4        4   472       0.94     6.00   8.00       458    11.611149
+5        5   458       0.92     9.00  12.00       437    19.540047
+6        6   437       0.87    16.00   8.00       413    13.680535
+7        7   413       0.83    18.00   8.00       387    16.574659
+8        8   387       0.77    11.00   3.00       373    15.137928
+9        9   373       0.75     8.00   7.00       358    11.623882
+10      10   358       0.72    63.00 295.00         0   295.208821
+11   Total    NA         NA   134.00 366.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 450.7167
+[1] 467.9669
+[1] 412.3512
+[1] 465.1349
+[1] 188.714
+[1] 192.3006
+[1] 179.8624
+[1] 434.1081
+[1] 105.3066
+[1] 117.7557
+[1] 182.8081
+[1] 110.7349
+[1] 198.6069
+[1] 62.11186
+[1] 104.0752
+[1] 66.55109
+[1] 123.5356
+[1] 40.94647
+[1] 67.1666
+[1] 63.98989
+[1] 65.90678
+[1] 25.68603
+[1] 41.3079
+[1] 38.17161
+[1] 39.48746
+[1] 19.06724
+[1] 44.43933
+[1] 27.10788
+[1] 13.82127
+[1] 25.39847
+[1] 22.50946
+[1] 20.32032
+[1] 27.73058
+[1] 9.816466
+[1] 18.69545
+[1] 14.1081
+[1] 14.67151
+[1] 5.331322
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 11.39345
+stage  2 
+stage  3 
+[1] 19.81968
+stage  4 
+stage  5 
+[1] 10.71874
+stage  6 
+stage  7 
+[1] 8.184734
+stage  8 
+[1] 9.380887
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 116 478.7546 485.6279 487.8763 507.7334      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.53625 secs 187.7301 mins
+      time.trt1    time.trt0 time.trueopt proportion.censor num.convergence.it
+1 0.168104 mins 0.16038 mins           NA             0.284                 NA
+    n_1   n_2  n_3   n_4   n_5   n_6   n_7  n_8   n_9  n_10
+1 0.024 0.024 0.02 0.032 0.042 0.038 0.038 0.04 0.044 0.698
+###########################  simulation  123 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  11.00       489     4.655290
+2        2   489       0.98     0.00  14.00       475     6.096600
+3        3   475       0.95     1.00   8.00       466     8.313203
+4        4   466       0.93     7.00   6.00       453    15.341372
+5        5   453       0.91     8.00   8.00       437    16.689077
+6        6   437       0.87    12.00   8.00       417    17.426033
+7        7   417       0.83    23.00   7.00       387    16.053642
+8        8   387       0.77    16.00   5.00       366    19.074513
+9        9   366       0.73    11.00   4.00       351    18.233079
+10      10   351       0.70    67.00 284.00         0   311.188584
+11   Total    NA         NA   145.00 355.00        NA           NA
+12 Percent    NA         NA     0.29   0.71        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 12.81757
+[1] 5.272508
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 5.655807
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  3 
+stage  2 
+[1] 6.146372
+[1] 9.418292
+stage  4 
+stage  3 
+stage  5 
+stage  6 
+stage  4 
+[1] 429.2417
+stage  7 
+stage  5 
+stage  8 
+stage  6 
+stage  9 
+[1] 4.73525
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  10 
+stage  7 
+[1] 3.635845
+  2. IHsurvrf - Evaluation 
+stage  1 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  2 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 126  474.472 509.3669 487.4807 513.3457      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral     time.obs time.IHsurvrf
+1                         NA               0 11.2951 secs 209.8495 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2706616 mins 0.2539407 mins           NA             0.268
+  num.convergence.it  n_1   n_2  n_3   n_4   n_5   n_6   n_7   n_8  n_9  n_10
+1                 NA 0.02 0.016 0.02 0.028 0.042 0.048 0.052 0.028 0.03 0.716
+###########################  simulation  133 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  8 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  11.00       489     4.640928
+2        2   489       0.98     0.00   6.00       483     6.198247
+3        3   483       0.97     3.00   8.00       472     7.438862
+4        4   472       0.94     7.00  10.00       455    11.541974
+5        5   455       0.91     7.00   6.00       442    13.496261
+6        6   442       0.88    12.00   7.00       423    13.772410
+7        7   423       0.85    12.00   5.00       406    12.213138
+8        8   406       0.81    15.00   4.00       387    12.063453
+9        9   387       0.77     5.00   7.00       375    17.320414
+10      10   375       0.75    63.00 312.00         0   293.284221
+11   Total    NA         NA   124.00 376.00        NA           NA
+12 Percent    NA         NA     0.25   0.75        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  2 
+[1] 189.2297
+stage  3 
+stage  9 
+stage  3 
+stage  4 
+stage  10 
+stage  4 
+stage  5 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 121 478.5544 487.0821 491.3031 510.2625      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.01043 secs 231.1207 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2544391 mins 0.2582017 mins           NA             0.272
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6  n_7   n_8   n_9 n_10
+1                 NA 0.024 0.026 0.018 0.026 0.044 0.036 0.04 0.024 0.042 0.72
+###########################  simulation  128 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.091849
+2        2   491       0.98     0.00   8.00       483     6.309899
+3        3   483       0.97     0.00   5.00       478    12.774410
+4        4   478       0.96     7.00  13.00       458    11.415714
+5        5   458       0.92    18.00  13.00       427    10.088252
+6        6   427       0.85    10.00  11.00       406    15.115780
+7        7   406       0.81    12.00   5.00       389    13.821908
+8        8   389       0.78    15.00   8.00       366    20.338268
+9        9   366       0.73    14.00   5.00       347    12.241140
+10      10   347       0.69    68.00 279.00         0   310.965461
+11   Total    NA         NA   144.00 356.00        NA           NA
+12 Percent    NA         NA     0.29   0.71        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  5 
+stage  6 
+stage  6 
+stage  7 
+stage  7 
+stage  8 
+stage  8 
+[1] 111.8467
+stage  9 
+stage  9 
+stage  10 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 118 471.9141 499.3979 489.8803 506.2614      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.82844 secs 239.1197 mins
+      time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.177846 mins 0.1740859 mins           NA             0.314
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5  n_6   n_7   n_8  n_9  n_10
+1                 NA 0.016 0.024 0.022 0.042 0.052 0.02 0.054 0.058 0.03 0.682
+###########################  simulation  125 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  3 
+stage  2 
+stage  4 
+stage  3 
+stage  5 
+stage  4 
+stage  6 
+stage  5 
+stage  7 
+stage  6 
+stage  8 
+stage  7 
+stage  9 
+stage  8 
+stage  10 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00  13.00       487     4.323421
+2        2   487       0.97     0.00  14.00       473     6.522846
+3        3   473       0.95     2.00   3.00       468    10.949149
+4        4   468       0.94    12.00  10.00       446     9.391797
+5        5   446       0.89    13.00  13.00       420    14.674859
+6        6   420       0.84    10.00   7.00       403    15.611201
+7        7   403       0.81    14.00  13.00       376    14.289448
+8        8   376       0.75    15.00   8.00       353    14.490491
+9        9   353       0.71    14.00   8.00       331    19.727956
+10      10   331       0.66    66.00 265.00         0   304.414800
+11   Total    NA         NA   146.00 354.00        NA           NA
+12 Percent    NA         NA     0.29   0.71        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 117 475.2992 499.0397 486.1738 507.9734      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.88021 secs 238.9885 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1717078 mins 0.1799768 mins           NA             0.226
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.022 0.012 0.016 0.018 0.042 0.036 0.038 0.024 0.044
+   n_10
+1 0.748
+###########################  simulation  124 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.326125
+2        2   493       0.99     0.00  14.00       479     6.524129
+3        3   479       0.96     4.00   5.00       470     8.935513
+4        4   470       0.94     3.00   9.00       458    12.244966
+5        5   458       0.92     9.00  11.00       438    16.668196
+6        6   438       0.88    10.00   7.00       421    14.435321
+7        7   421       0.84    13.00   7.00       401    12.955100
+8        8   401       0.80    10.00   3.00       388    10.345376
+9        9   388       0.78    14.00   7.00       367    15.187784
+10      10   367       0.73    47.00 320.00         0   282.381095
+11   Total    NA         NA   110.00 390.00        NA           NA
+12 Percent    NA         NA     0.22   0.78        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 68.01155
+[1] 446.7393
+[1] 37.97399
+[1] 442.3498
+[1] 464.0713
+[1] 440.3671
+[1] 26.17988
+[1] 181.3327
+[1] 192.2993
+[1] 203.697
+[1] 185.3055
+[1] 16.99412
+[1] 108.3136
+[1] 114.6034
+[1] 110.1954
+[1] 12.32655
+[1] 65.55727
+[1] 104.8217
+[1] 67.62722
+[1] 66.77861
+[1] 8.710271
+[1] 36.40767
+[1] 39.53952
+[1] 62.32231
+[1] 42.26989
+[1] 26.15084
+[1] 26.3486
+[1] 4.964379
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 29.21794
+[1] 16.49669
+stage  3 
+[1] 40.6059
+stage  4 
+[1] 18.56394
+stage  5 
+stage  6 
+[1] 20.09849
+stage  7 
+[1] 13.01161
+stage  8 
+stage  9 
+[1] 26.63403
+[1] 12.06421
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 123 475.7217 491.0436 494.4734 517.9321      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.06984 secs 200.7769 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2407639 mins 0.2237885 mins           NA              0.29
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5  n_6  n_7   n_8  n_9  n_10
+1                 NA 0.022 0.028 0.018 0.026 0.032 0.04 0.06 0.042 0.03 0.702
+###########################  simulation  130 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.265795
+2        2   491       0.98     0.00   4.00       487     6.411478
+3        3   487       0.97     2.00   6.00       479     9.236874
+4        4   479       0.96     4.00   7.00       468    16.353326
+5        5   468       0.94    17.00  10.00       441    10.775539
+6        6   441       0.88    15.00  10.00       416    15.728230
+7        7   416       0.83    12.00  10.00       394    11.357345
+8        8   394       0.79     7.00   5.00       382    11.309195
+9        9   382       0.76     7.00   4.00       371    16.837400
+10      10   371       0.74    78.00 293.00         0   317.483657
+11   Total    NA         NA   142.00 358.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 14.01213
+[1] 7.430654
+[1] 9.623323
+[1] 10.54036
+[1] 18.41572
+[1] 4.517181
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+[1] 5.984016
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  7 
+[1] 4.762225
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  8 
+stage  9 
+stage  2 
+stage  3 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 125 472.8887 493.0097 491.2091 502.9529      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.37588 secs 177.4613 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1707804 mins 0.1699512 mins           NA             0.292
+  num.convergence.it   n_1   n_2  n_3   n_4   n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.026 0.028 0.01 0.044 0.052 0.034 0.054 0.046 0.044 0.662
+###########################  simulation  132 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  3 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.661574
+2        2   493       0.99     0.00   9.00       484     6.747978
+3        3   484       0.97     1.00   9.00       474    11.178576
+4        4   474       0.95     7.00   9.00       458    11.261602
+5        5   458       0.92     8.00   9.00       441    12.512275
+6        6   441       0.88    13.00   7.00       421    14.561441
+7        7   421       0.84    14.00  11.00       396    12.755132
+8        8   396       0.79    14.00   9.00       373     9.714475
+9        9   373       0.75     9.00   4.00       360    11.935082
+10      10   360       0.72    64.00 296.00         0   297.325217
+11   Total    NA         NA   130.00 370.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  4 
+stage  4 
+stage  5 
+[1] 12.18439
+stage  5 
+[1] 453.0357
+stage  6 
+stage  7 
+stage  6 
+stage  8 
+stage  7 
+stage  9 
+stage  8 
+stage  10 
+stage  9 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 124 477.3632 487.6875 488.8143 506.2617      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.99964 secs 193.2946 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1813639 mins 0.1676763 mins           NA              0.22
+  num.convergence.it   n_1   n_2   n_3   n_4  n_5   n_6  n_7   n_8   n_9  n_10
+1                 NA 0.014 0.028 0.018 0.024 0.04 0.034 0.04 0.026 0.042 0.734
+###########################  simulation  131 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.351802
+2        2   492       0.98     1.00   3.00       488     5.960112
+3        3   488       0.98     0.00  12.00       476     8.696364
+4        4   476       0.95     5.00   6.00       465    13.543836
+5        5   465       0.93     6.00   6.00       453    19.327839
+6        6   453       0.91    18.00  13.00       422    15.079604
+7        7   422       0.84    14.00   9.00       399    15.661563
+8        8   399       0.80    15.00   7.00       377    14.358460
+9        9   377       0.75     9.00   7.00       361    15.586532
+10      10   361       0.72    71.00 290.00         0   272.053925
+11   Total    NA         NA   139.00 361.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1    trt0 trueopt avg.prop.match.opt.obs
+1 133 477.2086 493.0381 489.1978 516.343      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 16.28405 secs 216.8811 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1717976 mins 0.1719888 mins           NA             0.248
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9 n_10
+1                 NA 0.022 0.012 0.022 0.034 0.026 0.038 0.034 0.038 0.024 0.75
+###########################  simulation  140 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.455216
+2        2   492       0.98     0.00  10.00       482     6.110904
+3        3   482       0.96     0.00   6.00       476    11.185590
+4        4   476       0.95     7.00   9.00       460    12.549075
+5        5   460       0.92     6.00   8.00       446    11.978627
+6        6   446       0.89     9.00  10.00       427    15.386778
+7        7   427       0.85    16.00   9.00       402    13.590995
+8        8   402       0.80    11.00   7.00       384    10.714687
+9        9   384       0.77    12.00   4.00       368    10.208085
+10      10   368       0.74    54.00 314.00         0   294.896230
+11   Total    NA         NA   115.00 385.00        NA           NA
+12 Percent    NA         NA     0.23   0.77        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 8.975174
+[1] 193.2457
+[1] 469.8469
+[1] 187.0948
+[1] 438.6326
+[1] 436.4281
+[1] 5.116617
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 124.1007
+stage  2 
+stage  3 
+stage  4 
+[1] 184.3138
+[1] 105.7237
+[1] 180.6386
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 128 479.3172 491.5899 485.8393 509.1913      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 17.40477 secs 260.4428 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2345382 mins 0.2259171 mins           NA             0.288
+  num.convergence.it   n_1   n_2  n_3  n_4   n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.018 0.016 0.01 0.04 0.062 0.042 0.034 0.046 0.038 0.694
+###########################  simulation  135 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.677377
+2        2   491       0.98     0.00   8.00       483     6.495371
+3        3   483       0.97     3.00  11.00       469     9.291180
+4        4   469       0.94     7.00  10.00       452    12.551745
+5        5   452       0.90    13.00   9.00       430    13.802233
+6        6   430       0.86    14.00   8.00       408    12.875514
+7        7   408       0.82    10.00   8.00       390    16.143373
+8        8   390       0.78    16.00   8.00       366    19.108235
+9        9   366       0.73    21.00   7.00       338    13.252785
+10      10   338       0.68    59.00 279.00         0   323.503464
+11   Total    NA         NA   143.00 357.00        NA           NA
+12 Percent    NA         NA     0.29   0.71        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 86.71692
+[1] 104.8816
+[1] 66.08535
+[1] 109.2016
+[1] 71.69864
+[1] 71.95381
+[1] 40.70658
+[1] 42.85963
+[1] 45.36351
+[1] 40.68676
+[1] 23.83576
+[1] 436.158
+[1] 28.17019
+[1] 17.97758
+[1] 24.23798
+[1] 19.69711
+[1] 19.2438
+[1] 187.9958
+[1] 19.42665
+[1] 9.780284
+[1] 15.01886
+[1] 13.3769
+[1] 13.23832
+[1] 9.143181
+[1] 114.381
+[1] 10.63067
+[1] 7.797958
+[1] 8.534833
+[1] 4.344712
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+[1] 5.649377
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  4 
+[1] 68.99146
+stage  2 
+stage  5 
+[1] 4.704392
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  3 
+stage  6 
+stage  4 
+stage  2 
+[1] 5.387233
+stage  7 
+stage  5 
+stage  3 
+stage  8 
+stage  6 
+stage  4 
+stage  9 
+stage  7 
+stage  10 
+stage  5 
+stage  8 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf    trt1    trt0 trueopt avg.prop.match.opt.obs
+1 132 472.4046 502.9448 493.793 511.594      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.44404 secs 197.1952 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1882512 mins 0.1723645 mins           NA              0.26
+  num.convergence.it   n_1   n_2  n_3   n_4   n_5  n_6  n_7   n_8   n_9 n_10
+1                 NA 0.014 0.018 0.02 0.032 0.034 0.04 0.05 0.046 0.026 0.72
+###########################  simulation  139 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.394330
+2        2   491       0.98     0.00   6.00       485     6.471928
+3        3   485       0.97     2.00  10.00       473     9.302172
+4        4   473       0.95     1.00  11.00       461    10.488809
+5        5   461       0.92    10.00   9.00       442    14.230696
+6        6   442       0.88    12.00  10.00       420    14.020080
+7        7   420       0.84    15.00   7.00       398     9.585401
+8        8   398       0.80     6.00   5.00       387    21.080472
+9        9   387       0.77    18.00  10.00       359    15.075191
+10      10   359       0.72    64.00 295.00         0   291.232692
+11   Total    NA         NA   128.00 372.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+stage  9 
+stage  6 
+stage  10 
+stage  7 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 140 471.1098 497.7776 490.9451 507.9276      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral     time.obs time.IHsurvrf
+1                         NA               0 10.4357 secs 182.3088 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1755732 mins 0.1681389 mins           NA              0.23
+  num.convergence.it   n_1  n_2   n_3   n_4   n_5   n_6  n_7   n_8   n_9  n_10
+1                 NA 0.016 0.02 0.012 0.032 0.028 0.038 0.05 0.036 0.032 0.736
+###########################  simulation  147 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     4.378756
+2        2   491       0.98     0.00   9.00       482     7.103392
+3        3   482       0.96     1.00   8.00       473     9.561420
+4        4   473       0.95     6.00   5.00       462    14.119702
+5        5   462       0.92    13.00  14.00       435    13.079000
+6        6   435       0.87    11.00  10.00       414    13.472515
+7        7   414       0.83    15.00   9.00       390    11.658085
+8        8   390       0.78    13.00   6.00       371    11.593507
+9        9   371       0.74     7.00   4.00       360    11.678077
+10      10   360       0.72    63.00 297.00         0   296.357026
+11   Total    NA         NA   129.00 371.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 38.85267
+stage  8 
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 131  477.625  499.302 489.6559 514.2385      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral     time.obs time.IHsurvrf
+1                         NA               0 10.4134 secs 192.7258 mins
+       time.trt1     time.trt0 time.trueopt proportion.censor
+1 0.1653438 mins 0.172813 mins           NA             0.278
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.016 0.008 0.024 0.022 0.024 0.062 0.046 0.044 0.032
+   n_10
+1 0.722
+###########################  simulation  138 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored  died nextStage mean.trtdiff
+1        1   500       1.00      0.0   5.0       495     4.627135
+2        2   495       0.99      0.0   7.0       488     5.982242
+3        3   488       0.98      0.0   6.0       482    11.794315
+4        4   482       0.96      7.0  13.0       462    12.350407
+5        5   462       0.92     11.0   9.0       442    11.688414
+6        6   442       0.88     10.0   2.0       430    11.740797
+7        7   430       0.86     15.0   4.0       411    16.084279
+8        8   411       0.82     13.0  10.0       388    16.233094
+9        9   388       0.78     12.0   2.0       374    15.735566
+10      10   374       0.75     82.0 292.0         0   292.955158
+11   Total    NA         NA    150.0 350.0        NA           NA
+12 Percent    NA         NA      0.3   0.7        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 3.877362
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+[1] 22.78738
+stage  5 
+[1] 454.3933
+stage  6 
+[1] 485.349
+stage  7 
+stage  8 
+stage  9 
+[1] 446.7715
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 130 475.9931 499.1549 489.6616 511.4725      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 14.39934 secs 275.4926 mins
+       time.trt1     time.trt0 time.trueopt proportion.censor
+1 0.2256632 mins 0.223057 mins           NA             0.284
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5  n_6   n_7   n_8   n_9  n_10
+1                 NA 0.018 0.008 0.016 0.022 0.054 0.05 0.044 0.024 0.022 0.742
+###########################  simulation  137 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.600136
+2        2   493       0.99     1.00   3.00       489     7.246714
+3        3   489       0.98     3.00   9.00       477     8.316963
+4        4   477       0.95    10.00   7.00       460    11.273677
+5        5   460       0.92     8.00   8.00       444    14.101521
+6        6   444       0.89    17.00   6.00       421    13.832479
+7        7   421       0.84    14.00   8.00       399    15.425247
+8        8   399       0.80    12.00   7.00       380    16.596161
+9        9   380       0.76    17.00   7.00       356    13.023760
+10      10   356       0.71    78.00 278.00         0   290.770082
+11   Total    NA         NA   160.00 340.00        NA           NA
+12 Percent    NA         NA     0.32   0.68        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 184.4786
+[1] 188.0137
+[1] 15.56544
+[1] 189.8699
+[1] 97.64578
+[1] 105.317
+[1] 9.49965
+[1] 110.3943
+[1] 67.38523
+[1] 69.64983
+[1] 430.7371
+[1] 69.85412
+[1] 39.85165
+[1] 42.49465
+[1] 6.993828
+[1] 39.38664
+[1] 28.50229
+[1] 29.34068
+[1] 191.6435
+[1] 4.679952
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 19.5361
+[1] 26.84087
+stage  2 
+stage  3 
+[1] 21.12745
+stage  4 
+[1] 115.9312
+stage  5 
+[1] 14.93455
+[1] 19.82683
+stage  6 
+stage  7 
+stage  8 
+[1] 14.33066
+stage  9 
+stage  10 
+[1] 8.73783
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 135 483.1683 488.9784 488.6082 504.8696      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 14.78052 secs 274.1833 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.2363295 mins 0.2387888 mins           NA             0.286
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.018 0.016 0.028 0.034 0.044 0.044 0.036 0.048 0.056
+   n_10
+1 0.676
+###########################  simulation  142 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   5.00       495     4.503540
+2        2   495       0.99     0.00   7.00       488     6.433159
+3        3   488       0.98     1.00   7.00       480     9.474880
+4        4   480       0.96     6.00  10.00       464    10.508409
+5        5   464       0.93     7.00   5.00       452    15.837731
+6        6   452       0.90    20.00  10.00       422    13.630557
+7        7   422       0.84    15.00   6.00       401    16.769814
+8        8   401       0.80     8.00   6.00       387    14.956894
+9        9   387       0.77    13.00   8.00       366    17.260261
+10      10   366       0.73    71.00 295.00         0   278.120444
+11   Total    NA         NA   141.00 359.00        NA           NA
+12 Percent    NA         NA     0.28   0.72        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 13.108
+[1] 68.23289
+[1] 10.85637
+[1] 6.55621
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 9.457648
+stage  3 
+stage  4 
+[1] 5.857525
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  5 
+[1] 42.8627
+stage  2 
+stage  6 
+stage  3 
+stage  7 
+stage  4 
+stage  8 
+[1] 4.493192
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  5 
+stage  9 
+stage  2 
+stage  6 
+stage  10 
+stage  7 
+stage  3 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 147 476.5203 490.1538 491.7551 509.7884      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.94508 secs 182.4899 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1685564 mins 0.1696671 mins           NA             0.258
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9 n_10
+1                 NA 0.018 0.018 0.018 0.022 0.054 0.042 0.048 0.038 0.022 0.72
+stage  8 
+stage  4 
+[1] 456.8916
+stage  9 
+stage  5 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  6 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 139 471.9018 506.4487 490.4762 510.6032      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.08913 secs 190.6634 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1853523 mins 0.1707481 mins           NA             0.256
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.018 0.012 0.024 0.024 0.038 0.044 0.044 0.022 0.056
+   n_10
+1 0.718
+###########################  simulation  146 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   9.00       491     5.139332
+2        2   491       0.98     0.00   8.00       483     7.313945
+3        3   483       0.97     2.00   7.00       474     9.941655
+4        4   474       0.95     7.00   7.00       460    13.617081
+5        5   460       0.92    13.00  14.00       433    16.458445
+6        6   433       0.87    15.00   8.00       410    15.143302
+7        7   410       0.82    14.00   6.00       390    10.032051
+8        8   390       0.78     6.00   7.00       377    13.690887
+9        9   377       0.75    10.00  10.00       357    16.087398
+10      10   357       0.71    67.00 290.00         0   305.756503
+11   Total    NA         NA   134.00 366.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 27.31843
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 138  478.067 486.9304 484.8955 512.2006      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.16729 secs 185.3243 mins
+       time.trt1     time.trt0 time.trueopt proportion.censor
+1 0.1672108 mins 0.158124 mins           NA               0.3
+  num.convergence.it  n_1   n_2   n_3  n_4  n_5   n_6   n_7   n_8   n_9  n_10
+1                 NA 0.01 0.014 0.012 0.04 0.04 0.024 0.038 0.046 0.028 0.748
+###########################  simulation  145 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   8.00       492     4.425587
+2        2   492       0.98     0.00  11.00       481     6.267079
+3        3   481       0.96     3.00  12.00       466     8.573501
+4        4   466       0.93     7.00   8.00       451    15.144436
+5        5   451       0.90     7.00  11.00       433    11.805355
+6        6   433       0.87    14.00  11.00       408    14.002471
+7        7   408       0.82    13.00   7.00       388    17.107244
+8        8   388       0.78    14.00   1.00       373    14.727300
+9        9   373       0.75    12.00   6.00       355     9.980807
+10      10   355       0.71    55.00 300.00         0   313.475288
+11   Total    NA         NA   125.00 375.00        NA           NA
+12 Percent    NA         NA     0.25   0.75        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 185.8848
+[1] 20.31079
+[1] 107.6072
+[1] 430.7762
+[1] 12.04732
+[1] 436.3144
+[1] 63.16526
+[1] 196.7566
+[1] 9.108329
+[1] 201.4223
+[1] 39.37708
+[1] 112.5241
+[1] 4.658749
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 105.6918
+stage  3 
+stage  4 
+[1] 26.65022
+[1] 71.32359
+stage  5 
+stage  6 
+stage  7 
+[1] 68.87599
+stage  8 
+stage  9 
+stage  10 
+[1] 17.45066
+[1] 35.0922
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 137 479.9745  499.934 496.1669 519.8826      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.54234 secs 232.2238 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1746168 mins 0.1707999 mins           NA              0.32
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6   n_7   n_8   n_9
+1                 NA 0.014 0.008 0.024 0.034 0.032 0.046 0.044 0.038 0.048
+   n_10
+1 0.712
+###########################  simulation  144 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   7.00       493     4.509692
+2        2   493       0.99     0.00  12.00       481     6.918191
+3        3   481       0.96     1.00   9.00       471     8.242282
+4        4   471       0.94     7.00   4.00       460    10.961362
+5        5   460       0.92     7.00   6.00       447    11.664057
+6        6   447       0.89    15.00   9.00       423    16.385700
+7        7   423       0.85    15.00   5.00       403    12.850352
+8        8   403       0.81    12.00   7.00       384    15.973419
+9        9   384       0.77    18.00  11.00       355    13.725656
+10      10   355       0.71    59.00 296.00         0   318.604934
+11   Total    NA         NA   134.00 366.00        NA           NA
+12 Percent    NA         NA     0.27   0.73        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 39.43137
+[1] 12.60268
+[1] 23.94227
+[1] 29.18764
+[1] 415.781
+[1] 8.159335
+[1] 15.56193
+[1] 16.8415
+[1] 190.1413
+[1] 5.068354
+  2. IHsurvrf - Evaluation 
+stage  1 
+[1] 12.00831
+stage  2 
+stage  3 
+[1] 13.72659
+stage  4 
+[1] 105.3803
+stage  5 
+stage  6 
+stage  7 
+[1] 7.460075
+stage  8 
+stage  9 
+[1] 7.540938
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 142 477.2598 492.0126 485.5509 510.1869      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 15.88883 secs 194.7959 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1660604 mins 0.1717094 mins           NA             0.282
+  num.convergence.it  n_1   n_2   n_3   n_4   n_5  n_6   n_7   n_8   n_9  n_10
+1                 NA 0.01 0.014 0.016 0.032 0.024 0.06 0.042 0.028 0.042 0.732
+###########################  simulation  149 ########################### 
+########################### (criterion  mean )################## 
+1. Data 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+     stage total percentage censored   died nextStage mean.trtdiff
+1        1   500       1.00     0.00   4.00       496     4.511401
+2        2   496       0.99     0.00  13.00       483     6.104616
+3        3   483       0.97     2.00   7.00       474     9.103677
+4        4   474       0.95     2.00  15.00       457    11.177948
+5        5   457       0.91     7.00   9.00       441    13.574973
+6        6   441       0.88    14.00  16.00       411    11.265268
+7        7   411       0.82     7.00   7.00       397    17.628723
+8        8   397       0.79    14.00   6.00       377    13.447044
+9        9   377       0.75    11.00   3.00       363    17.919473
+10      10   363       0.73    74.00 289.00         0   296.934218
+11   Total    NA         NA   131.00 369.00        NA           NA
+12 Percent    NA         NA     0.26   0.74        NA           NA
+2. IHsurvrf 
+  2. IHsurvrf - Policy estimation 
+[1] 71.19007
+[1] 5.368847
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+[1] 4.734919
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+[1] 44.83313
+stage  3 
+stage  4 
+stage  4 
+stage  5 
+stage  5 
+stage  6 
+stage  7 
+stage  6 
+stage  8 
+stage  9 
+stage  7 
+[1] 410.7779
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 145 478.5944 506.3162 488.1162 513.6131      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.12289 secs 171.7825 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1742822 mins 0.1677555 mins           NA              0.25
+  num.convergence.it   n_1   n_2  n_3  n_4   n_5  n_6  n_7  n_8   n_9 n_10
+1                 NA 0.016 0.022 0.03 0.03 0.036 0.05 0.04 0.03 0.036 0.71
+stage  8 
+[1] 30.33241
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 146 472.5556 497.8073 492.2923 516.5249      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.47338 secs 182.0674 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1708538 mins 0.1660325 mins           NA             0.268
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5   n_6  n_7   n_8  n_9  n_10
+1                 NA 0.018 0.016 0.018 0.028 0.054 0.046 0.04 0.026 0.04 0.714
+[1] 193.5476
+[1] 15.96937
+[1] 117.5896
+[1] 12.75774
+[1] 79.65734
+[1] 6.846288
+[1] 44.25818
+[1] 5.743008
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+[1] 25.97286
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf  trt1   trt0 trueopt avg.prop.match.opt.obs
+1 144 478.8589 507.1754 490.5 509.03      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 11.34634 secs 155.0173 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1597407 mins 0.1633973 mins           NA             0.268
+  num.convergence.it   n_1   n_2  n_3   n_4   n_5   n_6  n_7   n_8   n_9 n_10
+1                 NA 0.014 0.024 0.02 0.022 0.026 0.048 0.04 0.038 0.058 0.71
+[1] 13.97757
+[1] 11.9035
+[1] 8.342548
+[1] 4.189189
+  2. IHsurvrf - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+3. Estimation - Treatment 1 Only 
+  3. Treatment 1 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+4. Estimation - Treatment 0 Only 
+  3. Treatment 0 only (zero-order model) - Evaluation 
+stage  1 
+stage  2 
+stage  3 
+stage  4 
+stage  5 
+stage  6 
+stage  7 
+stage  8 
+stage  9 
+stage  10 
+5. Estimation - True Optimal 
+   no observed IHsurvrf     trt1     trt0 trueopt avg.prop.match.opt.obs
+1 149 470.7518 494.4495 484.0175 511.7006      NA                      0
+  avg.prop.match.opt.IHsurvrf avg.prop.match.opt.trt1 avg.prop.match.opt.trt0
+1                           0                       0                       0
+  avg.prop.match.opt.trueopt change.integral      time.obs time.IHsurvrf
+1                         NA               0 10.46488 secs  154.079 mins
+       time.trt1      time.trt0 time.trueopt proportion.censor
+1 0.1560671 mins 0.1582916 mins           NA             0.262
+  num.convergence.it   n_1   n_2   n_3   n_4   n_5  n_6   n_7  n_8   n_9  n_10
+1                 NA 0.008 0.026 0.018 0.034 0.032 0.06 0.028 0.04 0.028 0.726

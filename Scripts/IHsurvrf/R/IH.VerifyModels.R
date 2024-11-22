@@ -45,11 +45,9 @@ setMethod(f = ".VerifyModels",
                                 nDP,
                                 data,
                                 txName,
-                                stageLabel,
-                                usePrevTime) {
+                                stageLabel) {
 
             ## create a modelframe fom the input "models" and "data"
-
 
             # ensure that model frame can be generated from provided data
 
@@ -109,8 +107,7 @@ setMethod(f = ".VerifyModels",
                                       nDP = nDP,
                                       data = data,
                                       txName = txName,
-                                      stageLabel = stageLabel,
-                                      usePrevTime = usePrevTime)
+                                      stageLabel = stageLabel)
 
               # call method for list of models after applying commonFormula approach
               ## this method is coded below for objects of class "list"
@@ -261,8 +258,7 @@ commonFormula <- function(models, ...,
                           nDP,
                           data,
                           txName,
-                          stageLabel,
-                          usePrevTime) {
+                          stageLabel) {
 
   ## outputs a message saying the function assumes common formula across all time points
 
@@ -446,28 +442,6 @@ commonFormula <- function(models, ...,
     }
   }
 
-
-  ## if input usePrevTime = TRUE, include previous time points as covariates in model
-
-  if (usePrevTime) {
-    # if previous times are to be included in model, add to rhs
-
-    ## loop through decision points starting from the 2nd to the last (bc the first deciion point has not previous time points)
-    for (i in 2L:nDP) {
-
-      ## for each decision point, construct a string repersenting the sum of previous times
-      ## 1L:{i-1} generates sequence of 1:one less than current decision point
-      ## combines them into single string with "+" sign to indicate summation
-      pTime = paste(paste0(yLabel, stageLabel, 1L:{i-1}), collapse = "+")
-
-      ## wrap the constructed time with I() to indicate the formula should be treated "as-is" within a formula
-      pTime = paste0("I(",pTime,")")
-
-      ## update this to the list of model components for the current deicion point
-      ## adds the constructed variables representing the sum to the RHS of the model
-      mod[[ i ]] <- c(mod[[ i ]], pTime)
-    }
-  }
 
   message("models identified as ")
 

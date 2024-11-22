@@ -84,7 +84,7 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.true
   list(
     ## we don't want to start at the very last stage to avoid issues with too few
     ## ## stage that we start at
-    stage.start = ss,
+    #stage.start = ss,
     n.sample = n, max_stages = n.stages, tau = tau,
     ## initially all patients are at risk
     at.risk = 1,
@@ -235,7 +235,7 @@ if (!skip.IHsurvrf) {
                   models = models,
                   ## use the observed lengths of the previous stages in the current stage's model as covariates
                   ## we don't need this as our data simulations currently track the cumulative time
-                  usePrevTime = FALSE,
+                  #usePrevTime = FALSE,
                   ## maximum study length, set as 10 in C21.simulation_run.R
                   tau = tau,
                   ## distribution to draw timepoints from
@@ -269,6 +269,7 @@ if (!skip.IHsurvrf) {
                   randomSplit = 0.2,
 
                   ## number of trees to grow
+                  ## for normal sims set to 300
                   nTree = 300,
 
                   ## maximum number of covariates to consider-- a vector of covars for each decision point
@@ -283,7 +284,7 @@ if (!skip.IHsurvrf) {
                   #'    total number of covariates under consideration).
                   stratifiedSplit = 0.1,
                   stageLabel = "_",
-                  stage.start = ss,
+                  #stage.start = ss,
                   
                   #########
                   ######### NOTE: we need to change this nstrata if we want to test different things
@@ -452,14 +453,146 @@ return(result)
 
 
 # Number of cores to use for parallelization
-num_cores <- 5
+num_cores <- 10
 
 # Run the simulations in parallel
-results_list <- mclapply(176:200, run_simulation, mc.cores = num_cores)
+results_list <- mclapply(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 
+                           57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 
+                           108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 
+                           150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 178, 179, 180, 183, 184, 185, 188, 189, 190, 193, 194, 195, 198, 199, 200, 201, 
+                           202, 203, 204, 205, 206, 207, 208, 209, 210), run_simulation, mc.cores = num_cores)
 
 # Combine the results into a single dataframe
 final_results <- do.call(rbind, results_list)
 
-write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/15stage_500pt_highcens_176:200", row.names=FALSE)
+write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/2STRATA_15stage_70split", row.names=FALSE)
 
 
+
+## ------------------------------------- Function to look at the characteristics of our simulated data ------------------------------------ ##
+
+simulate_and_analyze <- function(sim_values, arg.obs) {
+  # Initialize placeholders for results
+  censoring_percentages <- numeric(length(sim_values))
+  final_stage_counts <- list()
+  
+  for (sim in sim_values) {
+    # Set seed for reproducibility
+    set.seed(sim * 10000)
+    
+    # Generate observed data
+    obs.data <- do.call(simulate_patients, arg.obs)
+    
+    # Save the flowchart for reference
+    flowchart_output <- flowchart(obs.data$output)
+    #flowchart_filename <- paste0("flowchart_sim_", sim, ".png")
+    #png(flowchart_filename)
+    #print(flowchart_output)
+    #dev.off()
+    
+    # Extract information from the last row
+    censoring_percentages[sim] <- flowchart_output[nrow(flowchart_output), 4]
+    
+    # Extract information for final stage counts
+    stages <- flowchart_output[1:n.stages, 1] # First column has stage indices (10 rows)
+    censored <- flowchart_output[1:n.stages, 4] # Column 4 has number of censored patients
+    died <- flowchart_output[1:n.stages, 5] # Column 5 has number of patients who died
+    
+    # Sum censored and died for each stage
+    final_stage_counts[[sim]] <- censored + died
+    
+    
+  }
+  
+  # Identify indices of `NULL` elements in final_stage_counts
+  valid_indices <- !sapply(final_stage_counts, is.null)
+  
+  # Filter out `NULL` elements from both final_stage_counts and censoring_percentages
+  final_stage_counts <- final_stage_counts[valid_indices]
+  censoring_percentages <- censoring_percentages[valid_indices]
+  
+  
+  
+  # Combine results into a list for easy access
+  results <- list(
+    mean_censoring_percentage = mean(censoring_percentages, na.rm = TRUE),
+    n_mean_total = length(censoring_percentages),
+    final_stage_counts = final_stage_counts
+  )
+  
+  return(results)
+}
+
+
+#two_strat <- simulate_and_analyze(sim_values = c(52, 53, 54, 55, 57, 58, 59, 60, 62, 63, 64, 65, 67, 68, 69, 70, 72, 73, 74, 75, 
+#                                                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 
+#                                                 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 
+#                                                 43, 44, 45, 46, 47, 48, 49, 50, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 
+#                                                 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 151, 152, 153, 154, 155, 
+#                                                 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 
+#                                                 172, 173, 174, 175, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 
+#                                                 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 
+#                                                 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 
+#                                                 145, 146, 147, 148, 149, 150, 176, 177, 178, 180, 181, 182, 183, 185, 186, 187, 
+#                                                 188, 190, 191, 192, 193, 195, 196, 197, 198, 200, 201, 202, 203, 204, 205, 206, 
+#                                                 207, 208, 209, 210), arg.obs = arg.obs)
+#
+## low cens
+#c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 
+#  57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 
+#  108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 
+#  150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 178, 179, 180, 183, 184, 185, 188, 189, 190, 193, 194, 195, 198, 199, 200, 201, 
+#  202, 203, 204, 205, 206, 207, 208, 209, 210)
+
+## high cens
+#c(52, 53, 54, 55, 57, 58, 59, 60, 62, 63, 64, 65, 67, 68, 69, 70, 72, 73, 74, 75, 
+#  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 
+#  23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 
+#  43, 44, 45, 46, 47, 48, 49, 50, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 
+#  88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 151, 152, 153, 154, 155, 
+#  156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 
+#  172, 173, 174, 175, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 
+#  113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 
+#  129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 
+#  145, 146, 147, 148, 149, 150, 176, 177, 178, 180, 181, 182, 183, 185, 186, 187, 
+#  188, 190, 191, 192, 193, 195, 196, 197, 198, 200, 201, 202, 203, 204, 205, 206, 
+#  207, 208, 209, 210)
+
+#one_strat <- simulate_and_analyze(sim_values = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
+#                                                 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 
+#                                                 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 129, 131, 132, 134, 136, 137, 139, 141, 142, 144, 146, 147, 149, 151, 152, 153, 154, 155, 156, 157, 158, 
+#                                                 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 
+#                                                 201, 202, 203, 204, 205, 206, 207, 208, 209, 210), arg.obs = arg.obs)
+#
+#
+#
+#two_strat$mean_censoring_percentage
+#one_strat$mean_censoring_percentage
+#
+## Convert the list to a matrix, where each column is a vector from the list
+#two_final_stage_matrix <- do.call(rbind, two_strat$final_stage_counts)
+#
+## Sum each row (i.e., sum across all first terms, second terms, etc.)
+#two_stage_sums <- colSums(two_final_stage_matrix)
+#
+## Convert the list to a matrix, where each column is a vector from the list
+#one_final_stage_matrix <- do.call(rbind, one_strat$final_stage_counts)
+#
+## Sum each row (i.e., sum across all first terms, second terms, etc.)
+#one_stage_sums <- colSums(one_final_stage_matrix)
+#
+## Sample data for stage sums
+#x_values <- 1:n.stages  # Stages 1 to 10
+#
+## Set up the plotting area with two rows
+#par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))  # Adjust margins as needed
+#
+## Top bar plot for "two"
+#barplot(two_stage_sums, names.arg = x_values, col = "skyblue", 
+#        main = "Stage Sums for 'Two'", xlab = "Stages", ylab = "Frequency", ylim = c(0, max(two_stage_sums)))
+#
+## Bottom bar plot for "one"
+#barplot(one_stage_sums, names.arg = x_values, col = "lightcoral", 
+#        main = "Stage Sums for 'One'", xlab = "Stages", ylab = "Frequency", ylim = c(0, max(one_stage_sums)))
+#
+#

@@ -61,7 +61,15 @@ IHdtrConv_otherstrata <- function(data,
   new_col_names <- gsub(paste0("_", (nDP), "$"), "", colnames(x))
   colnames(x) <- new_col_names
 
+  # Initialize a matrix to store the combined results, with a matrix of NAs
+  ## putting 0's in all locations-- ones that belong to certain stages will be overwritten
+  pr_pooled <- matrix(0, nrow = nTimes, ncol = nrow(data)*nDP)
+
   message("cases in stage: ", dim(x)[1])
+
+
+
+  if (dim(x)[1] != 0){
 
   last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                               newdata = x,
@@ -140,9 +148,6 @@ IHdtrConv_otherstrata <- function(data,
   ## add the shifted optimals into the pooled optimals together
   #### each patient will have the same number of stages by design, but ones that aren't included in the strata will just have 0s
 
-  # Initialize a matrix to store the combined results, with a matrix of NAs
-  ## putting 0's in all locations-- ones that belong to certain stages will be overwritten
-  pr_pooled <- matrix(0, nrow = nTimes, ncol = ncol(shiftedprob_done)*nDP)
 
 
   # Define the index to insert columns from the previous optimal
@@ -160,6 +165,8 @@ IHdtrConv_otherstrata <- function(data,
 
     # Increment the counter for columns from append1_pr
     col_counter <- col_counter + 1
+  }
+
   }
 
 
@@ -180,13 +187,13 @@ IHdtrConv_otherstrata <- function(data,
     # Filter for the current stage
     current_stage <- long_data %>%
       filter(stage == i) %>%
-      select(subj.id, paste0("strata", strata), T)
+      select(subj.id, paste0("strata", strata), response_var[1])
 
     # Filter for the next stage (i + 1)
     next_stage <- long_data %>%
       filter(stage == i + 1) %>%
       ### select the subjects in the previous strata
-      select(subj.id, paste0("strata", strata - 1), T)
+      select(subj.id, paste0("strata", strata - 1), response_var[1])
 
     # Rename columns for clarity in join
     colnames(current_stage)[2] <- "current_strata"
@@ -527,13 +534,12 @@ IHdtrConv_otherstrata <- function(data,
   # Define the dynamic variable name
   forest.name <- paste0("s2.strata", strata)
 
-  elig_pr <- long_data %>%
-    transmute(elig = !!sym(paste0("strata", strata)) == 1 &
-                !is.na(as.character(attr(terms(models), "variables")[[2]][[2]]))) %>%
-    pull(elig)
-
   # Get the variable name as a character
   resp_name <- deparse(attr(terms(models), "variables")[[2]][[2]])
+
+  elig_pr <- long_data %>%
+    transmute(elig = !!sym(paste0("strata", strata)) == 1 & !is.na(!!sym(resp_name))) %>%
+    pull(elig)
 
   # Perform the desired operation and assign the result to the dynamic variable
   ## we train a forest for all observations in strata 2
@@ -571,10 +577,10 @@ IHdtrConv_otherstrata <- function(data,
 
 
   long_data$A.final[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
-                      !is.na(long_data$T)][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
+                      !is.na(long_data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
 
   long_data$A[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
-                !is.na(long_data$T)][which(eligibility_final == 1)]<- get(forest.name)@optimal@optimalTx
+                !is.na(long_data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])][which(eligibility_final == 1)]<- get(forest.name)@optimal@optimalTx
 
 
   ######## now, we want to output this into a grid, so that all patients have all stages present

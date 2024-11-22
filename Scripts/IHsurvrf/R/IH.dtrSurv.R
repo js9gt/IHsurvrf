@@ -4,7 +4,6 @@ source("R/class_IH.DTRSurv.R")
 
 source("R/IH.VerifyData.R")
 source("R/IH.VerifyTxName.R")
-source("R/IH.VerifyUsePrevTime.R")
 source("R/IH.VerifyModels.R")
 source("R/class_IH.CriticalValue.R")
 source("R/class_IH.TimeInfo.R")
@@ -27,7 +26,6 @@ IHdtrSurv <- function(data,
                          txName,
                          models,
                          ...,
-                         usePrevTime = TRUE,
                          timePoints = "uni",
                          nTimes = 200L,
                          tau = NULL,
@@ -49,7 +47,6 @@ IHdtrSurv <- function(data,
                          pooled = FALSE,
                          stratifiedSplit = NULL,
                          stageLabel = ".",
-                         stage.start = NULL,
                          ## number of strata we want to split into which fit different trees
                          nstrata = 2,
 
@@ -92,15 +89,6 @@ IHdtrSurv <- function(data,
   # number of decision points in the analysis
   nDP <- length(x = txName)
 
-  if (!is.null(stage.start)) {
-    nDP <- stage.start
-  }
-
-  # ensures that the usePrevTime input is of appropriate type (a logical)
-
-  ## defined in VerifyUsePrevTime.R script
-
-  usePrevTime <- .VerifyUsePrevTimes(usePrevTimes = usePrevTime)
 
   ## used in script VerifyModels.R
   ## this can be input as a list ofmodels, or a single formula (in which we probably assume common formula across all stages)
@@ -110,8 +98,7 @@ IHdtrSurv <- function(data,
     nDP = nDP,
     data = data,
     txName = txName,
-    stageLabel = stageLabel,
-    usePrevTime = usePrevTime
+    stageLabel = stageLabel
   )
 
 
@@ -368,7 +355,7 @@ for (i in 1:nstrata) {
     # Check if the event percentage meets the threshold
     ## NOTE: that the dimensions of these will not match the original data just because the original data contains rows of NAs
     ## this is because we simulate every patient to have 10 stages but if they have event/censored earlier they just have NA
-    if (event_percentage >= 0.7) {
+    if (event_percentage >= 0.3) {
       # Assign strata membership
       long_data$strata1[ (long_data$cumulative.time * tau) >= i] <- 1
       long_data$strata2[ (long_data$cumulative.time * tau) < i] <- 1
@@ -581,6 +568,33 @@ for (i in 1:nstrata) {
 ## note: we don't know the final stage's probability since each patient's final stage may be different
 
 
+
+
+  ### ------------ SCRATCH FOLLOWING A PATIENT AND TRACKING SURVIVAL CURVE ---------------- ###
+
+#  conv_1_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_2_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_3_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_4_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_5_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_6_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_7_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_8_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_9_curve <- res.strata1.1@prev_probs[, 1]
+#  conv_23_curve <- res.strata1.1@prev_probs[, 1]
+#
+#  pool1_curve <- cbind(params@timePoints, shiftedprobfinal[, 1], conv_1_curve, conv_2_curve, conv_3_curve, conv_4_curve, conv_5_curve,
+#                       conv_6_curve, conv_7_curve, conv_8_curve, conv_9_curve, conv_10_curve,
+#                       conv_11_curve, conv_12_curve, conv_13_curve, conv_14_curve, conv_15_curve,
+#                       conv_16_curve, conv_17_curve, conv_19_curve, conv_20_curve, conv_21_curve,
+#                       conv_22_curve, conv_23_curve)
+#
+
+  ### ------------------------------------------------------------------------------------- ###
+
+
+
+
   ## the result after appyling the area function to each column of the matrix of survival probabilities
 ## since each patient has a different number of visits in the strata, we look at the area of all stages included
   areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
@@ -690,6 +704,11 @@ for (i in 1:nstrata) {
     summarise(max_stages = max(num_stages)) %>%    # Find the maximum number of stages
     pull(max_stages)
 
+  #########
+  ## now, for each patient, we find their max # of stages to know how many iterations we need to run before freezing their values:
+  #### count backwards where the final stage is 1, ...their last stage, put NA in all the other entries (# pts * nDP) size
+
+  ## create an eligibility matrix for whether we are looking at a patient's conv_iteration stage; whether the current iteration counter matches the counter above ^^
 
   while(continue_iterations && conv_iterations <= max_iter){
 
@@ -789,6 +808,7 @@ for (i in 1:nstrata) {
     as.numeric()
   )
 
+
   ## now, for strata 2, we want to track the optimal and eligibility
   ## first initialize a column name
   long_data$A.s1.strata2 <- NA
@@ -800,9 +820,9 @@ for (i in 1:nstrata) {
 
   # Update actions for A.s1.strata1 for rows where strata1 == 1 and eligibility_final is TRUE
   ### the eligibility is only for patients in strata 1 AND not NA, so we have to filter for that too
-  long_data$A.s1.strata2[long_data[[paste0("strata", 2)]] == 1 & !is.na(long_data$T)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
+  long_data$A.s1.strata2[long_data[[paste0("strata", 2)]] == 1 & !is.na(long_data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
   ## also update the "A" column to be used for the convergence aspect
-  long_data$A[long_data[[paste0("strata", 2)]] == 1 & !is.na(long_data$T)][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
+  long_data$A[long_data[[paste0("strata", 2)]] == 1 & !is.na(long_data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])][which(eligibility_s1.strata2 == 1)] <- s1.strata2@optimal@optimalTx
 
 
 

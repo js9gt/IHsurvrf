@@ -14,15 +14,15 @@ library(dplyr);library(cowplot); library(tidyr)
 ## observational--- DONE---                     ##
 ##################################################################
 
-a <- read.csv("~/survrf/Outputs/08Aug_300pt_hicens_obs_RESUTS_V1")
-b <- read.csv("~/survrf/Outputs/08Aug_300pt_hicens_obs_RESUTS_V2")
-comb <- rbind(a[85:185, ], b[186:286, ])
+two_strat_10stage_hicens1 <- read.csv("~/survrf/Outputs/10stage_300pt_hicens_1:50")
+two_strat_10stage_hicens2 <- read.csv("~/survrf/Outputs/10stage_300pt_hicens_51:100")
+two_strat_10stage_hicens3 <- read.csv("~/survrf/Outputs/10stage_300pt_hicens_101:100")
+two_strat_10stage_hicens4 <- read.csv("~/survrf/Outputs/10stage_300pt_hicens_151:200")
 
-## only 58 sim done: we want to make sure there are 200 data points in total, so if there aren't enough, we just run extra sims
-## run1: 86 sim done
-## run2: 183 sims done
-pt300_10stage_hi_observed <- comb$observed
-pt300_10stage_hi_IHsurvrf <- comb$IHsurvrf
+pt300_10stage_hi_observed <- c(two_strat_10stage_hicens1$observed, two_strat_10stage_hicens2$observed,
+                               two_strat_10stage_hicens3$observed, two_strat_10stage_hicens4$observed)
+pt300_10stage_hi_IHsurvrf <- c(two_strat_10stage_hicens1$IHsurvrf, two_strat_10stage_hicens2$IHsurvrf,
+                               two_strat_10stage_hicens3$IHsurvrf, two_strat_10stage_hicens4$IHsurvrf)
 
 # Combine data into a dataframe
 data <- data.frame(
@@ -75,15 +75,18 @@ highcens_300pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = 
 ## observational,                               ##
 ##################################################################
 
-a <- read.csv("~/survrf/Outputs/08Aug_500pt_hicens_obs_RESUTS_V2")
-b <- read.csv("~/survrf/Outputs/08Aug_500pt_hicens_obs_RESUTS")
-comb <- rbind(b[53:153, ], a[154:254, ])
 
-## only 52 sim done: we want to make sure there are 200 data points in total, so if there aren't enough, we just run extra sims
-## only 168 sims done in V2
-pt500_10stage_hi_observed <- comb$observed
+two_strat_10stage_500pt_hicens1 <- read.csv("~/survrf/Outputs/10stage_500pt_hicens_151:200")
+two_strat_10stage_500pt_hicens2 <- read.csv("~/survrf/Outputs/10stage_500pt_hicens_51:100")
+two_strat_10stage_500pt_hicens3 <- read.csv("~/survrf/Outputs/10stage_500pt_hicens_1:50")
+two_strat_10stage_500pt_hicens4 <- read.csv("~/survrf/Outputs/10stage_500pt_hicens_101:150")
 
-pt500_10stage_hi_IHsurvrf <- comb$IHsurvrf
+
+pt500_10stage_hi_observed <- c(two_strat_10stage_500pt_hicens1$observed, two_strat_10stage_500pt_hicens2$observed,
+                               two_strat_10stage_500pt_hicens3$observed, two_strat_10stage_500pt_hicens4$observed)
+
+pt500_10stage_hi_IHsurvrf <- c(two_strat_10stage_500pt_hicens1$IHsurvrf, two_strat_10stage_500pt_hicens2$IHsurvrf,
+                               two_strat_10stage_500pt_hicens3$IHsurvrf, two_strat_10stage_500pt_hicens4$IHsurvrf)
 
 
 # Combine data into a dataframe
@@ -137,19 +140,17 @@ highcens_500pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = 
 ## DONE: 1 strata: plots for 300 pts, 10 stages, high censoring ##
 ## observational,                               ##
 ##################################################################
-a <- read.csv("~/survrf/Outputs/1STRATA_29Aug_10stage__300pt_highcens_V1")
-b <- read.csv("~/survrf/Outputs/1STRATA_04sep_10stage_300pt_highcens_V2")
-c <- read.csv("~/survrf/Outputs/1STRATA_10stage_highcens_V3")
-d <- read.csv("~/survrf/Outputs/1STRATA_10stage_300pt_highcens_V4")
+onestrat_300pt_hicens1 <- read.csv("~/survrf/Outputs/1strata_10stage_300pt_hicens_101:150")
+onestrat_300pt_hicens2 <- read.csv("~/survrf/Outputs/1strata_10stage_300pt_hicens_1:50")
+onestrat_300pt_hicens3 <- read.csv("~/survrf/Outputs/1strata_10stage_300pt_hicens_51:100")
+onestrat_300pt_hicens4 <- read.csv("~/survrf/Outputs/1strata_10stage_300pt_hicens_151:200")
 
   
+pt300_10stage_hi_1_strat_observed <- c(onestrat_300pt_hicens1$observed, onestrat_300pt_hicens2$observed,
+                                       onestrat_300pt_hicens3$observed, onestrat_300pt_hicens4$observed)
 
-
-## only 52 sim done: we want to make sure there are 200 data points in total, so if there aren't enough, we just run extra sims
-## only 168 sims done in V2
-pt300_10stage_hi_1_strat_observed <- c(a$observed, b$observed, c$observed, d$observed)[-1]
-
-pt300_10stage_hi_1strat_IHsurvrf <- c(a$IHsurvrf, b$IHsurvrf, c$observed, d$observed)[-1]
+pt300_10stage_hi_1strat_IHsurvrf <- c(onestrat_300pt_hicens1$IHsurvrf, onestrat_300pt_hicens2$IHsurvrf,
+                                      onestrat_300pt_hicens3$IHsurvrf, onestrat_300pt_hicens4$IHsurvrf)
 
 
 # Combine data into a dataframe
@@ -182,55 +183,21 @@ highcens_300pt_10stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = 
 ## DONE: 1 strata: plots for 500 pts, 10 stages, high censoring ##
 ## observational,                               ##
 ##################################################################
-a <- read.csv("~/survrf/Outputs/1STRATA_01Sep_10stage_500pt_hicens_all")
-b <- read.delim2("~/survrf/Outputs/done_running/1STRATA_500pt_hicens_obs_V2.txt", header=FALSE, comment.char="#")
+onestrat_500pt_hicens1 <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_hicens_1:50")
+onestrat_500pt_hicens2 <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_hicens_101:150")
+onestrat_500pt_hicens3 <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_hicens_51:100")
+onestrat_500pt_hicens4 <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_hicens_151:200")
+onestrat_500pt_hicens5 <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_hicens_201:207")
 
 
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V2 <- which(apply(b, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
 
-# Initialize an empty vector to store the selected rows
-selected_rows_V2 <- data.frame()
+pt500_10stage_hi_1_strat_observed <- c(onestrat_500pt_hicens1$observed, onestrat_500pt_hicens2$observed,
+                                       onestrat_500pt_hicens3$observed, onestrat_500pt_hicens4$observed,
+                                       onestrat_500pt_hicens5$observed)
 
-# Loop through each matching index
-
-for (index in matching_indices_V2) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V2 <- rbind(selected_rows_V2, b[index:min(index+1, nrow(b)), ])
-}
-
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-split_values_V2 <- strsplit(as.character(selected_rows_V2$X.1.204.544.9784.564.1007.555.5596.577.8582......NA......................0.), " ")
-
-
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V2 <- lapply(split_values_V2, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed2 <- as.numeric(third_values_V2)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf2 <- as.numeric(fourth_values_V2)
-
-
-## only 52 sim done: we want to make sure there are 200 data points in total, so if there aren't enough, we just run extra sims
-## only 168 sims done in V2
-pt500_10stage_hi_1_strat_observed <- c(a$observed, observed2)[-1]
-
-pt500_10stage_hi_1strat_IHsurvrf <- c(a$IHsurvrf, IHsurvrf2)[-1]
+pt500_10stage_hi_1strat_IHsurvrf <- c(onestrat_500pt_hicens1$IHsurvrf, onestrat_500pt_hicens2$IHsurvrf,
+                                      onestrat_500pt_hicens3$IHsurvrf, onestrat_500pt_hicens4$IHsurvrf,
+                                      onestrat_500pt_hicens5$IHsurvrf)
 
 
 # Combine data into a dataframe
@@ -270,8 +237,25 @@ plot_grid(highcens_300pt_10stage_2strata + guides(fill = FALSE),
           highcens_500pt_10stage_1strata,
                            align = "h", nrow = 2, ncol = 2)
 
+# Save the plot with a higher resolution
+ggsave("10stage_hicens.png", plot = last_plot(), dpi = 300, width = 10, height = 8)
 
 
+
+### now looking at the standard deviations
+## 2 strata: 
+# ------ 300 high censoring
+sd(pt300_10stage_hi_IHsurvrf)
+
+# ------ 500 high censoring (smaller sd than 300 pt)
+sd(pt500_10stage_hi_IHsurvrf)
+
+## 1 strata:
+# ------ 300 high censoring (smaller sd than 2 strata & higher performance)
+sd(pt300_10stage_hi_1strat_IHsurvrf)
+
+# ------ 500 high censoring (smaller sd than 2 strata 500 pt, but larger sd than 300)
+sd(pt500_10stage_hi_1strat_IHsurvrf)
 
 ## ----------------------------------------------------------------------------##
 
@@ -282,67 +266,19 @@ plot_grid(highcens_300pt_10stage_2strata + guides(fill = FALSE),
 ## observational,                               ##
 ##################################################################
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/300pt_lowcens_obs_V1.txt", header=FALSE, comment.char="#")
-b <- read.delim2("~/survrf/Outputs/300pt_lowcens_obs_V2.txt", header=FALSE, comment.char="#")
-c <- read.csv("~/survrf/Outputs/2STRATA_29Aug_10stage_300pt_lowcens_V3")
-  
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-matching_indices_V2 <- which(apply(b, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-selected_rows_V2 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
-
-for (index in matching_indices_V2) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V2 <- rbind(selected_rows_V2, b[index:min(index+1, nrow(b)), ])
-}
-
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..1.475.5547..483.679.487.9192.511.5064......NA......................0.), " ")
-split_values_V2 <- strsplit(as.character(selected_rows_V2$X.101.NA.473.1292.491.7479.487.7084.504.2211......NA......................0.), " ")
+tenstage_300pt_locens1 <- read.csv("~/survrf/Outputs/10stage_300pt_locens_1:50")
+tenstage_300pt_locens2 <- read.csv("~/survrf/Outputs/10stage_300pt_locens_51:100")
+tenstage_300pt_locens3 <- read.csv("~/survrf/Outputs/10stage_300pt_locens_101:150")
+tenstage_300pt_locens4 <- read.csv("~/survrf/Outputs/10stage_300pt_locens_151:200")
 
 
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-cleaned_split_values_V2 <- lapply(split_values_V2, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-third_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-observed2 <- as.numeric(third_values_V2)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-fourth_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-IHsurvrf2 <- as.numeric(fourth_values_V2)
 
 ## we had 201 sims so we do -1
-pt300_10stage_low_observed <- c(observed1, observed2, c$observed)[-1]
+pt300_10stage_low_observed <- c(tenstage_300pt_locens1$observed, tenstage_300pt_locens2$observed, 
+                                tenstage_300pt_locens3$observed, tenstage_300pt_locens4$observed)
 
-pt300_10stage_low_IHsurvrf <- c(IHsurvrf1, IHsurvrf2, c$IHsurvrf)[-1]
+pt300_10stage_low_IHsurvrf <- c(tenstage_300pt_locens1$IHsurvrf, tenstage_300pt_locens2$IHsurvrf,
+                                tenstage_300pt_locens3$IHsurvrf, tenstage_300pt_locens4$IHsurvrf)
 
 
 
@@ -373,7 +309,7 @@ data <- data.frame(
 
 lowcens_300pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(450, 520, by = 10), limits = c(450, 520)) +
+  scale_y_continuous(breaks = seq(450, 530, by = 10), limits = c(450, 530)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(. ~ design + n) +
   theme_bw() +
@@ -396,67 +332,20 @@ lowcens_300pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = G
 ## observational,                               ##
 ##################################################################
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/500pt_lowcens_run1.txt", header=FALSE, comment.char="#")
-b <- read.delim2("~/survrf/Outputs/500pt_lowcens_run2.txt", header=FALSE, comment.char="#")
-c <- read.csv("~/survrf/Outputs/2STRATA_31Aug_10stage_500pt_lowcens_run3")
 
+lowcens_10stage_500pt_1 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_1:50")
+lowcens_10stage_500pt_2 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_151:200")
+lowcens_10stage_500pt_3 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_51:100")
+lowcens_10stage_500pt_4 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_101:150")
+lowcens_10stage_500pt_5 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_201:233")
+lowcens_10stage_500pt_6 <- read.csv("~/survrf/Outputs/10stage_500pt_locens_234:243")
 
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-matching_indices_V2 <- which(apply(b, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-selected_rows_V2 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
-
-for (index in matching_indices_V2) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V2 <- rbind(selected_rows_V2, b[index:min(index+1, nrow(b)), ])
-}
-
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..1..474.618..469.668.489.2657.508.2545......NA......................0.), " ")
-split_values_V2 <- strsplit(as.character(selected_rows_V2$X.101.NA.473.5441.494.5405.485.2962.509.0162......NA......................0.), " ")
-
-
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-cleaned_split_values_V2 <- lapply(split_values_V2, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-third_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-observed2 <- as.numeric(third_values_V2)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-fourth_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-IHsurvrf2 <- as.numeric(fourth_values_V2)
-
-pt500_10stage_low_observed <- c(observed1, observed2, c$observed)
-
-pt500_10stage_low_IHsurvrf <- c(IHsurvrf1, IHsurvrf2, c$IHsurvrf)
+pt500_10stage_low_observed <- c(lowcens_10stage_500pt_1$observed, lowcens_10stage_500pt_2$observed,
+                                lowcens_10stage_500pt_3$observed, lowcens_10stage_500pt_4$observed,
+                                lowcens_10stage_500pt_5$observed, lowcens_10stage_500pt_6$observed)
+pt500_10stage_low_IHsurvrf <- c(lowcens_10stage_500pt_1$IHsurvrf, lowcens_10stage_500pt_2$IHsurvrf,
+                                lowcens_10stage_500pt_3$IHsurvrf, lowcens_10stage_500pt_4$IHsurvrf,
+                                lowcens_10stage_500pt_5$IHsurvrf, lowcens_10stage_500pt_6$IHsurvrf)
 
 
 # Combine data into a dataframe
@@ -487,7 +376,7 @@ data <- data.frame(
 
 lowcens_500pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(450, 520, by = 10), limits = c(450, 520)) +
+  scale_y_continuous(breaks = seq(450, 530, by = 10), limits = c(450, 530)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(setting ~ design + n) +
   theme_bw() +
@@ -509,12 +398,16 @@ lowcens_500pt_10stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = G
 ## observational,                               ##
 ##################################################################
 
-one_strat_10stage_lowcensa <- read.csv("~/survrf/Outputs/1STRATA_03sep_10stage_300pt_lowcens_V1")
-one_strat_10stage_lowcensb <- read.csv("~/survrf/Outputs/1STRATA_01Sep_10stage_300pt_lowcens_V2")
+one_strat_10stage_lowcensa <- read.csv("~/survrf/Outputs/1STRATA_10stage_300pt_locens_101:150")
+one_strat_10stage_lowcensb <- read.csv("~/survrf/Outputs/1STRATA_10stage_300pt_locens_151:200")
+one_strat_10stage_lowcensc <- read.csv("~/survrf/Outputs/1STRATA_10stage_300pt_locens_1:50")
+one_strat_10stage_lowcensd <- read.csv("~/survrf/Outputs/1STRATA_10stage_300pt_locens_51:100")
 
-one_strat_10stage_lowcens_OBS <- c(one_strat_10stage_lowcensa$observed, one_strat_10stage_lowcensb$observed)[-1]
+one_strat_10stage_lowcens_OBS <- c(one_strat_10stage_lowcensa$observed, one_strat_10stage_lowcensb$observed,
+                                   one_strat_10stage_lowcensc$observed, one_strat_10stage_lowcensd$observed)
 
-one_strat_10stage_lowcens_IHsurvrf <- c(one_strat_10stage_lowcensa$IHsurvrf, one_strat_10stage_lowcensb$IHsurvrf)[-1]
+one_strat_10stage_lowcens_IHsurvrf <- c(one_strat_10stage_lowcensa$IHsurvrf, one_strat_10stage_lowcensb$IHsurvrf,
+                                        one_strat_10stage_lowcensc$IHsurvrf, one_strat_10stage_lowcensd$IHsurvrf)
 
 # Combine data into a dataframe
 data <- data.frame(
@@ -543,7 +436,7 @@ data <- data.frame(
 
 lowcens_300pt_10stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(450, 520, by = 10), limits = c(450, 520)) +
+  scale_y_continuous(breaks = seq(450, 530, by = 10), limits = c(450, 530)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(. ~ design + n) +
   theme_bw() +
@@ -565,56 +458,23 @@ lowcens_300pt_10stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = G
 ## observational,                               ##
 ##################################################################
 
-one_strat_10stage_lowcens_500a <- read.csv("~/survrf/Outputs/1STRATA_29Aug_10stage_500pt_lowcens_V1")
-one_strat_10stage_lowcens_500b <- read.csv("~/survrf/Outputs/1STRATA_500pt_locens_201-220")
+one_strat_10stage_lowcens_500a <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_151:200")
+one_strat_10stage_lowcens_500b <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_101:150")
+one_strat_10stage_lowcens_500c <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_1:50")
+one_strat_10stage_lowcens_500d <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_51:100")
+one_strat_10stage_lowcens_500e <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_201:244")
+one_strat_10stage_lowcens_500f <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_245:249")
+one_strat_10stage_lowcens_500g <- read.csv("~/survrf/Outputs/1STRATA_10stage_500pt_locens_250")
 
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/done_running/1STRATA_500pt_locens_obs_V2.txt", header=FALSE, comment.char="#")
-
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
 
 
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1.109.480.5316.505.3315.491.6391.503.0702......NA......................0.), " ")
-
-
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-
-one_strat_10stage_lowcens_500_OBS <- c(one_strat_10stage_lowcens_500a$observed, observed1, one_strat_10stage_lowcens_500b$observed)[-1]
-
-one_strat_10stage_lowcens_500_IHsurvrf <- c(one_strat_10stage_lowcens_500a$IHsurvrf, IHsurvrf1, one_strat_10stage_lowcens_500b$IHsurvrf)[-1]
+one_strat_10stage_lowcens_500_OBS <- c(one_strat_10stage_lowcens_500a$observed, one_strat_10stage_lowcens_500b$observed,
+                                       one_strat_10stage_lowcens_500c$observed, one_strat_10stage_lowcens_500d$observed,
+                                       one_strat_10stage_lowcens_500e$observed, one_strat_10stage_lowcens_500f$observed)
+one_strat_10stage_lowcens_500_IHsurvrf <- c(one_strat_10stage_lowcens_500a$IHsurvrf, one_strat_10stage_lowcens_500b$IHsurvrf,
+                                            one_strat_10stage_lowcens_500c$IHsurvrf, one_strat_10stage_lowcens_500d$IHsurvrf,
+                                            one_strat_10stage_lowcens_500e$IHsurvrf, one_strat_10stage_lowcens_500f$IHsurvrf)
 
 # Combine data into a dataframe
 data <- data.frame(
@@ -628,7 +488,7 @@ data <- data.frame(
 
 lowcens_500pt_10stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(450, 520, by = 10), limits = c(450, 520)) +
+  scale_y_continuous(breaks = seq(450, 530, by = 10), limits = c(450, 530)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(setting ~ design + n) +
   theme_bw() +
@@ -654,102 +514,69 @@ plot_grid(lowcens_300pt_10stage_2strata + guides(fill = FALSE),
           lowcens_500pt_10stage_1strata,
           align = "h", nrow = 2, ncol = 2)
 
+# Save the plot with a higher resolution
+ggsave("10stage_locens.png", plot = last_plot(), dpi = 300, width = 10, height = 8)
+
+### now looking at the standard deviations
+## 2 strata: 
+# ------ 300 low censoring
+sd(pt300_10stage_low_IHsurvrf)
+
+# ------ 500 low censoring (larger sd than 300 pt)
+sd(pt500_10stage_low_IHsurvrf)
+
+## 1 strata:
+# ------ 300 low censoring (smaller sd than 2 strata & higher performance)
+sd(one_strat_10stage_lowcens_IHsurvrf)
+
+# ------ 500 low censoring (smaller sd than 2 strata 500 pt, and smaller sd than the 1 strata 300 pt)
+sd(one_strat_10stage_lowcens_500_IHsurvrf)
+
 ## ----------------------------------------------------------------------------##
 
-## ------------------- Plot section for 25 stage  ---------------##
+## ------------------- Plot section for 15 stage  ---------------##
 
 ##################################################################
-## plots for 500 pts, 25 stages, low censoring ##
+## plots for 500 pts, 15 stages, low censoring ##
 ## observational,                               ##
 ##################################################################
 
-## V1:only 7 sim done
-## V2: only 107 sim done
-## V3: only 12 sim done
-## V4: only 22 sim done
-## V5: only 30 sim done
-## V6: only 51 sim done
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_locens_obs_V7.txt", header=FALSE, comment.char="#")
-b <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_lowcens_376:531.txt", header=FALSE, comment.char="#")
-
-
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-matching_indices_V2 <- which(apply(b, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
-
-selected_rows_V2 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V2) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V2 <- rbind(selected_rows_V2, b[index:min(index+1, nrow(b)), ])
-}
+two_strat_15stage_locens_1 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_26:50")
+two_strat_15stage_locens_2 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_76:100")
+two_strat_15stage_locens_3 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_101:125")
+two_strat_15stage_locens_4 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_1:25")
+two_strat_15stage_locens_5 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_151:175")
+two_strat_15stage_locens_6 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_126:150")
+two_strat_15stage_locens_7 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_51:75")
+two_strat_15stage_locens_8 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_176:200")
+two_strat_15stage_locens_9 <- read.csv("~/survrf/Outputs/15stage_500pt_locens_201:210")
 
 
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1.205..1137.04.1315.774.1315.179.1303.026......NA......................0.), " ")
-split_values_V2 <- strsplit(as.character(selected_rows_V2$X.1.376.1163.111.1196.877.1290.115.1316.58......NA......................0.), " ")
 
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-cleaned_split_values_V2 <- lapply(split_values_V2, function(x) x[x != ""])
 
-## now, we subset the observed and the IHsurvrf
 
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-third_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[3])
+pt500_15stage_low_observed <- c(two_strat_15stage_locens_1$observed, two_strat_15stage_locens_2$observed,
+                                two_strat_15stage_locens_3$observed, two_strat_15stage_locens_4$observed,
+                                two_strat_15stage_locens_5$observed, two_strat_15stage_locens_6$observed,
+                                two_strat_15stage_locens_7$observed, two_strat_15stage_locens_8$observed,
+                                two_strat_15stage_locens_9$observed)
 
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-observed2 <- as.numeric(third_values_V2)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-fourth_values_V2 <- sapply(cleaned_split_values_V2, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-IHsurvrf2 <- as.numeric(fourth_values_V2)
-
-pt500_25stage_low_observed <- c(1179.303, 1174.092, 1186.392, 1168.456, 1164.47,
-                                1173.317, 1159.486, 1135.751, 1172.255, 1170.847,
-                                1165.927, 1180.468, 1161.419, 1167.43, 1188.548, 1163.283,
-                                1166.918, 1167.967, 1165.285, 1153.544, 1158.596,
-                                1159.414, 1172.082, 1150.766, 1162.323, observed1, observed2)
-
-pt500_25stage_low_IHsurvrf <- c(1228.147, 1157.587, 1228.418, 1293.653, 1167.892,
-                                1160.929, 1197.294, 1240.757, 1254.862, 1217.989,
-                                1296.912, 1297.104, 1301.163, 1304.961, 1252.483, 1329.84,
-                                1241.718, 1253.786, 1306.99, 1320.823, 1289.146,
-                                1198.282, 1238.886, 1270.393, 1260.407, IHsurvrf1, IHsurvrf2)
+pt500_15stage_low_IHsurvrf <- c(two_strat_15stage_locens_1$IHsurvrf, two_strat_15stage_locens_2$IHsurvrf,
+                                two_strat_15stage_locens_3$IHsurvrf, two_strat_15stage_locens_4$IHsurvrf,
+                                two_strat_15stage_locens_5$IHsurvrf, two_strat_15stage_locens_6$IHsurvrf,
+                                two_strat_15stage_locens_7$IHsurvrf, two_strat_15stage_locens_8$IHsurvrf,
+                                two_strat_15stage_locens_9$IHsurvrf)
 
 
 
 # Combine data into a dataframe
 data <- data.frame(
-  Group = c(rep("observed", length(pt500_25stage_low_observed)), rep("IHsurvrf", length(pt500_25stage_low_IHsurvrf))),
-  Value = c(pt500_25stage_low_observed, pt500_25stage_low_IHsurvrf),
-  n = rep("n = 500", 2*length(pt500_25stage_low_IHsurvrf)),
-  design = rep("25 stages: Low Censoring Rate", 2*length(pt500_25stage_low_IHsurvrf)),
-  setting = rep("2 Strata", 2*length(pt500_25stage_low_IHsurvrf))
+  Group = c(rep("observed", length(pt500_15stage_low_observed)), rep("IHsurvrf", length(pt500_15stage_low_IHsurvrf))),
+  Value = c(pt500_15stage_low_observed, pt500_15stage_low_IHsurvrf),
+  n = rep("n = 500", 2*length(pt500_15stage_low_IHsurvrf)),
+  design = rep("15 stages: Low Censoring Rate", 2*length(pt500_15stage_low_IHsurvrf)),
+  setting = rep("2 Strata", 2*length(pt500_15stage_low_IHsurvrf))
 )
 
 # Plot using ggplot2 with ticks on Y-axis and labels for mean points
@@ -767,9 +594,9 @@ data <- data.frame(
 #                              Value = c(mean(pt500_25stage_low_observed), mean(pt500_25stage_low_IHsurvrf))),
 #            aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = -0.5,color = "black", size = 6)   # Label mean points
 
-lowcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+lowcens_500pt_15stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(1120, 1350, by = 30), limits = c(1120, 1350)) +
+  scale_y_continuous(breaks = seq(660, 780, by = 20), limits = c(660, 780)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(. ~ design + n) +
   theme_bw() +
@@ -778,83 +605,53 @@ lowcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = G
         axis.ticks.y = element_line(),
         axis.title.x = element_blank()) + theme(legend.position = "none") +
   geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
-                              Value = c(mean(pt500_25stage_low_observed), mean(pt500_25stage_low_IHsurvrf))),
+                              Value = c(mean(pt500_15stage_low_observed), mean(pt500_15stage_low_IHsurvrf))),
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
-                               Value = c(mean(pt500_25stage_low_observed), mean(pt500_25stage_low_IHsurvrf))),
+                               Value = c(mean(pt500_15stage_low_observed), mean(pt500_15stage_low_IHsurvrf))),
              aes(x = Group, y = Value), color = "black", size = 3) 
 
 
 
 ##################################################################
-## plots for 500 pts, 25 stages, high censoring ##
+## plots for 500 pts, 15 stages, high censoring ##
 ## observational,                               ##
 ##################################################################
 
-two_strat_25stage_hicens_1 <- read.csv("~/survrf/Outputs/2STRATA_01Sep_25stage_500pt_hicens_PAR1")
+two_strat_15stage_hicens_1 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_101:125")
+two_strat_15stage_hicens_2 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_126:150")
+two_strat_15stage_hicens_3 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_1:25")
+two_strat_15stage_hicens_4 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_26:50")
+two_strat_15stage_hicens_5 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_51:75")
+two_strat_15stage_hicens_6 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_151:175")
+two_strat_15stage_hicens_7 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_76:100")
+two_strat_15stage_hicens_8 <- read.csv("~/survrf/Outputs/15stage_500pt_highcens_176:200")
+two_strat_15stage_hicens_9 <- read.csv("~/survrf/Outputs/15stage_500pt_hicens_201:205")
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/done_running/500pt_25stage_hicens_201:372.txt", header=FALSE, comment.char="#")
-
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
-
-
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1.205.1718.032.1831.851.1886.584.1857.042......NA......................0.), " ")
-
-
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
 
 ## using a threshold of 0.25
 ## 5 sims done
 ## 105 sims done
-pt500_25stage_hi_observed <- c(1707.919, 1691.335, 1675.723, 1703.018,
-                               1695.49, 1691.993, 1692.666, 1713.72,
-                               1711.027, 1712.989, two_strat_25stage_hicens_1$observed, observed1)
-pt500_25stage_hi_IHsurvrf <- c(1808.825, 1817.265, 1747.049, 1723.135,
-                               1790.413, 1816.506, 1844.138, 1757.585,
-                               1860.377, 1806.534, two_strat_25stage_hicens_1$IHsurvrf, IHsurvrf1)
+pt500_15stage_hi_observed <- c(two_strat_15stage_hicens_1$observed, two_strat_15stage_hicens_2$observed,
+                               two_strat_15stage_hicens_3$observed, two_strat_15stage_hicens_4$observed,
+                               two_strat_15stage_hicens_5$observed, two_strat_15stage_hicens_6$observed,
+                               two_strat_15stage_hicens_7$observed, two_strat_15stage_hicens_8$observed,
+                               two_strat_15stage_hicens_9$observed)
+pt500_15stage_hi_IHsurvrf <- c(two_strat_15stage_hicens_1$IHsurvrf, two_strat_15stage_hicens_2$IHsurvrf,
+                               two_strat_15stage_hicens_3$IHsurvrf, two_strat_15stage_hicens_4$IHsurvrf,
+                               two_strat_15stage_hicens_5$IHsurvrf,two_strat_15stage_hicens_6$IHsurvrf,
+                               two_strat_15stage_hicens_7$IHsurvrf, two_strat_15stage_hicens_8$IHsurvrf,
+                               two_strat_15stage_hicens_9$IHsurvrf)
 
 
 
 # Combine data into a dataframe
 data <- data.frame(
-  Group = c(rep("observed", length(pt500_25stage_hi_observed)), rep("IHsurvrf", length(pt500_25stage_hi_IHsurvrf))),
-  Value = c(pt500_25stage_hi_observed, pt500_25stage_hi_IHsurvrf),
-  n = rep("n = 500", 2*length(pt500_25stage_hi_IHsurvrf)),
-  design = rep("25 stages: High Censoring Rate", 2*length(pt500_25stage_hi_IHsurvrf)),
-  setting = rep("2 Strata", 2*length(pt500_25stage_hi_IHsurvrf))
+  Group = c(rep("observed", length(pt500_15stage_hi_observed)), rep("IHsurvrf", length(pt500_15stage_hi_IHsurvrf))),
+  Value = c(pt500_15stage_hi_observed, pt500_15stage_hi_IHsurvrf),
+  n = rep("n = 500", 2*length(pt500_15stage_hi_IHsurvrf)),
+  design = rep("15 stages: High Censoring Rate", 2*length(pt500_15stage_hi_IHsurvrf)),
+  setting = rep("2 Strata", 2*length(pt500_15stage_hi_IHsurvrf))
 )
 
 # Plot using ggplot2 with ticks on Y-axis and labels for mean points
@@ -874,9 +671,9 @@ data <- data.frame(
 #  
 #  theme(legend.position = "none")
 
-highcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+highcens_500pt_15stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(1650, 1900, by = 30), limits = c(1650, 1900)) +
+  scale_y_continuous(breaks = seq(980, 1080, by = 20), limits = c(980, 1080)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(setting ~ design + n) +
   theme_bw() +
@@ -885,162 +682,115 @@ highcens_500pt_25stage_2strata <- ggplot(data, aes(x = Group, y = Value, fill = 
         axis.ticks.y = element_line(),
         axis.title.x = element_blank()) + theme(legend.position = "none") +
   geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
-                              Value = c(mean(pt500_25stage_hi_observed), mean(pt500_25stage_hi_IHsurvrf))),
+                              Value = c(mean(pt500_15stage_hi_observed), mean(pt500_15stage_hi_IHsurvrf))),
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
-                               Value = c(mean(pt500_25stage_hi_observed), mean(pt500_25stage_hi_IHsurvrf))),
+                               Value = c(mean(pt500_15stage_hi_observed), mean(pt500_15stage_hi_IHsurvrf))),
              aes(x = Group, y = Value), color = "black", size = 3) 
 
 
 ##################################################################
-## 1 strata: plots for 500 pts, 25 stages, low censoring ##
+## 1 strata: plots for 500 pts, 15 stages, low censoring ##
 ## observational,                               ##
 ##################################################################
 
 
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/done_runnning/1STRATA_25stage_500pt_locens_V1.txt", header=FALSE, comment.char="#")
-
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
+one_strat_15stage_locens_1 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_1:25")
+one_strat_15stage_locens_2 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_26:50")
+one_strat_15stage_locens_3 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_101:125")
+one_strat_15stage_locens_4 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_51:75")
+one_strat_15stage_locens_5 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_76:100")
+one_strat_15stage_locens_6 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_126:150")
+one_strat_15stage_locens_7 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_151:175")
+one_strat_15stage_locens_8 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_176:200")
+one_strat_15stage_locens_9 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_locens_201:210")
 
 
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..3.1186.392.1210.587.1311.914.1287.359......NA......................0.), " ")
 
 
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-
-pt500_25_lo1_observed <- observed1
-pt500_25_lo1_IHsurvrf <- IHsurvrf1
+pt500_15_lo1_observed <- c(one_strat_15stage_locens_1$observed, one_strat_15stage_locens_2$observed,
+                           one_strat_15stage_locens_3$observed, one_strat_15stage_locens_4$observed,
+                           one_strat_15stage_locens_5$observed, one_strat_15stage_locens_6$observed,
+                           one_strat_15stage_locens_7$observed, one_strat_15stage_locens_8$observed,
+                           one_strat_15stage_locens_9$observed)
+pt500_15_lo1_IHsurvrf <- c(one_strat_15stage_locens_1$IHsurvrf, one_strat_15stage_locens_2$IHsurvrf,
+                           one_strat_15stage_locens_3$IHsurvrf, one_strat_15stage_locens_4$IHsurvrf,
+                           one_strat_15stage_locens_5$IHsurvrf, one_strat_15stage_locens_6$IHsurvrf,
+                           one_strat_15stage_locens_7$IHsurvrf, one_strat_15stage_locens_8$IHsurvrf,
+                           one_strat_15stage_locens_9$IHsurvrf)
 
 
 # Combine data into a dataframe
 data <- data.frame(
-  Group = c(rep("observed", length(pt500_25_lo1_observed)), rep("IHsurvrf", length(pt500_25_lo1_IHsurvrf))),
-  Value = c(pt500_25_lo1_observed, pt500_25_lo1_IHsurvrf),
-  n = rep("n = 500", 2*length(pt500_25_lo1_observed)),
-  design = rep("25 stages: Low Censoring Rate", 2*length(pt500_25_lo1_observed)),
-  setting = rep("1 Strata", 2*length(pt500_25_lo1_observed))
+  Group = c(rep("observed", length(pt500_15_lo1_observed)), rep("IHsurvrf", length(pt500_15_lo1_IHsurvrf))),
+  Value = c(pt500_15_lo1_observed, pt500_15_lo1_IHsurvrf),
+  n = rep("n = 500", 2*length(pt500_15_lo1_observed)),
+  design = rep("15 stages: Low Censoring Rate", 2*length(pt500_15_lo1_observed)),
+  setting = rep("1 Strata", 2*length(pt500_15_lo1_observed))
 )
 
 
 locens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(1150, 1300, by = 30), limits = c(1150, 1300)) +
+  scale_y_continuous(breaks = seq(660, 780, by = 20), limits = c(660, 780)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
-  facet_grid(setting ~ design + n) +
+  facet_grid(. ~ design + n) +
   theme_bw() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_text(size = 10),
         axis.ticks.y = element_line(),
         axis.title.x = element_blank()) + theme(legend.position = "none") +
   geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
-                              Value = c(mean(pt500_25_lo1_observed), mean(pt500_25_lo1_IHsurvrf))),
+                              Value = c(mean(pt500_15_lo1_observed), mean(pt500_15_lo1_IHsurvrf))),
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
-                               Value = c(mean(pt500_25_lo1_observed), mean(pt500_25_lo1_IHsurvrf))),
+                               Value = c(mean(pt500_15_lo1_observed), mean(pt500_15_lo1_IHsurvrf))),
              aes(x = Group, y = Value), color = "black", size = 3) 
   
 
 
 
 ##################################################################
-## 1 strata: plots for 500 pts, 25 stages, high censoring ##
+## 1 strata: plots for 500 pts, 15 stages, high censoring ##
 ## observational,                               ##
 ##################################################################
 
-
-######### data preprocessing for the .txt files that didn't finish running
-a <- read.delim2("~/survrf/Outputs/1STRATA_25stage_500pt_hicens_V1", header=FALSE, comment.char="#")
-
-# Find row indices where the pattern "Estimation-True Optimal" appears in any column
-matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
-
-# Initialize an empty vector to store the selected rows
-selected_rows_V1 <- data.frame()
-
-# Loop through each matching index
-for (index in matching_indices_V1) {
-  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
-  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
-}
+one_strat_15stage_hicens_1 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_51:75")
+one_strat_15stage_hicens_2 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_1:25")
+one_strat_15stage_hicens_3 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_26:50")
+one_strat_15stage_hicens_4 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_76:100")
+one_strat_15stage_hicens_5 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_151:175")
+one_strat_15stage_hicens_6 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_101:125")
+one_strat_15stage_hicens_7 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_126:150")
+one_strat_15stage_hicens_8 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_highcens_176:200")
+one_strat_15stage_hicens_9 <- read.csv("~/survrf/Outputs/1STRATA_15stage_500pt_hicens_201:210")
 
 
-## splitting the values of the second column which contain the numeric results of the sims
-#########
-######### NOTE: this subsetting the column name part most likely to make errors
-#########
-split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..4.1691.993.1802.992.1861.475.1853.67......NA......................0.), " ")
-
-
-# Remove any blank elements ("") from each split string
-cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
-
-## now, we subset the observed and the IHsurvrf
-
-##### observed #######
-## observed is column 2's 3rd number
-# Extract the third value from each split string
-third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
-
-# Convert to numeric if the values are numeric
-observed1 <- as.numeric(third_values_V1)
-
-##### IHsurvrf #######
-## IHsurvrf is column 2's 4th number
-fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
-
-# Convert to numeric if the values are numeric
-IHsurvrf1 <- as.numeric(fourth_values_V1)
-
-pt500_25_hi1_observed <- observed1
-pt500_25_hi1_IHsurvrf <- IHsurvrf1
+pt500_15_hi1_observed <- c(one_strat_15stage_hicens_1$observed, one_strat_15stage_hicens_2$observed,
+                           one_strat_15stage_hicens_3$observed, one_strat_15stage_hicens_4$observed,
+                           one_strat_15stage_hicens_5$observed, one_strat_15stage_hicens_6$observed,
+                           one_strat_15stage_hicens_7$observed, one_strat_15stage_hicens_8$observed,
+                           one_strat_15stage_hicens_9$observed)
+pt500_15_hi1_IHsurvrf <- c(one_strat_15stage_hicens_1$IHsurvrf, one_strat_15stage_hicens_2$IHsurvrf,
+                           one_strat_15stage_hicens_3$IHsurvrf, one_strat_15stage_hicens_4$IHsurvrf,
+                           one_strat_15stage_hicens_5$IHsurvrf, one_strat_15stage_hicens_6$IHsurvrf,
+                           one_strat_15stage_hicens_7$IHsurvrf, one_strat_15stage_hicens_8$IHsurvrf,
+                           one_strat_15stage_hicens_9$IHsurvrf)
 
 
 # Combine data into a dataframe
 data <- data.frame(
-  Group = c(rep("observed", length(pt500_25_hi1_observed)), rep("IHsurvrf", length(pt500_25_hi1_IHsurvrf))),
-  Value = c(pt500_25_hi1_observed, pt500_25_hi1_IHsurvrf),
-  n = rep("n = 500", 2*length(pt500_25_hi1_observed)),
-  design = rep("25 stages: High Censoring Rate", 2*length(pt500_25_hi1_observed)),
-  setting = rep("1 Strata", 2*length(pt500_25_hi1_observed))
+  Group = c(rep("observed", length(pt500_15_hi1_observed)), rep("IHsurvrf", length(pt500_15_hi1_IHsurvrf))),
+  Value = c(pt500_15_hi1_observed, pt500_15_hi1_IHsurvrf),
+  n = rep("n = 500", 2*length(pt500_15_hi1_observed)),
+  design = rep("15 stages: High Censoring Rate", 2*length(pt500_15_hi1_observed)),
+  setting = rep("1 Strata", 2*length(pt500_15_hi1_observed))
 )
 
 
 hicens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(1650, 1890, by = 30), limits = c(1650, 1890)) +
+  scale_y_continuous(breaks = seq(980, 1080, by = 20), limits = c(980, 1080)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   facet_grid(setting ~ design + n) +
   theme_bw() +
@@ -1049,10 +799,10 @@ hicens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Gr
         axis.ticks.y = element_line(),
         axis.title.x = element_blank()) + theme(legend.position = "none") +
   geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
-                              Value = c(mean(pt500_25_hi1_observed), mean(pt500_25_hi1_IHsurvrf))),
+                              Value = c(mean(pt500_15_hi1_observed), mean(pt500_15_hi1_IHsurvrf))),
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = -5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
-                               Value = c(mean(pt500_25_hi1_observed), mean(pt500_25_hi1_IHsurvrf))),
+                               Value = c(mean(pt500_15_hi1_observed), mean(pt500_15_hi1_IHsurvrf))),
              aes(x = Group, y = Value), color = "black", size = 3) 
 
 
@@ -1060,18 +810,88 @@ hicens_500pt_15stage_1strata <- ggplot(data, aes(x = Group, y = Value, fill = Gr
 ####### grid plot
 
 # Combine plots with a common label
-plot_grid(lowcens_500pt_25stage_2strata + guides(fill = FALSE), 
-          highcens_500pt_25stage_2strata + guides(fill = FALSE),
-          hicens_500pt_15stage_1strata, 
+plot_grid( lowcens_500pt_15stage_2strata + guides(fill = FALSE), 
+          highcens_500pt_15stage_2strata + guides(fill = FALSE),
           locens_500pt_15stage_1strata,
+          hicens_500pt_15stage_1strata, 
           align = "h", nrow = 2, ncol = 2)
+
+# Save the plot with a higher resolution
+ggsave("15stage.png", plot = last_plot(), dpi = 300, width = 10, height = 8)
 
 ## ---------------------------------------------------------------##
 
+### Now, plotting our RDA results
+
+cv_1 <- read.csv("~/survrf/Outputs/RDA_res_1")[1,]
+cv_2 <- read.csv("~/survrf/Outputs/RDA_res_2")[2, ]
+cv_3 <- read.csv("~/survrf/Outputs/RDA_res_3")[3, ]
+cv_4 <- read.csv("~/survrf/Outputs/RDA_res_4")[4, ]
+cv_5 <- read.csv("~/survrf/Outputs/RDA_res_5")[5, ]
+cv_6 <- read.csv("~/survrf/Outputs/RDA_res_6")[6, ]
+
+cv_observed <- c(cv_1$observed, cv_2$observed, cv_3$observed,
+                 cv_4$observed, cv_5$observed, cv_6$observed)
+
+cv_IHsurvrf <- c(cv_1$IHsurvRF, cv_2$IHsurvRF, cv_3$IHsurvRF,
+                 cv_4$IHsurvRF, cv_5$IHsurvRF, cv_6$IHsurvRF)
+
+# Combine data into a dataframe
+data <- data.frame(
+  Group = c(rep("observed", length(cv_observed)), rep("IHsurvrf", length(cv_IHsurvrf))),
+  Value = c(cv_observed, cv_IHsurvrf)
+)
+
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
+  scale_y_continuous(breaks = seq(2200, 2500, by = 50), limits = c(2200, 2600)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        axis.title.x = element_blank()) + theme(legend.position = "none") +
+  geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
+                              Value = c(mean(cv_observed), mean(cv_IHsurvrf))),
+            aes(x = Group, y = Value, label = round(Value, 2)), vjust = 5, hjust = 0,color = "black", size = 4) +
+  geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
+                               Value = c(mean(cv_observed), mean(cv_IHsurvrf))),
+             aes(x = Group, y = Value), color = "black", size = 3) 
 
 
 
 
+####### 90% censoring, a = -6, and a = -3; 300 pts, 10 stages
+
+a <- read.csv("~/survrf/Outputs/1STRATA_300pt_90_cens")
+
+observed <- c(a$observed)
+
+rf <- c(a$IHsurvrf)
+
+sd(rf)
+
+# Combine data into a dataframe
+data <- data.frame(
+  Group = c(rep("observed", length(observed)), rep("IHsurvrf", length(rf))),
+  Value = c(observed, rf)
+)
+
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
+  #scale_y_continuous(breaks = seq(2200, 2500, by = 50), limits = c(2200, 2600)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        axis.title.x = element_blank()) + theme(legend.position = "none") +
+  geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
+                              Value = c(mean(observed), mean(rf))),
+            aes(x = Group, y = Value, label = round(Value, 2)), vjust = 5, hjust = 0,color = "black", size = 4) +
+  geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
+                               Value = c(mean(observed), mean(rf))),
+             aes(x = Group, y = Value), color = "black", size = 3) + ggtitle("90% censoring, 10 stages, 300 pts")
 
 
 

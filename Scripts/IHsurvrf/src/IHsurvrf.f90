@@ -1317,19 +1317,6 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
 
   END DO
 
-    !!!!!!!
-    !!!!!!! Adding print statement
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "Rb (Probability at risk at each time point):", Rb
-    !print *, "Nj (Number at risk at each time point):", Nj
-    !print *, "Oj (Number of events at each time point):", Oj
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
-
   ! Kaplan-Meier estimate survival function
   ! {nt}
 
@@ -1350,9 +1337,6 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
 
   mean = sum(survFunc * dt)
 
-  !!!!!! more printing !!!!!!!!!
-  !print *, "survFunc (Calculated survival function):", survFunc
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   RETURN
 END SUBROUTINE
@@ -1585,6 +1569,9 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     ! initialize arrays to store indices for cases
     !indices = (/(i,i=1,total_cases)/)-- for prop score; but we can incorporate this directly
     !indices = (/(i,i=1,n)/)
+
+     indices = (/(i,i=1,n)/)
+
     jdex = indices
 
     ! indices for all covariates

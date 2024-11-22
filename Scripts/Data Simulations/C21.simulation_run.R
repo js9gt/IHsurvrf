@@ -18,9 +18,9 @@
 arg <- commandArgs(trailingOnly = TRUE)
 if (length(arg) < 4) {
   warning("commandArgs was not provided. Being set as c(1,1,1,1).")
-  message(" 500 patients, max stages = 25, tau = 3,000, 10,000 eval, 
-          high censoring, 2 strata")
-   arg = c(2, 1, 2, 1) # by default
+  message(" 500 patients, max stages = 10, tau = 1,000, 10,000 eval, 
+          lo censoring, 1 strata")
+   arg = c(1, 1, 2, 1) # by default
   print(arg)
 }
 
@@ -45,9 +45,7 @@ default <- list(
   ## tau (days): total study length
   tau = 1500,
   ## maximum number of stages
-  n.stages = 15,
-  ## the stage we start at since we don't want issues with too small sample size
-  ss = NULL)
+  n.stages = 15)
 
 # arg4 crit: a list containing different 2 different criterion with associated values
 crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "truncated mean E[T]"),
@@ -93,7 +91,7 @@ coefs <- list(
     ),
     coef_censoring = list(
       ## a = -6 for 40% censoring with tau = 2000
-      a = -12, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -11, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   ),
 
@@ -107,7 +105,7 @@ coefs <- list(
     
       ## for 30% set a = -5, tau = 5000
       ## for 45% set -6, tau = 5000
-      a = -6.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -5.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_nextvisit = list(
       a = -1.5, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
@@ -116,7 +114,7 @@ coefs <- list(
       
       ## for 30% set a = -18
       ## for 45% set -10, tay = 5000
-      a = -12, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -11, b = -0.2, c = -0.5, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   )
 )
@@ -196,4 +194,9 @@ skip.opt <- TRUE
 cv.nodesize = FALSE
 
 source("~/survrf/Scripts/Data Simulations/C21.simulation_body.R")
+
+
+
+
+
 
