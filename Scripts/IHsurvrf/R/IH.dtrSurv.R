@@ -20,7 +20,7 @@ library(dplyr)
 library(survival)
 library(IHsurvrf)
 
-dyn.load("src/IHsurvrf.so")
+#dyn.load("src/IHsurvrf.so")
 
 IHdtrSurv <- function(data,
                          txName,
