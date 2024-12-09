@@ -11,6 +11,6 @@ Figures/**
 .Rproj.user
 
 # Ignore everything in the Outputs folder
-Outputs/*
+Outputs/
 
 *.RData
