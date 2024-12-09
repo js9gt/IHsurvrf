@@ -10,7 +10,7 @@
 # .parameters(timePoints, nTimes, response, nTree, ERT, uniformSplit,
 #                      randomSplit, splitRule, replace, nodeSize,
 #                      minEvent, tieMethod, criticalValue,
-#                      survivalTime, nSamples, stratifiedSplit)
+#                       nSamples, stratifiedSplit)
 
 
 
@@ -45,18 +45,11 @@ setClass(Class = "Parameters_Mean",
 
 
 
-## create a new S4 class called "Parameters_Survival"
-
-setClass(Class = "Parameters_Survival",
-
-         ## contains almost same info but CriticalValueSurvival instead of mean
-         contains = c("TimeInfo", "CriticalValueSurvival", "TreeType", "TreeConditions"))
-
 ## create a class union called "Parameters" that can refer to either "Parameters_Mean" or "Parameters_Survival"
 ## functions can accept either class type with this
 
 setClassUnion(name = "Parameters",
-              members = c("Parameters_Mean", "Parameters_Survival"))
+              members = c("Parameters_Mean"))
 
 setMethod(f = "initialize",
           signature = c(.Object = "Parameters_Mean"),
@@ -81,29 +74,7 @@ setMethod(f = "initialize",
 
           })
 
-setMethod(f = "initialize",
-          signature = c(.Object = "Parameters_Survival"),
-          def = function(.Object, ...) {
 
-            obj <- list(...)
-
-            for (i in 1L:length(x = obj)) {
-              if (is(object = obj[[ i ]], class2 = "TimeInfo")) {
-                as(.Object, "TimeInfo") <- obj[[ i ]]
-              } else if (is(object = obj[[ i ]], class2 = "CriticalValueBase")) {
-                as(.Object, is(object = obj[[ i ]])[1L]) <- obj[[ i ]]
-              } else if (is(object = obj[[ i ]], class2 = "TreeType")) {
-                as(.Object, "TreeType") <- obj[[ i ]]
-              } else if (is(object = obj[[ i ]], class2 = "TreeConditions")) {
-                as(.Object, "TreeConditions") <- obj[[ i ]]
-              } else {
-                stop("unrecognized object sent to Parameters object")
-              }
-            }
-
-            return( .Object )
-
-          })
 
 #-------------------------------------------------------------------------------
 # Function to verify inputs and create a Parameters object
@@ -167,19 +138,11 @@ setMethod(f = "initialize",
     ## character object of "first" or "random"
     tieMethod,
 
-    ## character object of "mean", "surv.prob" or "surv.mean"
+    ## character object of "mean"
     criticalValue,
-
-    ## input as "evalTime"
-    ## numeric or NULL
-    ## if numeric, it's time at which survival probability is to be estimated to determine optimal treatment rule
-    ## if this is entered, criticalValue needs to be "surv.prob" or "surv.mean"
-    ## if this is NULL, criticalValue needs to be "mean"
-    survivalTime,
 
     ## gotten from code: number of individuals in the dataset
     nSamples,
-
 
     ## numeric. Stratified random split coefficient.
     stratifiedSplit) {
@@ -209,10 +172,7 @@ setMethod(f = "initialize",
   ## these values are used in setUpBasics
   ## class CriticalValueMean or CriticalValueSurvival
 
-  criticalValue <- .criticalValue(criticalValue = criticalValue,
-                                  survivalTime = survivalTime,
-                                  tau = .Tau(object = timeInfo),
-                                  timePoints = .TimePoints(object = timeInfo))
+  criticalValue <- .criticalValue(criticalValue = criticalValue)
 
 
 
@@ -250,19 +210,6 @@ setMethod(f = "initialize",
     minEvent = minEvent,
     stratifiedSplit = stratifiedSplit)
 
-  ## based on the class of the "criticalValue" object, determines whether to return "Parameters_Survival" or "Parameters_Mean" object
-  ## criticalValue returns object of class CriticalValueMean or CriticalValueSurvival
-  if (is(object = criticalValue, class2 = "CriticalValueSurvival")) {
-
-    ## if class is CriticalValueSurvival, return "Parameters_Survival" class.
-    ## CriticalValueSurvival class initiated in class_CriticalValueSurvival.R Script
-
-    return( new(Class = "Parameters_Survival",
-                timeInfo,
-                criticalValue,
-                treeType,
-                treeConditions) )
-  } else {
 
     ## otherwise, return "Parameters_Mean" class
     ## CriticalValueMean class initiated in class_CriticalValueMean.R Script
@@ -274,5 +221,4 @@ setMethod(f = "initialize",
                 treeConditions) )
   }
 
-}
 

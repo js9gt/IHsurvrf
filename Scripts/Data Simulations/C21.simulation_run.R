@@ -48,10 +48,7 @@ default <- list(
   n.stages = 10)
 
 # arg4 crit: a list containing different 2 different criterion with associated values
-crit <- list(crit1 = list(criterion = "mean", crit.value = NULL, value = "truncated mean E[T]"),
-             crit2 = list(criterion = "surv.mean",
-                          ## 2 year survival in terms of days
-                          crit.value = 730, value = "S(730)"))
+crit <- list(crit1 = list(criterion = "mean", value = "truncated mean E[T]"))
 
 # arg3 size: a list containing 2 training sample sizes
 size <- list(
@@ -72,8 +69,6 @@ propensity <-   # (int), state
                   ncol = 4)            # 4 treatments (columns)
          ))    
 
-### NOTE: *I think* that we would change different settings for alpha (similar to arg1 beta) to get different censoring rates
-## maybe also dif # of baseline variables, and different number of random state variables?
 # arg1 beta: a list containing beta values for 4 different settings
 # Create a list for the settings
 coefs <- list(

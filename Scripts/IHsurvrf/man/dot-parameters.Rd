@@ -24,9 +24,7 @@ concatenated by the software.
   minEvent,
   tieMethod,
   criticalValue,
-  survivalTime,
   nSamples,
-  pooled,
   stratifiedSplit
 )
 }

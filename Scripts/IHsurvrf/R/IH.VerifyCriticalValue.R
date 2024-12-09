@@ -4,20 +4,20 @@
 #
 # methods are not exported and are only for internal convenience
 #
-# ensures that 'criticalValue' is one of {'mean', 'surv.prob', 'surv.man'}. 
+# ensures that 'criticalValue' is one of {'mean', 'surv.prob', 'surv.man'}.
 #
-# successful methods return the original character possibly modified to be 
+# successful methods return the original character possibly modified to be
 # all lower case.
 
 
 ## function used in criticalValue.R
 
 
-## create a new generic function called ".VerifyCriticalValue" 
+## create a new generic function called ".VerifyCriticalValue"
 
 setGeneric(name = ".VerifyCriticalValue",
-           def = function(criticalValue, ...) { 
-             standardGeneric(".VerifyCriticalValue") 
+           def = function(criticalValue, ...) {
+             standardGeneric(".VerifyCriticalValue")
            })
 
 ## method throws an error if it gets executed for a class that isn't appropriate
@@ -25,9 +25,9 @@ setGeneric(name = ".VerifyCriticalValue",
 # the default method generates an error
 setMethod(f = ".VerifyCriticalValue",
           signature = c(criticalValue = "ANY"),
-          definition = function(criticalValue, ...) { 
+          definition = function(criticalValue, ...) {
             stop("criticalValue must be one of ",
-                 "{'mean', 'surv.prob', 'surv.mean'}", 
+                 "{'mean'}",
                  call. = FALSE)
           })
 
@@ -35,23 +35,23 @@ setMethod(f = ".VerifyCriticalValue",
 
 setMethod(f = ".VerifyCriticalValue",
           signature = c(criticalValue = "character"),
-          definition = function(criticalValue, ...) { 
-            
+          definition = function(criticalValue, ...) {
+
             ## converts the input "criticalValue" to lowercase to standardize input
-            
+
             criticalValue <- tolower(x = criticalValue)
-            
+
             ## checks if the input is one of these
-            
-            if (criticalValue %in% c("mean", "surv.prob", "surv.mean"))
-              
+
+            if (criticalValue %in% c("mean"))
+
               ## if so, returns the lowercase ctitical value
               return( criticalValue )
-            
+
             ## otherwise, if it doesn't match one of the accepted values, returns an error
-            
+
             stop("criticalValue must be one of ",
-                 "{'mean', 'surv.prob', 'surv.mean'}", 
+                 "{'mean'}",
                  call. = FALSE)
-            
+
           })

@@ -30,7 +30,6 @@ IHdtrSurv <- function(data,
                          nTimes = 200L,
                          tau = NULL,
                          criticalValue = "mean",
-                         evalTime = NULL,
                          splitRule = NULL,
                          ERT = TRUE,
                          uniformSplit = NULL,
@@ -135,7 +134,6 @@ IHdtrSurv <- function(data,
     minEvent = minEvent,
     tieMethod = tieMethod,
     criticalValue = criticalValue,
-    survivalTime = evalTime,
 
     ## nSamples is created (not input)
     nSamples = nSamples,
@@ -162,11 +160,6 @@ IHdtrSurv <- function(data,
 
     ## meaning, for mean-based criteria, specific index and fraction aren't applicable or needed
 
-  } else if (crit == "surv.mean" || crit == "surv.prob") {
-    ## retrieve the "Index" and the"sFraction" from the params object
-    ## these are output depending on the input "survivalTime" parameter
-    ind = params@sIndex
-    frac = params@sFraction
   }
 
   # set basic parameter values in Fortran
@@ -203,9 +196,6 @@ IHdtrSurv <- function(data,
 
     t_minEvent = as.integer(x = .MinEvent(object = params)),
 
-    ## logical comparison of whether the "logrank" split rule is used or not
-    ## if not, the truncated mean is used
-    t_rule = as.integer(x = params@splitRule == 'logrank'),
 
     ## index (as determined by type of critical value estimator)
     t_sIndex = as.integer(x = ind),

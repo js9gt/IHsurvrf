@@ -14,7 +14,7 @@
 #  @slot uniformSplit A logical object; TRUE indicates that cutoffs are to
 #    be selected based on a uniformed random number
 #
-#  @slot splitRule A character object; must be one of {'logrank', 'mean'}
+#  @slot splitRule A character object; must be one of {'mean'}
 #
 #  @slot tieMethod A character object; must be one of {'first', 'random', 'NA'}
 #
@@ -85,9 +85,8 @@ setClass(Class = "TreeType",
     ## if null, 'replace' = !'ERT'
     replace,
 
-    # character object of "logrank" or "mean"
+    # character object of "mean"
     ## if value is NULL and criticalValue == "mean"; this will use "mean"
-    ## if value is NULL and criticalValue == "surv.prob" or "surv.mean"; this will use logrank
     splitRule,
 
     ## character object of "first" or "random"
@@ -97,7 +96,7 @@ setClass(Class = "TreeType",
     randomSplit,
 
     ## not a slot in above function
-    ## character object of "mean", "surv.prob" or "surv.mean"
+    ## character object of "mean"
     criticalValue) {
 
   # ensure that ERT is logical or NULL. Methods return a logical.
@@ -122,7 +121,7 @@ setClass(Class = "TreeType",
   # ensure that replace is logical or NULL. Methods return a logical.
   replace <- .VerifyReplace(replace = replace, ERT = ERT)
 
-  ## ensures the input split rule is either "logrank" or "mean", convert to lowercase
+  ## ensures the input split rule is "mean", convert to lowercase
   ## VerifySplitRule.R script
 
   # verify splitRule. methods return the original character object with possible

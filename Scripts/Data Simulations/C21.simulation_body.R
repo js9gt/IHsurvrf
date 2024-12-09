@@ -11,10 +11,7 @@ source("F02.multistage_sim.R")
 ## checks value of the variable "criterion" to define value function
 if (criterion == "mean") {
   val.fn <- function(x) {mean(x, na.rm = TRUE)}
-} else if (criterion %in% c("surv.prob", "surv.mean")) {
-  ## calculates the proportion of elements in x that are greater than or equal to crit.value
-  val.fn <- function(x) {mean(x >= crit.value, na.rm = TRUE)}
-}
+} 
 
 # Function to count numbers in each row in the summary output
 ## this excludes asterisks
@@ -144,14 +141,14 @@ run_simulation <- function(sim){
                        time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
                        
   
-  attr(result, "criterion") <- list(criterion = criterion, crit.value = crit.value)
+  attr(result, "criterion") <- list(criterion = criterion)
   
   for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
   
   
 #for (sim in 41:51) {
   cat("###########################  simulation ", sim, "########################### \n")
-  cat("########################### (criterion ", criterion, crit.value, ")################## \n")
+  cat("########################### (criterion ", criterion,  ")################## \n")
 
   cat ("1. Data \n")
 
@@ -245,11 +242,9 @@ if (!skip.IHsurvrf) {
 
                   ## mean,surv.prob, or surv.mean
                   criticalValue = criterion,
-                  ## the time at which to compare the survival probabilities, here, looking at 5 year survival (from the set value of crit.value for the criterion-- or NULL)
-                  evalTime = crit.value,
 
                   ## if the criterion is mean, use truncated mean, otherwise, use logrank test
-                  splitRule = ifelse(criterion == "mean", "mean", "logrank"),
+                  splitRule = "mean",
 
                   ## use ERT
                   ERT = TRUE,
@@ -282,7 +277,6 @@ if (!skip.IHsurvrf) {
                   #'    total number of covariates under consideration).
                   stratifiedSplit = 0.1,
                   stageLabel = "_",
-                  #stage.start = ss,
                   
                   #########
                   ######### NOTE: we need to change this nstrata if we want to test different things

@@ -18,7 +18,6 @@ MODULE IH_INNERS
   INTEGER, SAVE :: ERT ! 0/1 1 = use extremely randomized tree
   INTEGER, SAVE :: uniformSplit ! 0/1 1 = random cutoff comes from values
   INTEGER, SAVE :: nt ! number of time points
-  INTEGER, SAVE :: rule ! 1 if logrank 0 if truncated mean
   INTEGER, SAVE :: nLevs ! maximum number of levels
 
   ! used in setupInners:
@@ -660,18 +659,9 @@ atRiskLeft(j) = atRiskLeft(j-1) - pd1(j-1)
 atRiskRight(j) = atRiskRight(j-1) - pd2(j-1)
 END DO
 
-! if logrank, do calculations that do not depend on node occupancy
-! if the rule == 1, we're using the logrank test for splitting rule
-    !! therefore we would call a subroutine called "logrankSetUp"
-
-    IF (rule == 1) THEN
-      CALL logrankSetUp(atRiskLeft, atRiskRight, eventsLeft, eventsRight, &
-                      & numJ, denJ)
-    END IF
 
     ! loop over each potential split point within range splitLeft to splitLeftFinal
-    ! calculate test statistic ("valuej") for each potential split point ("j") based on rule
-    ! rule is either logrank or mean split
+    ! calculate test statistic ("valuej") for each potential split point ("j")
 
     ! initialize counter variable to 1
     cnt = 1
@@ -759,19 +749,12 @@ eventsRight = eventsRight - D
 IF (xSorted(j) .GE. (xSorted(j+1) - 1d-8)) CYCLE
 
 ! calculate test statistic
-! if the splitting rule is the log-rank test,
-IF (rule == 1) THEN
 
-! call a subroutine to calculate the log-rank test statistic based on updated number at risk and events in left and right nodes
-CALL logrank(atRiskLeft, atRiskRight, eventsLeft, numJ, &
-               & denJ, valuej)
-ELSE
-
-! otherwise, call a subroutine called "meanSplit" to calculate TS based on mean split rule
+! call a subroutine called "meanSplit" to calculate TS based on mean split rule
 ! we note that these inputs are all propensity adjusted
 
 CALL meanSplit(atRiskLeft, atRiskRight, eventsLeft, eventsRight, valuej)
-END IF
+
 
 ! if "set" = 0 AKA it's the first value being processed in the loop
       ! or if the current test statistic ("valuej") is greater than current maximum TS, enter the block
@@ -1027,7 +1010,6 @@ END SUBROUTINE
 
   ! ************************** subroutine: meanSplit ************************************** !
   ! ** this is used in subroutine "tfindSplit"
-  ! ** there, if log-rank test isn't used (rule !=1), use the meanSplit rule
 
   !!!!!!! create a new subroutine called "meanSplit"
 
@@ -1079,150 +1061,7 @@ SUBROUTINE meanSplit(N1j, N2j, O1j, O2j, Z)
 
 END SUBROUTINE
 
-  ! ******************************** subroutine: logRankSetUp ******************************** !
-   !** used in subroutine tfindSplit
 
-! Log rank test set up
-! N1j: real(:), at risk in group 1
-! N2j: real(:), at risk in group 2
-! O1j: real(:), events in group 1
-! O2j: real(:), events in group 2
-! numJ: real(:), numerator
-! denJ: real(:), denominator
-
-! takes inputs N1j, N2j, O1j, O2j
-! provides outputs numJ (numerator), denJ (denominator)
-
-SUBROUTINE logRankSetUp(N1j, N2j, O1j, O2j, numJ, denJ)
-
-! all variables must be declared
-
-  IMPLICIT NONE
-
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: N1j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: N2j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: O1j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: O2j
-
-  !! output variables: numerator and denominator
-
-  REAL(dp), DIMENSION(1:nt), INTENT(OUT) :: numJ
-  REAL(dp), DIMENSION(1:nt), INTENT(OUT) :: denJ
-
-  ! local variable used as a loop index
-
-  INTEGER :: i
-
-  REAL(dp) :: Nj, Oj
-
-    ! initialize the numerator and denominator to 0
-
-  numJ = 0.d0
-  denJ = 0.d0
-
-  ! loop through each of the time points (nt) is total number of time points
-
-  DO i = 1, nt
-
-  ! if there are 0 individuals at risk in group 1 or group2 (based on a certain tolerance),
-  ! CYCLE to skip iterations of the do loop
-
-    IF (N1j(i) .LT. 1d-8) CYCLE
-    IF (N2j(i) .LT. 1d-8) CYCLE
-
-    ! time points for which both events have individuals at risk
-
-    ! calculate the sum of individuals at risk in the two groups
-    ! number of individuals at risk for type 1 or 2 events
-    Nj = N1j(i) + N2j(i)
-
-    ! calculate the number of events in both groups
-    ! number of events of type 1 or type 2
-    Oj = O1j(i) + O2j(i)
-
-    ! calculate the numerator at the i-th time point-- ratio of events / total at risk at ith time point
-
-    numJ(i) = Oj / Nj
-
-    ! contribution to the denominator of the log-rank test statistic at ith time point
-
-    denJ(i) = numJ(i) * (Nj - Oj) / (Nj * Nj)
-
-  END DO
-
-END SUBROUTINE logrankSetUp
-
-
- ! ******************************** subroutine: logRank ******************************** !
- !** used in subroutine tfindSplit
-
-! Log rank test
-! N1j: real(:), at risk in group 1
-! N2j: real(:), at risk in group 2
-! O1j: real(:), events in group 1
-! O2j: real(:), events in group 2
-! numJ: real(:), numerator
-! denJ: real(:), denominator
-! Z: real, test value
-
-! takes several inputs, and outputs a scalar called "Z" which is the test statistic
-
-SUBROUTINE logRank(N1j, N2j, O1j, numJ, denJ, Z)
-
-  ! ensures all variables must be explicitly declared
-
-  IMPLICIT NONE
-
-  ! declares input and output variables and specifies types, dimensions, intent
-
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: N1j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: N2j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: O1j
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: numJ
-  REAL(dp), DIMENSION(1:nt), INTENT(IN) :: denJ
-  REAL(dp), INTENT(OUT) :: Z
-
-  ! declare an internal loop variable to be used
-
-  INTEGER :: i
-
-  ! declare local variables "den" and "num" to store numerator and denominator of TS
-
-  REAL(dp) :: den, num
-
-  ! initialize the numerator and denom to 0
-
-  num = 0.d0
-  den = 0.d0
-
-  ! loop over each of the time points
-  DO i = 1, nt
-
-  ! if either N1j(i) or N2j(i) is effectively 0 (no one at risk in either group), CYCLE to next iteration of time
-    IF (N1j(i) .LT. 1d-8) CYCLE
-    IF (N2j(i) .LT. 1d-8) CYCLE
-    ! time points for which both events have individuals at risk
-
-    ! accumulate numerator and denom values for log-rank TS
-
-    num = num + O1j(i) - numJ(i) * N1j(i)
-    den = den + denJ(i) * N1j(i) * N2j(i)
-
-  END DO
-
-  ! if the denom is greater than 0 (with some tolerance), set
-
-  IF (den .GT. 1d-8) THEN
-
-  ! calculate LR statistic and set Z to num^2 / denom
-    Z = num * num / den
-  ELSE
-
-  ! otherwise, set Z to 0 to avoid division by a small number
-    Z = 0.d0
-  END IF
-
-END SUBROUTINE
 
   ! *********************************** subroutine: calcValueSingle ***************************** !
   !** used in subroutine getCovariate
@@ -2408,7 +2247,6 @@ END SUBROUTINE
 !   when using ERT
 ! t_nodeSize, integer, the minimum number of cases in each node
 ! t_minEvent, integer, the minimum number of events in each node
-! t_rule, integer, 0 = mean, 1 = logrank
 ! t_sIndex, integer, the indices of time points that is closest to the
 !   requested survival time
 ! t_sFraction, real, the fractional distance between time points the the
@@ -2418,7 +2256,7 @@ END SUBROUTINE
 
 
 SUBROUTINE setUpBasics(t_nt, t_dt, t_rs, t_ERT, t_uniformSplit, t_nodeSize, &
-                     & t_minEvent, t_rule, t_sIndex, t_sFraction, &
+                     & t_minEvent, t_sIndex, t_sFraction, &
                      & t_stratifiedSplit, t_replace)
 
   ! using the inners module
@@ -2439,7 +2277,6 @@ SUBROUTINE setUpBasics(t_nt, t_dt, t_rs, t_ERT, t_uniformSplit, t_nodeSize, &
   INTEGER, INTENT(IN) :: t_uniformSplit
   INTEGER, INTENT(IN) :: t_nodeSize
   INTEGER, INTENT(IN) :: t_minEvent
-  INTEGER, INTENT(IN) :: t_rule
   INTEGER, INTENT(IN) :: t_sIndex
   REAL(dp), INTENT(IN) :: t_sFraction
   REAL(dp), INTENT(IN) :: t_stratifiedSplit
@@ -2482,7 +2319,6 @@ SUBROUTINE setUpBasics(t_nt, t_dt, t_rs, t_ERT, t_uniformSplit, t_nodeSize, &
   uniformSplit = t_uniformSplit
   nodeSize = t_nodeSize
   minEvent = t_minEvent
-  rule = t_rule
   stratifiedSplit = t_stratifiedSplit
   replace = t_replace
 
