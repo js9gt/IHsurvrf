@@ -7,12 +7,10 @@ Figures/*.png
 # ignore subfolders
 Figures/**
 
-# ignore all excel outputs
-Outputs/*.xlsx
+# ignore all outputs
 .Rproj.user
 
-# ignore all csv and txt files from sims
-Outputs/*.txt
-Outputs/*.csv
+# Ignore everything in the Outputs folder
+Outputs/*
 
 *.RData
