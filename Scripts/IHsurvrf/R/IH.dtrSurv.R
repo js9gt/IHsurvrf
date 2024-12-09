@@ -44,7 +44,6 @@ IHdtrSurv <- function(data,
                          nodeSize = 6L,
                          nTree = 10L,
                          mTry = NULL,
-                         pooled = FALSE,
                          stratifiedSplit = NULL,
                          stageLabel = ".",
                          ## number of strata we want to split into which fit different trees
@@ -52,8 +51,7 @@ IHdtrSurv <- function(data,
 
                          ## the number of days we want to go back by from tau to help define strata
                          ## the smaller, the more accurate the division of the percentage of events in each strata
-                         windowsize = 50,
-                      propscore = NULL
+                         windowsize = 50
                          ) {
 
 
@@ -102,38 +100,6 @@ IHdtrSurv <- function(data,
   )
 
 
-  ## if the propensity score is NULL, add it as a column to the data where each value is 1
-
-  # Check if propensity score is NULL
-  if (is.null(propscore)) {
-
-    # Loop over the number of stages
-    for (stage in 1:nDP) {
-
-      # Dynamically create the column name (propscore_1, propscore_2, etc.)
-      col_name <- paste0("propscore_", stage)
-
-      # Assign 1 to each new column in 'data'
-      data[[col_name]] <- 1
-    }
-
-  } else {
-
-    # Ensure 'propscore' is of the correct length to fill the data
-    if (length(propscore) != nrow(data) * nDP) {
-      stop("Length of propscore must be equal to number of rows in 'data' multiplied by 'nstages'")
-    }
-
-    # Loop over the number of stages
-    for (stage in 1:nDP) {
-
-      # Dynamically create the column name (propscore_1, propscore_2, etc.)
-      col_name <- paste0("propscore_", stage)
-
-      # Assign values from 'propscore' to each new column in 'data' row by row
-      data[[col_name]] <- propscore[seq(stage, by = nDP, length.out = nrow(data))]
-    }
-  }
 
   ## extracts the "response variable": matrix of survival response variables
   ## these were output from the .VerifyModels object
@@ -173,7 +139,6 @@ IHdtrSurv <- function(data,
 
     ## nSamples is created (not input)
     nSamples = nSamples,
-    pooled = pooled,
     stratifiedSplit = stratifiedSplit
   )
 
@@ -532,14 +497,7 @@ for (i in 1:nstrata) {
     pool1 = F,
 
     ## we're not inputting any survival probabilities
-    appendstep1 = F,
-
-    # use the propensity score (either input or all 1s) for the eligible observations
-    input_prop = long_data %>%
-      filter(strata1 == 1 & !is.na(.data[[respname]])) %>%
-      select(propscore) %>%
-      pull() %>%
-      as.numeric()
+    appendstep1 = F
   )
 
 
@@ -798,14 +756,7 @@ for (i in 1:nstrata) {
     pool1 = F,
 
     ## this is true if we are inputting survival probabilities
-    appendstep1 = F,
-#    inputpr = input.strata2[, colSums(input.strata2) != 0]
-
-    input_prop = long_data %>%
-    filter(strata2 == 1 & !is.na(.data[[respname]])) %>%
-    select(propscore) %>%
-    pull() %>%
-    as.numeric()
+    appendstep1 = F
   )
 
 

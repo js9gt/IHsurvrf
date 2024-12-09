@@ -273,14 +273,11 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
                          sampleSize,
                          pool1 = FALSE,
                          appendstep1 = FALSE,
-                         inputpr = NULL,
-                         input_prop
+                         inputpr = NULL
                          ) {
   # model is input
   mod <- model
 
-  ## read in the propensity score
-  prop <-input_prop
 
   ## extract first order terms (main effect) from the model for splitting in the random forest algorithm
 
@@ -609,9 +606,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
   ## if .Pooled (defined in class_TreeConditions.R) which returns a logical vector,
   ## pooled analysis applies survival RF model to the entire dataset
 
-  if (.Pooled(object = params)) {
-    ## displays message indicating pooled analysis is being conducted & listing the treatment levels involved
-
     message("pooled analysis; treatments ",
             paste(txLevels, collapse = " "))
 
@@ -631,68 +625,9 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
       mTry = mTry,
       txLevels = txLevels,
       model = mod,
-      sampleSize = sampleSize,
-
-      prop = prop
+      sampleSize = sampleSize
     )
 
-    ## if not pooled,
-
-  } else {
-    ## a stratified analysis is conducted, so the analysis is performed separately for each treatment level
-
-    message("stratified analysis")
-
-    ## initialize an empty list "result" to store output from each treatment level
-
-    # result will be a list of SurvRF objects
-    result <- list()
-
-    ## iterates over each treatment level "txLevels"
-
-    for (i in 1L:length(x = txLevels)) {
-      ## displays message indicating current treatment level being processed
-
-      message("  treatment level ", txLevels[i])
-
-      ## name of the current treatment level
-
-      nms <- as.character(x = txLevels[i])
-
-      ## logical vector indicating which cases the data corresponds to current treatment level
-
-      di <- {
-        data[elig, txName] == txLevels[i]
-      }
-
-      ## logical vector combining eligibility & current treatment level
-
-      use <- elig & {
-        data[, txName] == txLevels[i]
-      }
-
-      ## applies the .survRF function to the subset of data for the current treatment level
-
-      result[[nms]] <- .survRF(
-        x = x[use, , drop = FALSE],
-        y = response[use],
-        pr = pr[, di],
-        delta = delta[use],
-        params = params,
-        mTry = mTry,
-        txLevels = txLevels[i],
-        model = mod,
-        sampleSize = sampleSize
-      )
-
-    }
-
-    ## converts list of Survrf objects into a single object of class "SurvRFStratified"
-    ## this is defined in class_IH.SurvRF.R
-
-    result <- new(Class = "SurvRFStratified", "strat" = result)
-
-  }
 
 
   # calculate the estimated values for all treatment levels

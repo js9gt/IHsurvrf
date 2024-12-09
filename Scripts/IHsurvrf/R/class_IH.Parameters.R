@@ -10,7 +10,7 @@
 # .parameters(timePoints, nTimes, response, nTree, ERT, uniformSplit,
 #                      randomSplit, splitRule, replace, nodeSize,
 #                      minEvent, tieMethod, criticalValue,
-#                      survivalTime, nSamples, pooled, stratifiedSplit)
+#                      survivalTime, nSamples, stratifiedSplit)
 
 
 
@@ -180,9 +180,6 @@ setMethod(f = "initialize",
     ## gotten from code: number of individuals in the dataset
     nSamples,
 
-    ## logical object. TRUE means data pooled (used all together)
-    ## FALSE means grow a tree for each treatment group
-    pooled,
 
     ## numeric. Stratified random split coefficient.
     stratifiedSplit) {
@@ -240,7 +237,6 @@ setMethod(f = "initialize",
   #   "nTree" an integer, the total number of trees in forest
   #   "nodeSize" an integer, the minimum number of cases in a node
   #   "minEvent" an integer, the minimum number of events in a node
-  #   "pooled" a logical indicating of treatments were pooled
   #   "stratifiedSplit" the coefficient phi for stratified
 
 
@@ -252,7 +248,6 @@ setMethod(f = "initialize",
     nTree = nTree,
     nodeSize = nodeSize,
     minEvent = minEvent,
-    pooled = pooled,
     stratifiedSplit = stratifiedSplit)
 
   ## based on the class of the "criticalValue" object, determines whether to return "Parameters_Survival" or "Parameters_Mean" object

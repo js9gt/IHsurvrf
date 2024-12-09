@@ -820,31 +820,26 @@ plot_grid( lowcens_500pt_15stage_2strata + guides(fill = FALSE),
 ggsave("15stage.png", plot = last_plot(), dpi = 300, width = 10, height = 8)
 
 ## ---------------------------------------------------------------##
+##        Equal censoring: 1 vs 2 strata -- lowcens               ##
+## ---------------------------------------------------------------##
 
-### Now, plotting our RDA results
 
-cv_1 <- read.csv("~/survrf/Outputs/RDA_res_1")[1,]
-cv_2 <- read.csv("~/survrf/Outputs/RDA_res_2")[2, ]
-cv_3 <- read.csv("~/survrf/Outputs/RDA_res_3")[3, ]
-cv_4 <- read.csv("~/survrf/Outputs/RDA_res_4")[4, ]
-cv_5 <- read.csv("~/survrf/Outputs/RDA_res_5")[5, ]
-cv_6 <- read.csv("~/survrf/Outputs/RDA_res_6")[6, ]
+one_equal <- read.csv("~/survrf/Outputs/equal_1strata_10stage_locens")
 
-cv_observed <- c(cv_1$observed, cv_2$observed, cv_3$observed,
-                 cv_4$observed, cv_5$observed, cv_6$observed)
+one_observed <- c(one_equal$observed)
 
-cv_IHsurvrf <- c(cv_1$IHsurvRF, cv_2$IHsurvRF, cv_3$IHsurvRF,
-                 cv_4$IHsurvRF, cv_5$IHsurvRF, cv_6$IHsurvRF)
+one_rf <- c(one_equal$IHsurvrf)
+
 
 # Combine data into a dataframe
 data <- data.frame(
-  Group = c(rep("observed", length(cv_observed)), rep("IHsurvrf", length(cv_IHsurvrf))),
-  Value = c(cv_observed, cv_IHsurvrf)
+  Group = c(rep("observed", length(one_observed)), rep("IHsurvrf", length(one_rf))),
+  Value = c(one_observed, one_rf)
 )
 
 ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
-  scale_y_continuous(breaks = seq(2200, 2500, by = 50), limits = c(2200, 2600)) +
+  #scale_y_continuous(breaks = seq(2200, 2500, by = 50), limits = c(2200, 2600)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
   theme_bw() +
   theme(axis.title.y = element_blank(),
@@ -852,16 +847,69 @@ ggplot(data, aes(x = Group, y = Value, fill = Group)) +
         axis.ticks.y = element_line(),
         axis.title.x = element_blank()) + theme(legend.position = "none") +
   geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
-                              Value = c(mean(cv_observed), mean(cv_IHsurvrf))),
+                              Value = c(mean(one_observed), mean(one_rf))),
             aes(x = Group, y = Value, label = round(Value, 2)), vjust = 5, hjust = 0,color = "black", size = 4) +
   geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
-                               Value = c(mean(cv_observed), mean(cv_IHsurvrf))),
-             aes(x = Group, y = Value), color = "black", size = 3) 
+                               Value = c(mean(one_observed), mean(one_rf))),
+             aes(x = Group, y = Value), color = "black", size = 3) + ggtitle("1 strata, 10 stages, 300 pts, low censoring, equal")
+
+
+###### two strata equal
+
+a <- read.delim2("~/survrf/Outputs/equal_2strata_10stage_locens.txt", header=FALSE, comment.char="#")
+matching_indices_V1 <- which(apply(a, 1, function(row) any(grepl(".*no observed IHsurvrf*", row))))
+
+selected_rows_V1 <- data.frame()
+
+# Loop through each matching index
+for (index in matching_indices_V1) {
+  # Select the current row and the two rows after it, ensuring you don't exceed the data frame's bounds
+  selected_rows_V1 <- rbind(selected_rows_V1, a[index:min(index+1, nrow(a)), ])
+}
+
+split_values_V1 <- strsplit(as.character(selected_rows_V1$X.1..4.479.7317.489.7977.483.5225.509.8735......NA......................0.), " ")
+cleaned_split_values_V1 <- lapply(split_values_V1, function(x) x[x != ""])
+sim_index <- sort(as.numeric(sapply(cleaned_split_values_V1, function(x) x[2])))
+
+# Pull out numbers NOT in `sim_index`
+not_in_sim_index <- setdiff(1:200, sim_index)
+
+# Add 201 and include 149
+result <- c(not_in_sim_index, 201, 149)
+
+third_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[3])
+
+fourth_values_V1 <- sapply(cleaned_split_values_V1, function(x) x[4])
+
+two_rf <- as.numeric(fourth_values_V1)
+two_observed <- as.numeric(third_values_V1)
 
 
 
+# Combine data into a dataframe
+data <- data.frame(
+  Group = c(rep("observed", length(two_observed)), rep("IHsurvrf", length(two_rf))),
+  Value = c(two_observed, two_rf)
+)
+
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  geom_boxplot(alpha = 0, outlier.shape = NA, aes(color = Group)) +
+  #scale_y_continuous(breaks = seq(2200, 2500, by = 50), limits = c(2200, 2600)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2), aes(color = Group), size = 3, alpha = 0.6) +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        axis.title.x = element_blank()) + theme(legend.position = "none") +
+  geom_text(data = data.frame(Group = c("observed", "IHsurvrf"),
+                              Value = c(mean(two_observed), mean(two_rf))),
+            aes(x = Group, y = Value, label = round(Value, 2)), vjust = 5, hjust = 0,color = "black", size = 4) +
+  geom_point(data = data.frame(Group = c("observed", "IHsurvrf"),
+                               Value = c(mean(two_observed), mean(two_rf))),
+             aes(x = Group, y = Value), color = "black", size = 3) + ggtitle("2 strata, 10 stages, 300 pts, low censoring, equal")
 
 ####### 90% censoring, a = -6, and a = -3; 300 pts, 10 stages
+
 
 a <- read.csv("~/survrf/Outputs/1STRATA_300pt_90_cens")
 

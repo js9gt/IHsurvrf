@@ -275,8 +275,6 @@ if (!skip.IHsurvrf) {
                   ## maximum number of covariates to consider-- a vector of covars for each decision point
                   mTry = rep(sqrt(10), n.stages),
 
-                  ## false = using stratified analysis-- don't need to include action in model
-                  pooled = TRUE,
 
                   ## Covariates for which the number of splits (s_i) is less
                   #'    than s*stratifiedSplit/d are explored preferentially
@@ -453,20 +451,15 @@ return(result)
 
 
 # Number of cores to use for parallelization
-num_cores <- 10
+num_cores <- 7
 
 # Run the simulations in parallel
-results_list <- mclapply(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 
-                           57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 
-                           108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 
-                           150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 178, 179, 180, 183, 184, 185, 188, 189, 190, 193, 194, 195, 198, 199, 200, 201, 
-                           202, 203, 204, 205, 206, 207, 208, 209, 210), run_simulation, mc.cores = num_cores)
+results_list <- mclapply(1:200, run_simulation, mc.cores = num_cores)
 
 # Combine the results into a single dataframe
 final_results <- do.call(rbind, results_list)
 
-write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/2STRATA_15stage_70split", row.names=FALSE)
-
+write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/equal_2strata_10stage_locens", row.names=FALSE)
 
 
 ## ------------------------------------- Function to look at the characteristics of our simulated data ------------------------------------ ##

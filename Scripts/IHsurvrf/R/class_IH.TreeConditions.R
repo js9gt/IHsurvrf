@@ -12,9 +12,6 @@
 #  @slot minEvent An integer object. The minimum number of events allowed in a
 #    node
 #
-#  @slot pooled A logical object. TRUE indicates that treatment groups are to
-#    be considered in combination.
-#
 #  @slot stratifiedSplit A number object. The coefficient phi for stratified
 #    random spliting
 #
@@ -22,7 +19,6 @@
 #   .NTree(object, ...) {new; defined}
 #   .NodeSize(object, ...) {new; defined}
 #   .MinEvent(object, ...) {new; defined}
-#   .Pooled(object, ...) {new; defined}
 #   .StratifiedSplit(object, ...) {new; defined}
 #
 # Methods
@@ -30,7 +26,7 @@
 #
 # Functions
 # .treeConditions(..., nTree, nodeSize, minEvent,
-#                 pooled, stratifiedSplit)
+#                 stratifiedSplit)
 #
 
 ## define a new S4 class called "TreeConditions"
@@ -46,9 +42,6 @@ setClass(Class = "TreeConditions",
 
                    ## An integer object. The minimum number of events allowed in a node
                    minEvent = "integer",
-
-                   ## TRUE indicates that treatment groups are to be considered in combination.
-                   pooled = "logical",
 
                    ## A number object. The coefficient phi for stratified random spliting
                    stratifiedSplit = "numeric"))
@@ -91,7 +84,6 @@ setMethod(f = ".NTree",
                             nTree,
                             nodeSize,
                             minEvent,
-                            pooled,
                             stratifiedSplit) {
 
   ## checks if minimum number of events is numeric,
@@ -124,13 +116,6 @@ setMethod(f = ".NTree",
   nTree <- as.integer(x = nTree)
   if (nTree < 1L) stop("nTree must be non-zero positive", call. = FALSE)
 
-  ## checks if the "pooled" input is a logical and not NA
-
-  if (!is.logical(x = pooled) || is.na(x = pooled)) {
-
-    ## otherwise, output an error message
-    stop("pooled must be logical", call. = FALSE)
-  }
 
   ## check if stratifiedSplit is null or too small
 
@@ -155,7 +140,6 @@ setMethod(f = ".NTree",
               "nTree" = nTree,
               "nodeSize" = nodeSize,
               "minEvent" = minEvent,
-              "pooled" = pooled,
               "stratifiedSplit" = stratifiedSplit) )
 
 }
@@ -217,27 +201,3 @@ setMethod(f = ".MinEvent",
           definition = function(object, ...) { return( object@minEvent ) })
 
 
-#-------------------------------------------------------------------------------
-# Method to retrieve flag for pooled analysis
-#-------------------------------------------------------------------------------
-# Method returns a logical
-#-------------------------------------------------------------------------------
-
-## create new generic function called .Pooled()
-
-setGeneric(name = ".Pooled",
-           def = function(object, ...) { standardGeneric(".Pooled") })
-
-## defined new method for .Pooled that prevents function from being used  object without specific class
-
-setMethod(f = ".Pooled",
-          signature = c(object = "ANY"),
-          definition = function(object, ...) { stop("not allowed") })
-
-## establish a new method for .Pooled working on objects of class "TreeConditions"
-
-setMethod(f = ".Pooled",
-          signature = c(object = "TreeConditions"),
-
-          ## returns the pooled slot (logical): TRUE indicates that treatment groups are to be considered in combination.
-          definition = function(object, ...) { return( object@pooled ) })

@@ -557,13 +557,7 @@ IHdtrConv_otherstrata <- function(data,
     #### in the original IH.dtrSurv this is FALSE, so let's try changing it to FALSE to match
     pool1 = FALSE,
     appendstep1 = TRUE,
-    inputpr = pr_pooled[, elig_pr],
-
-    ## use the propensity score (either input or all 1s) for the eligible observations
-    input_prop = long_data %>% filter(!!sym(paste0("strata", strata)) == 1 & !is.na(!!sym(resp_name))) %>%
-      select(propscore) %>%
-      pull() %>%
-      as.numeric()
+    inputpr = pr_pooled[, elig_pr]
   ))
 
   # Set the column name in long_data
