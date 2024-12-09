@@ -3,6 +3,7 @@ Scripts/.Rhistory
 
 # ignore all .png figure outputs
 Figures/*.png
+*.png
 
 # ignore subfolders
 Figures/**
