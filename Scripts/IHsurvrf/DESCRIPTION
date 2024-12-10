@@ -44,5 +44,4 @@ Collate:
     'IH.dtrSurvConverge.R'
     'IH.dtrSurv.R'
     'IH.predictSurvTree.R'
-    'TEST_run-IH.survRF.R'
     'area_function.R'
