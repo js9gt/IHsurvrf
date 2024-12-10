@@ -25,6 +25,7 @@ Method 2: The package can also be installed after downloading the tar.gz file, l
 1.  Load R version 4.4.0 in Linux using the bash command: `module load r/4.4.0`
 2.  Install the tar.gz file in R by running: `install.packages('[location of .tar.gz file]/IHsurvrf_0.1.0.tar.gz', repos = NULL, type = 'source')`
 3.  Load the package in R by running: `library(IHsurvrf)`
+4.  Load other required packages by running: `library(survival)` `library(dplyr)` `library(tidyr)`
 
 ## Data Requirements:
 
