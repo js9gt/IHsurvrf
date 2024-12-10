@@ -1,8 +1,6 @@
 
 
 ######## this is a function to assess convergence using results from IH.dtrSurv.R which fits the initial forest
-
-
 IHdtrConv <- function(data,
 
                       ## a numeric to indicate the strata we are assessing for convergence

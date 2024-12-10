@@ -1,5 +1,4 @@
 
-
 IHdtrConv_otherstrata <- function(data,
 
                       ## a numeric to indicate the strata we are assessing for convergence
