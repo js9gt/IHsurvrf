@@ -24,16 +24,11 @@
 #
 #  @slot optimal An Optimal object. The estimated optimal tx and optimal value.
 
+## documentation for these classes are included in the context of this class as well
 
-library(stats)
-source("R/IH.survRF.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.survRF.R")
-source("R/class_IH.Optimal.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.Optimal.R")
-source("R/IH.shiftMat.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.shiftMat.R")
-## For policy evaluation:
-#source("R/class_IH.SurvRF.R")
+#' @include class_IH.Optimal.R class_IH.SurvRF.R
+#' @include class_IH.Parameters.R
+
 
 ## defines a new S4 class called DTRSurvStep for storing a single stage of Q-learning survival analysis
 setClass(
@@ -110,7 +105,8 @@ setMethod(f = ".Predict",
 #   an Optimal object
 # if findOptimal is FALSE, method returns a Value object
 #-------------------------------------------------------------------------------
-
+#' @include class_IH.Optimal.R
+#' @importFrom stats model.frame
 
 setMethod(f = ".Predict",
           signature = c(object = "DTRSurvStep",
@@ -172,6 +168,7 @@ setMethod(f = ".Predict",
 
 
 # Define a new function for DTRSurvStep
+#' @export
 PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
 
   # Ensure object is of the correct class
@@ -256,7 +253,16 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
 ## specify that certain functions from a package should be imported into namespace of package
 ## several functions from the "stats" package are being imported
 
+## specify that certain functions from a package should be imported into namespace of package
+## several functions from the "stats" package are being imported
 
+#' @importFrom stats na.pass
+#' @importFrom stats update
+#' @importFrom stats terms
+#' @importFrom stats complete.cases
+#' @importFrom stats model.frame
+#' @importFrom stats model.response
+#' @include IH.shiftMat.R IH.survRF.R
 
 ## TimeInfo script sourced: survRF which sources Parameters which sources TimeInfo
 

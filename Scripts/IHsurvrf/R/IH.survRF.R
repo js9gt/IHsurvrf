@@ -1,13 +1,43 @@
+# Internal function to generate forest
+#
+# Function is not exported
+#
+# @param x A data.frame object {n x p}. The model.frame for covariates to be
+#   considered in splitting
+#
+# @param delta An integer vector object {n}. Vector of indicators for censoring
+#   (1 = not censored; 0 = censored)
+#
+# @param pr A matrix object {nt x n}. Probability mass vector of survival
+#   function
+#
+# @param pr2 A matrix object {nt x n}. Used to calculate at-risk subjects for RE
+#   which has multiple records per subject
+#
+# @param pr2_surv A matrix object {nt_surv x n}. Used to calculate at-risk subjects for death during RE
+#   which has one record per subject
+#
+# @param ord_causeind A response-ordered vector of cause status (for CR). Needed for
+#   Gray's Test for node-splitting. 0 = censored, 1 = priority cause, 2 = any other causes.
+#   Vector of 0s for RE or CR where test is not Gray's test.
+#
+# @param ord_response An ordered vector of response (for CR). Needed for
+#   Gray's Test for node-splitting. Vector of 0s for RE or CR where test is not Gray's test.
+#
+# @param params A Parameters object. All information that regulates tree and
+#   specifies analysis preferences.
+#
+# @param mTry An integer object. The maximum number of covariates to use
+#   for splitting algorithm.
+#
+# @params sampleSize An integer object. The number of samples to draw for each
+#    tree
+#
+#' @include class_IH.Parameters.R
+#' @include class_IH.CriticalValue.R
+#' @include class_IH.SurvRF.R
+#' @import parallel
 
-
-
-
-source("R/class_IH.Parameters.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
-source("R/class_IH.CriticalValue.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
-source("R/class_IH.SurvRF.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyERT.R")
 
 
 

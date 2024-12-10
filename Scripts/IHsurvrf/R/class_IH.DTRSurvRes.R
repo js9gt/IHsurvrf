@@ -1,4 +1,6 @@
 
+## Roxygen2 documentation tag. Documentation for this class (DTRSurv) will include contents from class_DTRSurvStep.R file
+#' @include class_IH.DTRSurvStep.R
 
 ## define a new S4 class called "DTRSurv"
 setClass(Class = "DTRSurvRes",

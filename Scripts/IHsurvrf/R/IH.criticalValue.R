@@ -7,11 +7,9 @@
 # Function returns an object of class CriticalValueMean
 #
 
+#' @include class_IH.CriticalValue.R
+#' @include IH.VerifyCriticalValue.R
 
-source("R/class_IH.CriticalValue.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.CriticalValue.R")
-source("R/IH.VerifyCriticalValue.R")
-#source("~/survrf/Scripts/IHsurvrf/R/IH.VerifyCriticalValue.R")
 
 ## define a new function .criticalValue to verify input for critical values
 

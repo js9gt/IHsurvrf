@@ -17,10 +17,7 @@
 # @param nodes A list object. The nodes of a tree.
 #
 
-source("R/class_IH.TimeInfo.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TimeInfo.R")
-source("R/class_IH.CriticalValue.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.CriticalValue.R")
+#' @include class_IH.Parameters.R
 
 ## defines a new function .predictSurvTree used for predicting outcomes from a survival tree
 .predictSurvTree <- function(...,

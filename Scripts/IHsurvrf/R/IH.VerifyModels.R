@@ -1,6 +1,4 @@
 
-library(stats)
-
 # Verify input 'models'
 #
 # method is not exported and is for internal convenience only

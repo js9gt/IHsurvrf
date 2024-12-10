@@ -23,7 +23,6 @@
 #   .timeInfo(timePoints, nTimes, response)
 #
 
-source("R/IH.VerifyTimePoints.R")
 
 ## define a new S4 class called "TimeInfo"
 setClass(Class = "TimeInfo",
@@ -156,7 +155,7 @@ setMethod(f = ".NTimes",
 #-------------------------------------------------------------------------------
 # Function returns a TimeInfo object
 #-------------------------------------------------------------------------------
-
+#' @include IH.VerifyTimePoints.R
 
 ## defines a new function called .timeInfo that creates & returns a "TimeInfo" object
 

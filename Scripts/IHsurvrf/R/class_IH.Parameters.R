@@ -12,18 +12,10 @@
 #                      minEvent, tieMethod, criticalValue,
 #                       nSamples, stratifiedSplit)
 
+#' @include class_IH.TimeInfo.R class_IH.CriticalValue.R IH.criticalValue.R class_IH.TreeType.R
+#' @include class_IH.TreeConditions.R
 
 
-source("R/class_IH.TimeInfo.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TimeInfo.R")
-source("R/class_IH.CriticalValue.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.CriticalValue.R")
-source("R/IH.criticalValue.R")
-#source("~/survrf/Scripts/IH.criticalValue.R")
-source("R/class_IH.TreeType.R")
-#source("~/survrf/Scripts/IHsurvrf/R/class_IH.TreeType.R")
-source("R/class_IH.TreeConditions.R")
-#source("~/survrf/Scripts/IHsurvrf/R/"class_IH.TreeConditions.R)
 
 #
 #-------------------------------------------------------------------------------

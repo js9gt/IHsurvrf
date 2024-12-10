@@ -16,13 +16,6 @@
 ## at 5, this is the same as the first original time, so survival prob set to 0.8 which was the original one at that time
 ## if the shifted time is in the middle of two, uses linear interpolation to return the resulting survival time
 
-# Generate a sample dataset with uniform time points
-#set.seed(123)
-#timePoints <- seq(1, 15)  # 15 uniform time points
-#survVector <- pmin(1, exp(-0.2 * timePoints))  # Exponential survival function
-### we shift by observed survival time for each individual from response[elig]
-#by <- 3
-### we would do these for a single shift AKA use only that patient's "by"
 
 
 # Function returns the shifted survival function

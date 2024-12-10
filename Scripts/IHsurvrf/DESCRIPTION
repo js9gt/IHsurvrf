@@ -1,10 +1,9 @@
 Package: IHsurvrf
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Title: Indefinite horizon DTR estimation
+Version: 0.1.0
+Author: Jane She <jane.she@unc.edu>
+Description: Estimates multi-stage dynamic treatment regime using nonparametric model fitting.
+    Based on dissertation work under Michael Kosorok at UNC Chapel Hill.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
@@ -17,34 +16,33 @@ Imports:
     dplyr
 Collate: 
     'IH.VerifyCriticalValue.R'
+    'IH.VerifyData.R'
     'IH.VerifyERT.R'
+    'IH.VerifyModels.R'
     'IH.VerifyRandomSplit.R'
     'IH.VerifyReplace.R'
+    'IH.VerifySampleSize.R'
     'IH.VerifySplitRule.R'
     'IH.VerifyTieMethod.R'
     'IH.VerifyTimePoints.R'
+    'IH.VerifyTxName.R'
     'IH.VerifyUniformSplit.R'
     'class_IH.CriticalValue.R'
     'IH.criticalValue.R'
-    'class_IH.DTRSurvStep.R'
-    'IH.dtrSurv.R'
-    'IH.survRF.R'
-    'TEST_run-IH.survRF.R'
-    'class_IH.Parameters.R'
     'class_IH.SurvRF.R'
-    'class_IH.TimeInfo.R'
     'class_IH.TreeConditions.R'
     'class_IH.TreeType.R'
-    'IH.predictSurvTree.R'
+    'class_IH.TimeInfo.R'
+    'class_IH.Parameters.R'
+    'IH.survRF.R'
     'IH.shiftMat.R'
     'class_IH.Optimal.R'
-    'IH.VerifyData.R'
-    'IH.VerifyModels.R'
-    'IH.VerifyTxName.R'
-    'IH.VerifySampleSize.R'
-    'class_IH.DTRSurv.R'
-    'area_function.R'
-    'IH.dtrSurvConverge.R'
-    'IH.dtrSurvConverge_otherstrat.R'
+    'class_IH.DTRSurvStep.R'
     'class_IH.DTRSurvRes.R'
-    
+    'class_IH.DTRSurv.R'
+    'IH.dtrSurvConverge_otherstrat.R'
+    'IH.dtrSurvConverge.R'
+    'IH.dtrSurv.R'
+    'IH.predictSurvTree.R'
+    'TEST_run-IH.survRF.R'
+    'area_function.R'
