@@ -12,13 +12,15 @@ For more details, please refer to the original paper.
 
 ## Installation:
 
-The package can be installed directly through github using the following:
+Method 1. The package can be installed in R directly through github using the following:
 
 ``` r
 devtools::install_github("js9gt/IHsurvrf/Scripts/IHsurvrf")
 ```
 
-Or, the package can be installed after downloading the tar.gz file, located [here][github.com/js9gt/IHsurvrf/Scripts/IHsurvrf_0.1.0.tar.gz 1]. The following steps detail how to install the tar.gz file:
+Then, Load the package in R by running: `library(IHsurvrf)`
+
+Method 2: The package can also be installed after downloading the tar.gz file, located [here][github.com/js9gt/IHsurvrf/Scripts/IHsurvrf_0.1.0.tar.gz]. The following steps detail how to install the tar.gz file:
 
 1.  Load R version 4.4.0 in Linux using the bash command: `module load r/4.4.0`
 2.  Install the tar.gz file in R by running: `install.packages('[location of .tar.gz file]/IHsurvrf_0.1.0.tar.gz', repos = NULL, type = 'source')`

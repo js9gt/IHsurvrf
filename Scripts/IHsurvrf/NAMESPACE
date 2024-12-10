@@ -2,6 +2,7 @@
 
 export(IHdtrSurv)
 export(PredDTRSurvStep)
+import(dplyr)
 import(methods)
 import(parallel)
 import(survival)

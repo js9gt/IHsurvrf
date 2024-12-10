@@ -146,7 +146,7 @@
 #' @import methods
 #' @export
 #' @useDynLib IHsurvrf
-#' @import survival tidyr
+#' @import survival tidyr dplyr
 #'
 #' @returns An S4 object of class DTRSurvRes containing the key results and
 #'   input parameters of the analysis.
