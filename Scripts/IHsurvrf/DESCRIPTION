@@ -14,6 +14,10 @@ Imports:
     methods,
     tidyr,
     dplyr
+Depends: survival,
+    methods,
+    tidyr,
+    dplyr
 Collate: 
     'IH.VerifyCriticalValue.R'
     'IH.VerifyData.R'

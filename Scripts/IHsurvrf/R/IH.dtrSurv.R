@@ -165,7 +165,7 @@
 #'                  "X_1" = rnorm(100), "X_2" = rnorm(100), subj.id = 1:100)
 #'
 #' 2 stage analysis with 1 strata
-#' IHdtrSurv(data = dt,
+#' IHsurvrf(data = dt,
 #'         txName = c("A_1", "A_2"),
 #'         stageLabel = "_",
 #'         models = Surv(Y,D)~X+A,
@@ -195,7 +195,7 @@
 #' dt$cumulative.time_4 <- dt$Y_1 + dt$Y_2 + dt$Y_3
 #' dt$cumulative.time_5 <- dt$Y_1 + dt$Y_2 + dt$Y_3 + dt$Y_4
 #'
-#' IHdtrSurv(data = dt,
+#' IHsurvrf(data = dt,
 #'         txName = c("A_1", "A_2", "A_3", "A_4", "A_5"),
 #'         stageLabel = "_",
 #'         models = Surv(Y,delta)~X+A,
@@ -204,7 +204,7 @@
 
 
 
-IHdtrSurv <- function(data,
+IHsurvrf <- function(data,
                       txName,
                       models,
                       ...,
@@ -1059,7 +1059,7 @@ IHdtrSurv <- function(data,
 
 #' Hidden methods
 #'
-#' @name IHdtrSurv-internal-api
+#' @name IHsurvrf-internal-api
 #' @keywords internal
 #' @import methods
 NULL
