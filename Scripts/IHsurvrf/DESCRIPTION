@@ -45,3 +45,4 @@ Collate:
     'IH.dtrSurv.R'
     'IH.predictSurvTree.R'
     'area_function.R'
+    'package_loading.R'
