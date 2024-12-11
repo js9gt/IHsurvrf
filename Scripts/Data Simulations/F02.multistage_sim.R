@@ -1,20 +1,8 @@
 
-#source("F01.one_stage_sim.R")
+
 source("~/survrf/Scripts/Data Simulations/F01.one_stage_sim.R")
-#source("F03.Figs.R")
 source("~/survrf/Scripts/Data Simulations/F03.Figs.R")
 source("~/survrf/Scripts/Data Simulations/F00.generic.R")
-#~/survrf/Scripts/F01.one_stage_sim.R
-#~/survrf/Scripts/F03.Figs.R
-
-
-
-# Function to simulate data for 10 patients with specified conditions
-## test
-# n.sample = 100
-# max_stages = 50
-# tau = 100
-# p = 1
 
 
 
@@ -45,12 +33,8 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                               ## for inputting dif policies used to generate data
                               ## this is a DTRSurv object
                               policy = NULL,
-                              summary = TRUE,
-                              ## stage start-- if this is input, then we only calculate up to that for the summary function
-                              stage.start = NULL) {
+                              summary = TRUE) {
 
-
-  ## if the stage.start is input,we generate that number of stages instead of max_stages (AKA change value of max_stages)
 
   ## if length of at.risk (input) is 1, then replicate the value until it matches the length of n.sample
   if (length(at.risk) == 1) at.risk = rep(at.risk, n.sample)
@@ -68,10 +52,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ## if a policy is input, then policyTF == TRUE
   #policyTF <- !is.null(policy)
 
-  ## 28MAY2024: this has been modified to populate based on if the input actions are all NA (then generate w prop score) or not (then use input policy)
-
-  ## if SS is NULL, then we use the maximum number of stages (we don't consider going back any stages)
-  stage.start <- ifelse(is.null(stage.start), max_stages, stage.start)
 
 
 
@@ -98,14 +78,13 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ##        number of samples being simulated (input)
   ##        dim(tmp)[2]: number of columns in the tmp opject (AKA the output variables from dynamics.vec)
   ##        n.stages: number of stages (input) in simulation
-  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2 + 2, max_stages),
+  output <-  array(NA, dim = c(n.sample, 2 + 2 + dim(tmp)[2] + 2 + 2, max_stages),
                    ## row and column names for the array
                    dimnames = list(1:n.sample, c("subj.id", "rep.id", "baseline1", "baseline2", colnames(tmp), "at.risk",
                                                  ## new column to track number of each treatment
                                                  "action.1.count",
                                                  "action.0.count",
-                                                 "cumulative.time", "IHsurvrf.A",
-                                                 "trt.diff"),
+                                                 "cumulative.time"),
                                                  #colnames(baseline_covariates)),
                                    1:max_stages))
 
@@ -141,10 +120,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ## initialize an input action vector with NA values, with the same length as number of samples
   input.policy.action = rep(NA, n.sample)
 
-  true.opt <- rep(NA, n.sample)
-  IHsurvrf_optimal <- rep(NA, n.sample)
-
-
 
 
   ## iterate through each stage
@@ -177,9 +152,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     output[, "prior.visit.length", stage] <- prior.visit.length
     output[, "nstages", stage] <- rep(0,n.sample)
 
-    ### to track true optimal and predicted optimal at each stage
-    #output[, "true.opt.A", stage] <- true.opt
-    output[, "IHsurvrf.A", stage] <- IHsurvrf_optimal
     
 
     ## we run this chunk if there was a policy input
@@ -215,22 +187,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ### we want to retrieve vars_stage variables, since we have a common model across all treatment times
       
       
-      ##############
-      ##############
-      ##############
-      
-      ###### for this section, we have different approaches based on the number of strata
-      #### we somehow have to input an attachment to detect the number of strata we're using
-      ## if strata == 1, we just use the results from the single forest
-      ## if strata == 2, we use this original code
-      ## if strata == 5, we use the results based on the each of the 4 cutoff values
-      
-      
-      ##############
-      ##############
-      ##############
-      
-      
       
       ### NOTE: depending on the strata, we should use the forest from that strata.
       ### we have some if statments depending on the number of strata we have (from the number of cutoffs)
@@ -262,17 +218,13 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
           #print(cumulative_time)
           #print(policy@cutoff)
           
-          ## Assign the appropriate forest based on the cumulative time
-          if (!is.na(cumulative_time)) {
-            if (cumulative_time < policy@cutoff) {
-              forest <- policy@Forest2
-              
-              message("using strata 2 forest: 2 strata total")
-              
-            } else {
-              forest <- policy@Forest1
-              
-              message("using strata 1 forest: 2 strata total")
+          for (time in cumulative_time) {
+            if (!is.na(time)) {
+              if (time < policy@cutoff) {
+                forest <- policy@Forest2
+              } else {
+                forest <- policy@Forest1
+              }
             }
           }
           
@@ -282,73 +234,8 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
         
     
        
-      } else if (length(policy@cutoff) == 4) {
-        
-        message("Five strata total")
-        
-        ###### start the code for identifying the correct forest for the 5 strata
-        
-        if (stage == 1) {
-          
-          ## if it's the first stage, we use the final strata
-          forest <- policy@Forest5
-          
-        } else {
-          
-          ## Calculate the cumulative time
-          ## since cumulative time is a proportion with tau as the denom, we need to multiply by tau
-          cumulative_time <- output[, "cumulative.time", stage] * tau
-          
-
-          ## Assign the appropriate forest based on the cumulative time
-          if (!is.na(cumulative_time)) {
-            
-            
-            #### if our cumulative time is less than the first cutoff, we should still use the 5th forest
-            
-            
-            if (cumulative_time < policy@cutoff[4]) {
-              forest <- policy@Forest5
-              
-              message("using strata 5 forest: 5 strata total")
-              
-              #### if our cumulative time is greater than the first cutoff, but less than second cutoff, use 4th forest
-              
-            } else if (cumulative_time > policy@cutoff[4] & cumulative_time > policy@cutoff[3]) {
-              forest <- policy@Forest4
-              
-              message("using strata 4 forest: 5 strata total")
-              
-              #### if our cumulative time is greater than the second cutoff, but less than third cutoff, use 3rd forest
-              
-            } else if (cumulative_time > policy@cutoff[3] & cumulative_time > policy@cutoff[2]) {
-              forest <- policy@Forest3
-              
-              message("using strata 3 forest: 5 strata total")
-              
-              #### if our cumulative time is greater than the third cutoff, but less than fourth cutoff, use 2nd forest
-              
-            } else if (cumulative_time > policy@cutoff[2] & cumulative_time > policy@cutoff[1]) {
-              forest <- policy@Forest2
-              
-              message("using strata 2 forest: 5 strata total")
-            } else if (cumulative_time > policy@cutoff[1]) {
-              forest <- policy@Forest1
-              
-              message("using strata 1 forest: 5 strata total")
-            }
-          }
-          
-        }
-        
-        ####### end the code identifying the forests for 5 strata
-        
-        
       }
       
-      
-      
-
 
 
       # Extract the response variable from the formula
@@ -379,7 +266,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ## policy is the optimal estimated policy (DTRSurv Object), with a stage
       ##### NOTE: we need to change the "predict" to work using the FinalForest slot
 
-      args <- list(forest, newdata = x)
+      args <- list(object = forest, newdata = x)
 
       ## for at.risk != 0 (pt still at risk), retrieve the optimal treatment after feeding this new data into the trained forest
       ## feeds this into predict() function which is defined in class_DTRSurv.R
@@ -398,11 +285,7 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       ## for people who aren't at risk anymore, this is set to NA
       input.policy.action[at.risk == 0] <- NA
 
-      IHsurvrf_optimal <- input.policy.action
 
-      ##### now, we track the values for the average change in the last stage integral: this is tracked in the policy itself
-
-      prop_last_iter_change <- tail(policy@avgKM_diff, 1)
 
       conv_iterations <- policy@n_it
 
@@ -412,7 +295,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
         input.policy.action[at.risk != 0] <- 1
 
-        prop_last_iter_change <- NA
 
         conv_iterations <- NA
 
@@ -421,58 +303,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
         ## we give patient action == 0 at every stage
         input.policy.action[at.risk != 0] <- 0
-
-        prop_last_iter_change <- NA
-
-        conv_iterations <- NA
-
-      }else if (attr(policy, "class") %in% c("trueopt")){
-
-        ### if we want to know what the true optimal is and generate observational data following that,
-
-
-        ### if we want to know what the true optimal is and generate observational data following that,
-        stage.output1 <-
-
-          ## generate values for current stage
-          ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-          one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-                        prior.visit.length = prior.visit.length,
-                        #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                        terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-                        a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                        a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                        a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-
-                        ## inputting action == 1
-                        input.policy.action = 1) %>% t
-
-
-        stage.output2 <-
-
-          ## generate values for current stage
-          ## for nstages, to avoid the value being overly large, have it also be a proportion of the total number of stages
-          one_stage.vec(nstages = (stage - 1)/max_stages, cumulative.length = cumulative.time, at.risk = at.risk,time.max = time.max,
-                        prior.visit.length = prior.visit.length,
-                        #action = as.numeric(output[, "action", stage]),  ### remove this after clarification
-                        terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-                        a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-                        a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-                        a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-
-                        ## inputting action == 0
-                        input.policy.action = 0) %>% t
-
-        ## find the maximum of the event times-- for whatever the maximum is, we should use that action
-        true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
-        
-        #### we want to print out what the survival times are, and take the average 
-
-        ## use the true policy as the input policy for people at risk
-        ### we omit the NA values since that's what's included for patients who are ineligible
-        input.policy.action[at.risk != 0] = na.omit(true.opt)
-
-        prop_last_iter_change <- NA
 
         conv_iterations <- NA
 
@@ -485,28 +315,11 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
       # otherwise, it remains as NA
       input.policy.action <- input.policy.action
 
-      prop_last_iter_change <- NA
-
       conv_iterations <- NA
-
-      IHsurvrf_optimal <- NA
-
 
 
       }
 
-
-  #  # Call the function and store the returned value
-  #  true.opt2 <- compute_true_opt(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
-  #                               a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno)
-#
-
-#    # Assume true.opt and true.opt2 have been computed previously
-#    if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
-#      selected.opt <- true.opt2
-#    } else {
-#      selected.opt <- true.opt
-#    }
 
     ### if we want to know what the true optimal is and generate observational data following that,
     stage.output1 <-
@@ -540,29 +353,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
                     ## inputting action == 0
                     input.policy.action = 0, input_opt = NA) %>% t
     
-    
-#    ## avg difference in survival time between the two treatments
-#    # Identify the indices where 'event.time' is NA in stage.output1
-#    na_indices1 <- which(is.na(stage.output1[, "event.time"]))
-#    
-#    # Identify the indices where 'event.time' is NA in stage.output2
-#    na_indices2 <- which(is.na(stage.output2[, "event.time"]))
-#    
-#    # Combine the indices and get unique ones, or create an empty vector if there are no NAs
-#    all_na_indices <- if(length(na_indices1) == 0 & length(na_indices2) == 0) {
-#      integer(0)
-#    } else {
-#      unique(c(na_indices1, na_indices2))
-#    }
-#    
-#    # Remove the rows with these indices from both dataframes, if there are any indices to remove
-#    if(length(all_na_indices) > 0) {
-#      stage.output1_clean <- stage.output1[, "event.time"][-all_na_indices]
-#      stage.output2_clean <- stage.output2[, "event.time"][-all_na_indices]
-#    } else {
-#      stage.output1_clean <- stage.output1[, "event.time"]
-#      stage.output2_clean <- stage.output2[, "event.time"]
-#    }
     
     
     # Now selected.opt is either true.opt or true.opt2 based on the condition
@@ -603,11 +393,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     # Replace with NA where stage.output[, "delta"] == 0
     result <- ifelse(stage.output[, "delta"] == 0, NA, absolute_difference)
     
-    ## output the treatment differences; but if delta == 0 (pt was censored, we don't calculate a treatment diff and put NA instead)
-    output[, "trt.diff", stage] <- result
-    
-    ####
-    ####
     
     ### if there are any treatment differences that a
     
@@ -631,9 +416,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
     # Update action count vectors for action 0
     action.0.count <- action.0.count + (stage.output[, "action"] == 0)
-
-    ## update true optimal:
-    IHsurvrf_optimal <- IHsurvrf_optimal
 
 
 
@@ -666,110 +448,21 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
 
     ## selecting only stages 1:ss
     ## NOTE if ss input is null, it's set to the maximum number of stages
-    cum.event.time = apply(output[, "event.time",1:stage.start], 1, cumsum) %>% t
+    cum.event.time = apply(output[, "event.time",1:max_stages], 1, cumsum) %>% t
     output.summary <-
       tibble(subj.id = output[, "subj.id", 1],
              rep.id = output[, "rep.id", 1],
-             terminal.stage = apply(output[, "at.risk", 1:stage.start], 1, sum),
+             terminal.stage = apply(output[, "at.risk", 1:max_stages], 1, sum),
              cumulative.event.time = cum.event.time[cbind(1:n.sample, terminal.stage)],
              censor.status = output[cbind(1:n.sample, "delta", terminal.stage)],
              actions       = apply(output[, "action", ], 1,
                                    function(s) gsub("NA", "*", paste0(s, collapse = ""))),
-             true.opt  = apply(output[, "optimal.action", ], 1,
-                               function(s) gsub("NA", "*", paste0(s, collapse = ""))),
-             IHsurvrf_actions = apply(output[, "IHsurvrf.A", ], 1,
-                                      function(s) gsub("NA", "*", paste0(s, collapse = ""))),
-             avg.last.iter.change = prop_last_iter_change,
              convergence.iterations = conv_iterations)
     return(list(output = output, summary = output.summary))
   } else {
     return(output)
   }
 }
-
-## computing true opt is only each stage's maximum so it's not actually useful
-#compute_true_opt <- function(policy, stage, max_stages, cumulative.time, at.risk, time.max, prior.visit.length, input.state1, input.state2,
-#                             a1, b1, c1, z1, p1, g1, h1, r1, a2, b2, c2, z2, p2, g2, h2, r2, a3, b3, c3, z3, p3, g3, h3, r3, tau, censoringyesno) {
-#  true.opt <- NULL  # Initialize true.opt
-#
-#  if (is.null(policy) || !attr(policy, "class") %in% c("trueopt")) {
-#    # Generate the values of stage.output1 and stage.output2
-#    stage.output1 <- one_stage.vec(
-#      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
-#      prior.visit.length = prior.visit.length,
-#      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-#      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-#      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-#      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-#      input.policy.action = 1
-#    ) %>% t
-#
-#    stage.output2 <- one_stage.vec(
-#      nstages = (stage - 1) / max_stages, cumulative.length = cumulative.time, at.risk = at.risk, time.max = time.max,
-#      prior.visit.length = prior.visit.length,
-#      terminal.stage = (stage == max_stages), input.state.value = input.state1, input.state.value2 = input.state2,
-#      a1 = a1, b1 = b1, c1 = c1, z1 = z1, p1 = p1, g1 = g1, h1 = h1, r1 = r1,
-#      a2 = a2, b2 = b2, c2 = c2, z2 = z2, p2 = p2, g2 = g2, h2 = h2, r2 = r2,
-#      a3 = a3, b3 = b3, c3 = c3, z3 = z3, p3 = p3, g3 = g3, h3 = h3, r3 = r3, tau = tau, censoringyesno = censoringyesno,
-#      input.policy.action = 0
-#    ) %>% t
-#
-#    # Compute true.opt based on stage.output1 and stage.output2
-#    true.opt <- ifelse(stage.output1[, "event.time"] > stage.output2[, "event.time"], stage.output1[, "action"], stage.output2[, "action"])
-#  }
-#
-#  return(true.opt)  # Return true.opt
-#}
-
-
-#set.seed(123)
-#pts <- simulate_patients(n.sample = 50, max_stages = 25, tau = 1000,
-#                  ## initially all patients are at risk
-#                  at.risk = 1,
-#                  ## Life so far lived at the beginning of the stage
-#                  cumulative.time = 0,
-#                  prior.visit.length = 0,
-#                  ## 1 for failure rate: smaller values mean larger visit times so we want this for "longer survival"
-#
-#                  #### Failure rate parameters get really small fairly quickly
-#                  ## larger magnitude values of p1 will cause the rate to shift too dramatically (holding all others constant)
-#                  ## if we want "normal" visit lengths which can be large values, the magnitude of h (prior visit length) must be small to lessen perturbation
-#                  ## changing the intercept of failure.time to be larger makes the most difference in increasing overall number of ppl making it to later stages
-#
-#                  ## -4.5, b1 = -1, c1 = -0.5, z1 = -0.07, p1 = -0.05, g1 = 0.7, h1 = -0.2, r1 = -0.05
-#
-#                  a1 = -6, b1 = -0.3, c1 = -0.5, z1 = -0.025, p1 = 0.02, g1 = -0.2, h1 = 0.008, r1 = 0.01,
-#                  ## 2 for time to next visit
-#
-#                  ## -1.5, b2 = -1, z2 = -0.008, p2 = -0.01, g2 = -0.7, h2 = -0.2, r2 = -0.005
-#                  ## it looks like this rate has the most variation, but that's because the rate is the LARGEST and most visible on the plot
-#                  ## I wonder if due to this, there should be less variation?
-#
-#                  a2 = -3, b2 = -0.3, c2 = -0.05, z2 = -0.015, p2 = 0.025, g2 = -0.2, h2 = 0.008, r2 = 0.01,
-#                  a3 = -8, b3 = -0.3, c3 = -0.6,z3 = -0.04, p3 = 0.02, g3 = -0.2, h3 = 0.008, r3 = 0.01,
-#                  rho = 0.75,
-#                  # action-specific effects
-#                  D0 = 0,
-#                  D1 = 1,
-#                  g = 0.25,
-#                  ## FALSE means we only have administrative censoring
-#                  censoringyesno = FALSE,
-#                  policy = NULL,
-#                  summary = TRUE)
-#
-
-
-
-### showMethods(".Predict")
-
-
-## NOTE: works for -4.5, a2 = -3.9
-
-
-
-######### generating visualizations
-
-#generate_plots_and_summary(pts = IHsurvrf.data.rep$output, num_patients = "300", num_stages = "25", other_text = "tau1000")
 
 
 ##### recovering the betas from propensity scores

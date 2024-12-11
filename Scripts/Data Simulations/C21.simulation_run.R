@@ -79,14 +79,14 @@ coefs <- list(
       ##  a1 + b1 * state + c1*state2 + z1 * nstages + p1 * cumulative.length + g1 * action + h1*prior.visit.length +
       ###    r1 * action * state * nstages * cumulative.length*prior.visit.length
 
-      a = -5.5, b = -0.02, c = -0.05, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -6, b = -0.02, c = -0.05, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_nextvisit = list(
       a = -1.5, b = -0.02, c = -0.05, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     ),
     coef_censoring = list(
       ## a = -6 for 40% censoring with tau = 2000
-      a = -11, b = -0.02, c = -0.05, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
+      a = -6, b = -0.02, c = -0.05, z = -0.025, p = -0.02, g = 0.1, h = -0.08, r = 0.05
     )
   ),
 
@@ -183,7 +183,6 @@ for (i in 1:n.stages) {
 skip.IHsurvrf <- FALSE
 skip.trt1 <- FALSE
 skip.trt0 <- FALSE
-skip.opt <- TRUE
 ### commented out since we don't need it
 ## skip.gk <- skip.dw <- TRUE
 cv.nodesize = FALSE

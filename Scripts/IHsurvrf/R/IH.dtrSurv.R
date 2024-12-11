@@ -4,7 +4,7 @@
 #' Provides methods for estimating multi-stage (indefinite horizon) optimal dynamic treatment
 #'   regimes for survival outcomes, specifically truncated mean survival time, with dependent censoring.
 #'
-#'----------------- CHANGE THIS DESCRIPTION -----------------
+#'----------------- DESCRIPTION -----------------
 #' We use a common formula for all decision points, i.e.,
 #'   'models' is a single formula object; therefore, your data must follow a specific
 #'   format. Specifically, 'stageLabel' = "_" is a requirement, so covariates must be named as
@@ -498,7 +498,7 @@ IHsurvrf <- function(data,
       # Check if the event percentage meets the threshold
       ## NOTE: that the dimensions of these will not match the original data just because the original data contains rows of NAs
       ## this is because we simulate every patient to have 10 stages but if they have event/censored earlier they just have NA
-      if (event_percentage >= 0.3) {
+      if (event_percentage >= 0.7) {
         # Assign strata membership
         long_data$strata1[(long_data$cumulative.time * tau) >= i] <-
           1
@@ -605,26 +605,26 @@ IHsurvrf <- function(data,
     t(s1.strata1@optimal@optimalY)
 
 
-  ## the result after appyling the area function to each column of the matrix of survival probabilities
-  ## since each patient has a different number of visits in the strata, we look at the area of all stages included
-  areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
-    area_under_curve(surv_prob_col, params@timePoints)
-  })
-
-  ## after backwards recursion is complete, calculate the estimated value from the first stage
-  ## calculates mean values of expected survival times and survival probabilities
-  ## this is calculated across all PTS, so, once all pts have received their estimated optimal treatment --> what's the mean of all their survival times
-  ## .meanValue() function defined in class_DTRSurvStep.R
-
-  valueTrain <- .meanValue(object = s1.strata1)
-
-
-  ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
-
-  message("Estimated Value:", appendLF = FALSE)
-  for (i in 1L:length(valueTrain)) {
-    message(" ", names(valueTrain)[i], ": ", valueTrain[[i]], appendLF = FALSE)
-  }
+#  ## the result after appyling the area function to each column of the matrix of survival probabilities
+#  ## since each patient has a different number of visits in the strata, we look at the area of all stages included
+#  areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
+#    area_under_curve(surv_prob_col, params@timePoints)
+#  })
+#
+#  ## after backwards recursion is complete, calculate the estimated value from the first stage
+#  ## calculates mean values of expected survival times and survival probabilities
+#  ## this is calculated across all PTS, so, once all pts have received their estimated optimal treatment --> what's the mean of all their survival times
+#  ## .meanValue() function defined in class_DTRSurvStep.R
+#
+#  valueTrain <- .meanValue(object = s1.strata1)
+#
+#
+#  ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
+#
+#  message("Estimated Value:", appendLF = FALSE)
+#  for (i in 1L:length(valueTrain)) {
+#    message(" ", names(valueTrain)[i], ": ", valueTrain[[i]], appendLF = FALSE)
+#  }
 
 
   # store values in call structure for returned object
@@ -632,23 +632,23 @@ IHsurvrf <- function(data,
   ## captures current function call, including function name and all arguments passed to it
   cl <- match.call()
 
-  ## ensures name of called function is set to "dtrSurv"
-  cl[[1L]] <- as.name("IHdtrSurv")
+  ## ensures name of called function is set to "IHsurvrf"
+  cl[[1L]] <- as.name("IHsurvrf")
 
   # Initialize a flag to indicate whether to continue iterations
   continue_iterations <- TRUE
 
   conv_iterations <- 1
 
-  ## now we want to create a matrix for areas where each row is one iteration of the forest
-  ## but, we want to zero out any values where the T was too close to 0 so we can compare survival curves
-  area_mat <- areas
-  ## we add this part to areas if action > 2
-  #[-which(long_data$strata1 == 1 & long_data$T < 1e-8)]
-
-  # Initialize vectors to store avg_diff and res@valueTrain values
-  avg_diff_values <- c()
-  valueTrain_values <- c(valueTrain)
+#  ## now we want to create a matrix for areas where each row is one iteration of the forest
+#  ## but, we want to zero out any values where the T was too close to 0 so we can compare survival curves
+#  area_mat <- areas
+#  ## we add this part to areas if action > 2
+#  #[-which(long_data$strata1 == 1 & long_data$T < 1e-8)]
+#
+#  # Initialize vectors to store avg_diff and res@valueTrain values
+#  avg_diff_values <- c()
+#  valueTrain_values <- c(valueTrain)
 
 
   # Construct an object of class DTRSurv for the output
@@ -656,24 +656,10 @@ IHsurvrf <- function(data,
   res.strata1.1 <- new(
     Class = "DTRSurv",
 
-    #####
-    ###### delete these?
-    ######
-    "stageResults" = list(seq(1:nDP)),
-
-    #####
-    ###### delete these?
-    ######
-
-    "IHstageResults" = list(),
     "FinalForest" = s1.strata1,
-    "value" = valueTrain,
     "call" = cl,
     "params" = params,
-    "integral_KM" = area_mat,
     "n_it" = conv_iterations,
-    "avgKM_diff" = matrix(nrow = 2, ncol = 2),
-    "valueTrain_list" = list(),
     "long_data" = long_data,
 
     ## empty matrix since we don't use previous probabilities
@@ -718,43 +704,43 @@ IHsurvrf <- function(data,
     ######## for the pt that was zeroed out, we want to get rid of their integral from the original res.strata1
 
     ## now we want to create a matrix for areas where each row is one iteration of the forest
-    area_mat <-
-      rbind(res.strata1.1@integral_KM, convergence_res@integral_KM)
-
-    # Update res@integral_KM with area_mat
-    res.strata1.1@integral_KM <- area_mat
+#    area_mat <-
+#      rbind(res.strata1.1@integral_KM, convergence_res@integral_KM)
+#
+#    # Update res@integral_KM with area_mat
+#    res.strata1.1@integral_KM <- area_mat
 
     # update the optimal output probabilities
     res.strata1.1@prev_probs <- convergence_res@prev_probs
 
-    ## if the difference between these rows on average is greater than 0.005, then we go through another iteration
-    last_two_rows_diff <-
-      (abs(diff(area_mat[(nrow(area_mat) - 1):nrow(area_mat), ])) / area_mat[(nrow(area_mat) -
-                                                                                1), ]) * 100
-
-    avg_diff <- mean(last_two_rows_diff, na.rm = T)
-
-    # Store avg_diff value to track each iteration
-    avg_diff_values <- c(avg_diff_values, avg_diff)
-
-    print(avg_diff)
+#    ## if the difference between these rows on average is greater than 0.005, then we go through another iteration
+#    last_two_rows_diff <-
+#      (abs(diff(area_mat[(nrow(area_mat) - 1):nrow(area_mat), ])) / area_mat[(nrow(area_mat) -
+#                                                                                1), ]) * 100
+#
+#    avg_diff <- mean(last_two_rows_diff, na.rm = T)
+#
+#    # Store avg_diff value to track each iteration
+#    avg_diff_values <- c(avg_diff_values, avg_diff)
+#
+#    print(avg_diff)
 
     ## we update the final forest used with the most recent forest estimated in the convergence step
     res.strata1.1@FinalForest <- convergence_res@FinalForest
 
-    ## we update the value with the most recent estimated value in the convergence step
-    res.strata1.1@value <- convergence_res@value
+#    ## we update the value with the most recent estimated value in the convergence step
+#    res.strata1.1@value <- convergence_res@value
 
     ## we also update the long_data
     res.strata1.1@long_data <- convergence_res@long_data
 
-    # Store res@valueTrain value to track each iteration
-    valueTrain_values <- c(valueTrain_values, res.strata1.1@value)
+#    # Store res@valueTrain value to track each iteration
+#    valueTrain_values <- c(valueTrain_values, res.strata1.1@value)
 
     ## track these values in the forest output
     res.strata1.1@n_it <- conv_iterations
-    res.strata1.1@avgKM_diff <- as.matrix(avg_diff_values)
-    res.strata1.1@valueTrain_list <- valueTrain_values
+#    res.strata1.1@avgKM_diff <- as.matrix(avg_diff_values)
+#    res.strata1.1@valueTrain_list <- valueTrain_values
 
     ## Increment the iteration counter
     conv_iterations <- conv_iterations + 1
@@ -831,46 +817,26 @@ IHsurvrf <- function(data,
 
 
 
-    ## the result after appyling the area function to each column of the matrix of survival probabilities
-    ##### NOTE: the issue is that each patient has a different number of visits belonging to this strata
-    ##### meaning, for visits in strata 2, we must input 0 probability
-    areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
-      area_under_curve(surv_prob_col, params@timePoints)
-    })
-
-    ## now we want to create a matrix for areas where each row is one iteration of the forest
-    area_mat <- areas
+#    ## the result after appyling the area function to each column of the matrix of survival probabilities
+#    ##### NOTE: the issue is that each patient has a different number of visits belonging to this strata
+#    ##### meaning, for visits in strata 2, we must input 0 probability
+#    areas <- apply(shiftedprobfinal, 2, function(surv_prob_col) {
+#      area_under_curve(surv_prob_col, params@timePoints)
+#    })
+#
+#    ## now we want to create a matrix for areas where each row is one iteration of the forest
+#    area_mat <- areas
 
 
     # Construct an object of class DTRSurv for the output
     ## this needs to be initialized outside the loop
     res.strata2.1 <- new(
       Class = "DTRSurv",
-
-      #####
-      ###### delete these?
-      ######
-      "stageResults" = list(seq(1:nDP)),
-
-      #####
-      ###### delete these?
-      ######
-
-      "IHstageResults" = list(),
       "FinalForest" = s1.strata2,
-      "value" = valueTrain,
       "call" = cl,
       "params" = params,
-      "integral_KM" = area_mat,
       "n_it" = conv_iterations,
-      "avgKM_diff" = matrix(nrow = 2, ncol = 2),
-      "valueTrain_list" = list(),
       "long_data" = long_data,
-
-      ## NOTE: for the previous probs, we want to access res.strata(i - 1).1
-      ############# THIS IS ANOTHER CHANGE TO MAKE
-
-
       "prev_probs" = res.strata1.1@prev_probs
     )
 
@@ -880,16 +846,16 @@ IHsurvrf <- function(data,
     ## this is calculated across all PTS, so, once all pts have received their estimated optimal treatment --> what's the mean of all their survival times
     ## .meanValue() function defined in class_DTRSurvStep.R
 
-    valueTrain <- .meanValue(object = s1.strata2)
-
-
-    ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
-
-    message("Estimated Value:", appendLF = FALSE)
-    for (i in 1L:length(valueTrain)) {
-      message(" ", names(valueTrain)[i], ": ", valueTrain[[i]], appendLF = FALSE)
-    }
-
+#    valueTrain <- .meanValue(object = s1.strata2)
+#
+#
+#    ## display the estimated value calculated in the first stage, and iterates through each element and prints names and values
+#
+#    message("Estimated Value:", appendLF = FALSE)
+#    for (i in 1L:length(valueTrain)) {
+#      message(" ", names(valueTrain)[i], ": ", valueTrain[[i]], appendLF = FALSE)
+#    }
+#
 
     # store values in call structure for returned object
 
@@ -897,16 +863,16 @@ IHsurvrf <- function(data,
     cl <- match.call()
 
     ## ensures name of called function is set to "dtrSurv"
-    cl[[1L]] <- as.name("IHdtrSurv")
+    cl[[1L]] <- as.name("IHsurvrf")
 
     # Initialize a flag to indicate whether to continue iterations
     continue_iterations <- TRUE
 
     conv_iterations <- 1
 
-    # Initialize vectors to store avg_diff and res@valueTrain values
-    avg_diff_values <- c()
-    valueTrain_values <- c(valueTrain)
+#    # Initialize vectors to store avg_diff and res@valueTrain values
+#    avg_diff_values <- c()
+#    valueTrain_values <- c(valueTrain)
 
     ## free up memory
     rm(s1.strata2)
@@ -940,45 +906,45 @@ IHsurvrf <- function(data,
       )
       ######## for the pt that was zeroed out, we want to get rid of their integral from the original res.strata1
 
-      ## now we want to create a matrix for areas where each row is one iteration of the forest
-      area_mat <-
-        rbind(res.strata2.1@integral_KM,
-              convergence_res@integral_KM)
-
-      # Update res@integral_KM with area_mat
-      res.strata2.1@integral_KM <- area_mat
-
-      # update the optimal output probabilities
-      res.strata2.1@prev_probs <- convergence_res@prev_probs
-
-      ## if the difference between these rows on average is greater than 0.005, then we go through another iteration
-      last_two_rows_diff <-
-        (abs(diff(area_mat[(nrow(area_mat) - 1):nrow(area_mat), ])) / area_mat[(nrow(area_mat) -
-                                                                                  1), ]) * 100
-
-      avg_diff <- mean(last_two_rows_diff, na.rm = T)
-
-      # Store avg_diff value to track each iteration
-      avg_diff_values <- c(avg_diff_values, avg_diff)
-
-      print(avg_diff)
+#      ## now we want to create a matrix for areas where each row is one iteration of the forest
+#      area_mat <-
+#        rbind(res.strata2.1@integral_KM,
+#              convergence_res@integral_KM)
+#
+#      # Update res@integral_KM with area_mat
+#      res.strata2.1@integral_KM <- area_mat
+#
+#      # update the optimal output probabilities
+#      res.strata2.1@prev_probs <- convergence_res@prev_probs
+#
+#      ## if the difference between these rows on average is greater than 0.005, then we go through another iteration
+#      last_two_rows_diff <-
+#        (abs(diff(area_mat[(nrow(area_mat) - 1):nrow(area_mat), ])) / area_mat[(nrow(area_mat) -
+#                                                                                  1), ]) * 100
+#
+#      avg_diff <- mean(last_two_rows_diff, na.rm = T)
+#
+#      # Store avg_diff value to track each iteration
+#      avg_diff_values <- c(avg_diff_values, avg_diff)
+#
+#      print(avg_diff)
 
       ## we update the final forest used with the most recent forest estimated in the convergence step
       res.strata2.1@FinalForest <- convergence_res@FinalForest
 
-      ## we update the value with the most recent estimated value in the convergence step
-      res.strata2.1@value <- convergence_res@value
-
+#      ## we update the value with the most recent estimated value in the convergence step
+#      res.strata2.1@value <- convergence_res@value
+#
       ## we also update the long_data
       res.strata2.1@long_data <- convergence_res@long_data
 
-      # Store res@valueTrain value to track each iteration
-      valueTrain_values <- c(valueTrain_values, res.strata2.1@value)
+#      # Store res@valueTrain value to track each iteration
+#      valueTrain_values <- c(valueTrain_values, res.strata2.1@value)
 
       ## track these values in the forest output
       res.strata2.1@n_it <- conv_iterations
-      res.strata2.1@avgKM_diff <- as.matrix(avg_diff_values)
-      res.strata2.1@valueTrain_list <- valueTrain_values
+#      res.strata2.1@avgKM_diff <- as.matrix(avg_diff_values)
+#      res.strata2.1@valueTrain_list <- valueTrain_values
 
       ## Increment the iteration counter
       conv_iterations <- conv_iterations + 1
@@ -1006,17 +972,11 @@ IHsurvrf <- function(data,
 
       ## strata 2 forest
       "Forest2" = res.strata2.1,
-
-      "Forest3" = NA,
-      "Forest4" = NA,
-      "Forest5" = NA,
-
       "call" = cl,
       "params" = params,
       "long_data" = res.strata2.1@long_data,
       "prev_probs" = res.strata2.1@prev_probs,
       "n_it" = NA,
-      "avgKM_diff" = matrix(0),
       "cutoff" = selected_thresh
     )
   } else if (nstrata == 1) {
@@ -1039,16 +999,11 @@ IHsurvrf <- function(data,
       "Forest1" = res.strata1.1,
 
       "Forest2" = NA,
-      "Forest3" = NA,
-      "Forest4" = NA,
-      "Forest5" = NA,
-
       "call" = cl,
       "params" = params,
       "long_data" = res.strata1.1@long_data,
       "prev_probs" = res.strata1.1@prev_probs,
       "n_it" = NA,
-      "avgKM_diff" = matrix(0),
 
       ## there's no cutoff for the data split
       "cutoff" = 0

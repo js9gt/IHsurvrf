@@ -577,35 +577,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
   if (length(x = txLevels) == 1L) {
     message("***only one treatment level in data***")
 
-    ## also return early,with indicator for txLevel
-#    return(new(
-#      Class = "DTRSurvStep",
-#      "txName" = "A",
-#      "txLevels" = c(0, 1),
-#      "model" = mod,
-#      "survRF" = NA,
-#      "eligibility" = T,
-#
-#      ## predicted values for all treatment levels
-#      "valueAllTx" = list(0, 0),
-#
-#      ## optimal treatment recommendations extracted
-#      "optimal" = new("Optimal",
-#                      optimalTx = c(0),  # Initial value for optimalTx slot
-#                      optimalY = matrix(0, nrow = 2, ncol = 2),  # Initial value for optimalY slot
-#                      type = "mean"),
-#
-#      ## adding a new slot to retrieve the appending probabilities for each stage
-#      "stageappend" = matrix(0, nrow = 2, ncol = 2),
-#
-#      ## logical if we have enough patients in the stage to move on
-#      ## TRUE means we don't
-#      "sumElig" = FALSE,
-#
-#      ## TRUE means we only have 1 treatment level present-- we need at least 2
-#      "enoughtrt" = TRUE
-#
-#    ))
 
   }
 
@@ -733,36 +704,36 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
 ## returns mean values of expected survival times and survival probabilities
 ## used in dtrSurv.R
 
-.meanValue <- function(object, ...) {
-  ## initializes empty list
-  res <- list()
-
-  ## find the mean of maximum expected survival times across treatment levels
-  # returns the mean of the expected survival times & adds them to the result in a new element "Et"
-  res[[ "Et" ]] <-  mean(x = apply(
-
-    ## access "mean" component of the valueAllTx slot which stores value of each tree for each treatment level
-    X = object@valueAllTx$mean,
-
-    ##apply the "max" function across the margin of the mean matrix/array to apply across rows
-    ## AKA for each row (individual),take maximum value across all columns (treatment options), then calculate the mean
-    MARGIN = 1L,
-    FUN = max))
-
-  ## if survival probabilities are available,
-  ## checks the "survProb" comonent of the valueAllTx slot
-
-  if (!is.null(object@valueAllTx$survProb)) {
-
-    ## also calculate their means
-    res[[ "St" ]] <-  mean(x = apply(X = object@valueAllTx$survProb,
-                                     MARGIN = 1L,
-                                     FUN = max))
-  }
-
-  ## return results as a list
-  return( res )
-}
+#.meanValue <- function(object, ...) {
+#  ## initializes empty list
+#  res <- list()
+#
+#  ## find the mean of maximum expected survival times across treatment levels
+#  # returns the mean of the expected survival times & adds them to the result in a new element "Et"
+#  res[[ "Et" ]] <-  mean(x = apply(
+#
+#    ## access "mean" component of the valueAllTx slot which stores value of each tree for each treatment level
+#    X = object@valueAllTx$mean,
+#
+#    ##apply the "max" function across the margin of the mean matrix/array to apply across rows
+#    ## AKA for each row (individual),take maximum value across all columns (treatment options), then calculate the mean
+#    MARGIN = 1L,
+#    FUN = max))
+#
+#  ## if survival probabilities are available,
+#  ## checks the "survProb" comonent of the valueAllTx slot
+#
+#  if (!is.null(object@valueAllTx$survProb)) {
+#
+#    ## also calculate their means
+#    res[[ "St" ]] <-  mean(x = apply(X = object@valueAllTx$survProb,
+#                                     MARGIN = 1L,
+#                                     FUN = max))
+#  }
+#
+#  ## return results as a list
+#  return( res )
+#}
 
 
 

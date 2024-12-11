@@ -90,16 +90,8 @@ IHdtrConv_otherstrata <- function(data,
   ### we select the eligible values which are in the current stage, and strata
   ### then we subset t only those eligible (have complete cases)
 
-  ################
-  ################# CHECK: do we also need to filter for non-NA pts for the dim to match?
-  ###############
-
   long_data$A[long_data$stage == nDP & long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]])][which(eligibility == 1)] <- optimal_treatments
 
-
-  ##############
-  #############
-  ##############
 
   #### now, we want to extract the eligibility for the whole stage
   #### this means they have to BOTH have compelte cases, AND have strata1 == 1
@@ -219,11 +211,6 @@ IHdtrConv_otherstrata <- function(data,
     ### NOTE: we only predict for those patients who have the same next strata
     ###
     x = get_all_vars(updated_formula, data)[which(nextstrat_same == 1), ]
-
-    ####
-    #### end for strata >1
-    ####
-
 
 
     if (dim(x)[1] != 0){
@@ -599,18 +586,6 @@ IHdtrConv_otherstrata <- function(data,
   shiftedprobfinal <- matrix(0, nrow = nTimes, ncol = length(allstage.eligibility) )
   shiftedprobfinal[,which(allstage.eligibility == T)] <-t(get(forest.name)@optimal@optimalY)
 
-  ## get the final stage's area under the curve: we only look at the columns of the matrix in the last stage
-  #finalstagepr <- shiftedprobfinal[, seq(from = 1, to = ncol(shiftedprobfinal), by = nDP)]
-
-  ### for areas, we need to select only the columns & stages where the patient was eligible
-
-
-  ## the result after appyling the area function to each column of the matrix of survival probabilities
-  areas <- apply(t(get(forest.name)@optimal@optimalY), 2, function(surv_prob_col) {
-    area_under_curve(surv_prob_col, params@timePoints)
-  })
-
-
 
   ## captures current function call, including function name and all arguments passed to it
   cl <- match.call()
@@ -620,16 +595,10 @@ IHdtrConv_otherstrata <- function(data,
 
   conv_forest <- new(
     Class = "DTRSurv",
-    "stageResults" = list(),
-    "IHstageResults" = list(),
     "FinalForest" = get(forest.name),
-    "value" = NULL,
     "call" = cl,
     "params" = params,
-    "integral_KM" = areas,
     "n_it" = NA,
-    "avgKM_diff" = matrix(nrow = 2, ncol = 2),
-    "valueTrain_list" = list(),
     "long_data" = long_data,
     "prev_probs" = shiftedprobfinal
   )

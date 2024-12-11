@@ -11,13 +11,6 @@ IHdtrConv <- function(data,
                       prev_probs){
 
 
-  ######
-  ###### NOTE: also input long_data & output long data
-
-  ###########
-  ########### have a stage-wise eligibility matrix so that each patient has same # stages
-  ########### for patients who are not eligible, their matrices should just be 0
-
 
   ## using the long data that was input
   data <- data
@@ -67,34 +60,12 @@ IHdtrConv <- function(data,
   message("cases in stage: ", dim(x)[1])
 
 
-  ##### we only want to run this prediction if there's available data, otherwise skip this step
-  ### predicting the final stage's stub & double stub
-  ## if this is the first conv_iterations, we will freeze (use the prediction for the final stage stub) in the OUTPUT after refitting
-  ## if this is the 2nd conv_iteration, we will keep the frozen final stage stub, we will also use the frozen 2nd to last stage in the OUTPUT after refitting
-
-  ## meaning, we need to create, at each step, a "frozen" matrix as input and output that we can use in the function
-  ## this should have the same dim as the output probability matrix
-  ## after the pooling iteration, we will fill this will each patient's final stage prediction in dtrSurvConverge using an eligibility vector which is input
-          ## for the first refitting iteration (conv_iteration 1: forest 2), this will tell us that we should use the final stage
-          ## for the second refitting iteration (conv_iteration2: forest 3), this will tell us that we should use the both the 2nd to last and the final stage
-      ## then, after the refitting in dtrSurvConverge at the end, we will overwrite the output probabilities with the frozen ones and output this for the next loop using the eligibility
-  ## then, for the third refitting iteration (conv_iteration3: forest 4), we will use the 3rd to last, 2nd to last, and final stage
-      ## after refittnig the forest, we will overwrite the output probabilities with the frozen ones
-      ## the eligibility vector should only keep changing for a patient until we reach their total number of stages. For example, if a patient has 3 stages, the eligibility shouldn't change
-      ## based on the eligibility vector, we can insert the predicted values from pr_pooled where there are empty 0's in the frozen matrix
-  ## then, usint the same eligibility vector, this tells us which columns to overwrite in the output probabilities
-
-
   if (dim(x)[1] != 0){
   last.stage.pred <- PredDTRSurvStep(object = prev.iteration@FinalForest,
                               newdata = x,
                               params = params,
                               findOptimal = T)
 
-
-
-  ## the stage results: use this to assign optimal treatment to A.opt.HC based on the final stage prediction
-  # Iterate over each stage of interest
 
   # Extract optimal treatments for the current stage
   optimal_treatments <- last.stage.pred$optimal@optimalTx
@@ -189,10 +160,6 @@ IHdtrConv <- function(data,
     ### if the current iteration is nDP - 2, we want to predict for nDP - 1
     ## then, for stage nDP - 2 (stage 23), predict the optimal survial and treatment for stage 24
 
-    ####
-    #### run for strata == 1
-    ####
-
     ## then, use this previous predicted survival probability and append nDP - 2 observed info onto stage 24 predicted
     response_var <- as.character(formula(prev.iteration@FinalForest@model)[[2]][-1])
     response_with_stage <- paste0(response_var, "_", (i+1))
@@ -212,8 +179,6 @@ IHdtrConv <- function(data,
     ### if there are no observations in x, we skip this whole thing
     ### there should automatically be 0's in pr_pooled for this
     ### meaning, we only run the rest of this loop if there are non-0 values for x
-
-
 
     if (dim(x)[1] != 0){
 
@@ -271,18 +236,6 @@ IHdtrConv <- function(data,
     ## do this only for eligible patients
     shiftedprob1[, which(wholestage.eligibility == 1) ] <- t(last.stage.pred$optimal@optimalY)
 
-    ###
-    ### end strata == 1
-    ###
-
-
-
-
-    ###################################################
-    ################################################# NEXT START HERE
-    ###############################################################
-
-    ## now, we want insert these predictions into the first column of a combined probability with optimal predictions from each stage
 
     #################### appending the previous stage
     ##### we want to make sure the appended stage is also in strata 1
@@ -452,42 +405,6 @@ IHdtrConv <- function(data,
     )
 
 
-
-    #############################
-    #############################
-    #############################
-    ####### VISUALIZATION #######
-
-    ## shifted probability output after adding new point for nDP - 3
-
-
-    #    ## nDP
-    #    y1 <- .shiftMat(
-    #      timePoints = .TimePoints(object = params),
-    #
-    #      ## extracts columns from survMatrix corresponding to cases that are eligible
-    #      ## this is a matrix matrix where each column represents survival function for an individual
-    #      survMatrix = survMatrix[, elig_append1, drop = FALSE],
-    #
-    #      ## extracts survival times corresponding to eligible cases
-    #      ## this is how much to shift survival function for each individual
-    #      shiftVector = response_append1[elig_append1],
-    #
-    #      ## probably transforming survival times into probabilities?
-    #      surv2prob = FALSE
-    #    )[, 1]
-    #
-    #
-    #
-    #    plot(xaxis, y1)
-    #    title("Convergence 2: stage 1 appending to stage 2 prediction")
-    #
-
-    #############################
-    #############################
-    #############################
-    #############################
-
     ## we also have new patients, where this is their last stage. so for patients who are eligible in stage 24, but not stage 25, we need to predict
     ## if the new stages eligibility (elig_append1) doesn't match the previous stage eligibility (prev.stag.elig), we put a TRUE. Otherwise if they match, put FALSE
     ## this means if new stage eligibility is TRUE, and previous stage is FALSE, we put a value of TRUE
@@ -634,14 +551,6 @@ IHdtrConv <- function(data,
   # Extract eligibility for the current forest
   eligibility_final <- get(forest.name)@eligibility
 
-  # Step 3: Insert pool1 results into A.pool1 for stages 3, 4, and 5
-  ## also update the "A" column
-
-  ###################
-  ################### CHECK-- this might not match dimensions as eligibility is only for the pts in the strata
-  ################### might need to subset the pts in the strata to update the actions
-  ###################
-
   ## we want to filter for all the patients who are in the strata and don't have an NA
 
 
@@ -650,12 +559,6 @@ IHdtrConv <- function(data,
 
   long_data$A[long_data[[paste0("strata", strata)]] == 1 & !is.na(long_data[[paste0("strata", strata)]]) &
       !is.na(long_data[[as.character(attr(terms(models), "variables")[[2]][[2]])]])][which(eligibility_final == 1)] <- get(forest.name)@optimal@optimalTx
-
-
-  ####################
-  ####################
-  ####################
-
 
 
   ######## now, we want to output this into a grid, so that all patients have all stages present
@@ -683,20 +586,6 @@ IHdtrConv <- function(data,
   shiftedprobfinal[,which(allstage.eligibility == T)] <-t(get(forest.name)@optimal@optimalY)
 
 
-
-  ## get the final stage's area under the curve: we only look at the columns of the matrix in the last stage
-  #finalstagepr <- shiftedprobfinal[, seq(from = 1, to = ncol(shiftedprobfinal), by = nDP)]
-
-  ### for areas, we need to select only the columns & stages where the patient was eligible
-
-
-  ## the result after appyling the area function to each column of the matrix of survival probabilities
-  areas <- apply(shiftedprobfinal[, colSums(shiftedprobfinal) != 0], 2, function(surv_prob_col) {
-    area_under_curve(surv_prob_col, params@timePoints)
-  })
-
-
-
   ## captures current function call, including function name and all arguments passed to it
   cl <- match.call()
 
@@ -705,16 +594,10 @@ IHdtrConv <- function(data,
 
   conv_forest <- new(
     Class = "DTRSurv",
-    "stageResults" = list(),
-    "IHstageResults" = list(),
     "FinalForest" = get(forest.name),
-    "value" = NULL,
     "call" = cl,
     "params" = params,
-    "integral_KM" = areas,
     "n_it" = NA,
-    "avgKM_diff" = matrix(nrow = 2, ncol = 2),
-    "valueTrain_list" = list(),
     "long_data" = long_data,
     "prev_probs" = shiftedprobfinal
   )

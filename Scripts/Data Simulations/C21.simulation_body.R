@@ -1,8 +1,7 @@
 
 library(parallel)
 
-setwd("~/survrf/Scripts/IHsurvrf")
-source("R/IH.dtrSurv.R")
+library(IHsurvrf)
 
 setwd("~/survrf/Scripts/Data Simulations")
 ## generic is sourced in multistage_sim.R
@@ -13,62 +12,10 @@ if (criterion == "mean") {
   val.fn <- function(x) {mean(x, na.rm = TRUE)}
 } 
 
-# Function to count numbers in each row in the summary output
-## this excludes asterisks
-count_numbers <- function(row) {
-  # Remove asterisks
-  row_clean <- gsub("\\*", "", row)
-  # Count the number of remaining characters
-  n_numbers <- nchar(row_clean)
-  return(n_numbers)
-}
-
-## function to count matches for actions taken vs the optimal actions
-count_matches_without_asterisks <- function(actions_col, true_opt_col) {
-  # Function to clean a row by removing asterisks
-  clean_row <- function(row) {
-    return(gsub("\\*", "", row))
-  }
-
-  # Apply the cleaning function to both columns
-  actions_clean <- sapply(actions_col, clean_row)
-  true_opt_clean <- sapply(true_opt_col, clean_row)
-
-  # Function to count matches
-  count_matches <- function(action_str, true_opt_str) {
-    return(sum(unlist(strsplit(action_str, "")) == unlist(strsplit(true_opt_str, ""))))
-  }
-
-  # Apply the match counting function to each pair of cleaned strings
-  match_counts <- mapply(count_matches, actions_clean, true_opt_clean)
-
-  return(match_counts)
-}
-
-
-
-## modifies a temporary filename by replacing ".rds" with "_tmp.rds"
-#filename.tmp <- gsub("\\.rds", "_tmp.rds", filename)
 
 ## initialize matrix called stat.stage  with NA values with a row for each of the simulations run, and a column for each stage
 stat.stage <- matrix(NA, nrow = n.sim, ncol = n.stages,
                      dimnames = list(1:n.sim, 1:n.stages))
-
-########## simulation ##################
-## initialize a data.frame called "result"  with columns for various statistics
-## gets a result for each iteration of the simulation (AKA one row = values for one sim)
-#result <- data.frame(no = 1:n.sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
-#                     ### we also include the proportions of the actions that match the identified true optimal
-#                     avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
-#                     time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
-
-## assign an attribute to "result" containing a list of 2 elements
-## stores value of criterion used
-## stores value of critical value used
-#attr(result, "criterion") <- list(criterion = criterion, crit.value = crit.value)
-
-## loop from 1 to n.stages to add columns to result, including columns named n_1, n_2, ...n.stages initialized with NA
-#for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
 
 ## initialize a list called arg.obs with various parameters and settings used for analysis
 ## assigns the same value of the initialization list to all of these different variables:
@@ -79,9 +26,6 @@ stat.stage <- matrix(NA, nrow = n.sim, ncol = n.stages,
 ## we want the no censor part, IHsurvRV, ZOM to have no censoring
 arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.trueopt <-
   list(
-    ## we don't want to start at the very last stage to avoid issues with too few
-    ## ## stage that we start at
-    #stage.start = ss,
     n.sample = n, max_stages = n.stages, tau = tau,
     ## initially all patients are at risk
     at.risk = 1,
@@ -135,10 +79,9 @@ print(Sys.time())
 
 # Define the function that runs a single simulation
 run_simulation <- function(sim){
-  result <- data.frame(no = sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, avg.prop.match.opt.obs = NA,
-                       ### we also include the proportions of the actions that match the identified true optimal
-                       avg.prop.match.opt.IHsurvrf = NA, avg.prop.match.opt.trt1 = NA, avg.prop.match.opt.trt0 = NA, avg.prop.match.opt.trueopt = NA, change.integral = NA, time.obs = NA,
-                       time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, time.trueopt = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
+  result <- data.frame(no = sim, observed = NA, IHsurvrf = NA, trt1 = NA, trt0 = NA, trueopt = NA, 
+                      time.obs = NA,
+                       time.IHsurvrf = NA, time.trt1 = NA, time.trt0 = NA, proportion.censor = NA, num.convergence.it = NA)  # time for each method (both policy est and eval)
                        
   
   attr(result, "criterion") <- list(criterion = criterion)
@@ -146,7 +89,6 @@ run_simulation <- function(sim){
   for (i in 1:n.stages) result[[paste0("n_", i)]] = NA
   
   
-#for (sim in 41:51) {
   cat("###########################  simulation ", sim, "########################### \n")
   cat("########################### (criterion ", criterion,  ")################## \n")
 
@@ -181,8 +123,6 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 ## this observed policy is based on n.eval number of reps to calculate a single value of observed policy
 ## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
 result["observed"] <- val.fn(obs.data.rep$summary$cumulative.event.time)
-
-result["avg.prop.match.opt.obs"] <- mean(count_matches_without_asterisks(obs.data.rep$summary$actions, obs.data.rep$summary$true.opt)/sapply(obs.data.rep$summary[, "actions"], count_numbers))
 
 ## note: 0 = censored, 1 = not censored, so we calculate the proportion of 1's from the generated observed data, then subtract from 1
 ####### USES OBSERVED DATA, not policy data
@@ -288,7 +228,7 @@ if (!skip.IHsurvrf) {
 
   ## feed arguments to dtrSurv() function: loops through each of the stages using Q-learning, using the predicted optimal from the previous stage and carrying it back
   ## the result should be the predicted optimal
-  optimal.IHsurvrf <- do.call(IHdtrSurv, c(arg.IHsurvrf2, list(nodeSize = nodesize, minEvent = mindeath )))
+  optimal.IHsurvrf <- do.call(IHsurvrf, c(arg.IHsurvrf2, list(nodeSize = nodesize, minEvent = mindeath )))
 
   ## if the first element of the class == try-error, this value will be TRUE
   IHsurvrf.error <- class(optimal.IHsurvrf)[1] == "try-error"
@@ -332,12 +272,8 @@ if (!skip.IHsurvrf) {
         ## tt(2, reset = TRUE): resets timer for later measurements, and retreives the elapsed time in terms of mins for the time it takes to estimate and evaluate the policy
         result["time.IHsurvrf"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-        result["change.integral"] <- unique(IHsurvrf.data.rep$summary$avg.last.iter.change)
-
         ####### gets the number of iterations from the training data for convergence
         result["num.convergence.it"] <- unique(IHsurvrf.data.rep$summary$convergence.iterations)
-
-        result["avg.prop.match.opt.IHsurvrf"] <- mean(count_matches_without_asterisks(IHsurvrf.data.rep$summary$actions, IHsurvrf.data.rep$summary$true.opt)/sapply(IHsurvrf.data.rep$summary[, "actions"], count_numbers))
 
         ## reset the policy to NULL and clean
         arg.IHsurvrf$policy <- NULL; gc()
@@ -372,8 +308,6 @@ if (!skip.trt1) {
   result["trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
   result["time.trt1"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-  result["avg.prop.match.opt.trt1"] <- mean(count_matches_without_asterisks(trt1.data.rep$summary$actions, trt1.data.rep$summary$true.opt)/sapply(trt1.data.rep$summary[, "actions"], count_numbers))
-
   arg.trt1$policy <- NULL; gc()
   rm(trt1.data.rep); gc()
 }
@@ -399,36 +333,10 @@ if (!skip.trt0) {
   result["trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
   result["time.trt0"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
 
-  result["avg.prop.match.opt.trt0"] <- mean(count_matches_without_asterisks(trt0.data.rep$summary$actions, trt0.data.rep$summary$true.opt)/sapply(trt0.data.rep$summary[, "actions"], count_numbers))
   arg.trt0$policy <- NULL; gc()
   rm(trt0.data.rep); gc()
 }
 
-cat ("5. Estimation - True Optimal \n")
-## all pts treated identically regardless of their characterstics
-## chosen regime yields most favorable outcomes across pt population based on model predictions
-## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
-if (!skip.opt) {
-
-
-  cat ("  3. True Optimal- Evaluation \n")
-  set.seed(sim*10000 + 10)
-  ## create an object of claass "trt1" to input as the policy
-  trueopt_label <- structure(0, class = "trueopt")
-
-  ## add the input policy which is "trt1"
-  arg.trueopt$policy <- trueopt_label
-
-  ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
-  arg.trueopt.data.rep <- do.call(simulate_patients, arg.trueopt)
-
-
-  result["trueopt"] <- val.fn(arg.trueopt.data.rep$summary$cumulative.event.time)
-  result["time.trueopt"] <- tt(2, reset = TRUE, units = "mins")["elapsed"]
-  result["avg.prop.match.opt.trueopt"] <- mean(count_matches_without_asterisks(arg.trueopt.data.rep$summary$actions, arg.trueopt.data.rep$summary$true.opt)/sapply(arg.trueopt.data.rep$summary[, "actions"], count_numbers))
-  arg.trueopt$policy <- NULL; gc()
-  rm(arg.trueopt.data.rep); gc()
-}
 
 
 ### saving and cleaning
@@ -453,7 +361,7 @@ results_list <- mclapply(1:200, run_simulation, mc.cores = num_cores)
 # Combine the results into a single dataframe
 final_results <- do.call(rbind, results_list)
 
-write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/equal_2strata_10stage_locens", row.names=FALSE)
+write.csv(final_results, "/nas/longleaf/home/js9gt/survrf/Outputs/testing_simplecode_300pt_hicens", row.names=FALSE)
 
 
 ## ------------------------------------- Function to look at the characteristics of our simulated data ------------------------------------ ##
@@ -511,75 +419,3 @@ simulate_and_analyze <- function(sim_values, arg.obs) {
 }
 
 
-#two_strat <- simulate_and_analyze(sim_values = c(52, 53, 54, 55, 57, 58, 59, 60, 62, 63, 64, 65, 67, 68, 69, 70, 72, 73, 74, 75, 
-#                                                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 
-#                                                 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 
-#                                                 43, 44, 45, 46, 47, 48, 49, 50, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 
-#                                                 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 151, 152, 153, 154, 155, 
-#                                                 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 
-#                                                 172, 173, 174, 175, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 
-#                                                 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 
-#                                                 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 
-#                                                 145, 146, 147, 148, 149, 150, 176, 177, 178, 180, 181, 182, 183, 185, 186, 187, 
-#                                                 188, 190, 191, 192, 193, 195, 196, 197, 198, 200, 201, 202, 203, 204, 205, 206, 
-#                                                 207, 208, 209, 210), arg.obs = arg.obs)
-#
-## low cens
-#c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 
-#  57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 
-#  108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 
-#  150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 178, 179, 180, 183, 184, 185, 188, 189, 190, 193, 194, 195, 198, 199, 200, 201, 
-#  202, 203, 204, 205, 206, 207, 208, 209, 210)
-
-## high cens
-#c(52, 53, 54, 55, 57, 58, 59, 60, 62, 63, 64, 65, 67, 68, 69, 70, 72, 73, 74, 75, 
-#  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 
-#  23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 
-#  43, 44, 45, 46, 47, 48, 49, 50, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 
-#  88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 151, 152, 153, 154, 155, 
-#  156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 
-#  172, 173, 174, 175, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 
-#  113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 
-#  129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 
-#  145, 146, 147, 148, 149, 150, 176, 177, 178, 180, 181, 182, 183, 185, 186, 187, 
-#  188, 190, 191, 192, 193, 195, 196, 197, 198, 200, 201, 202, 203, 204, 205, 206, 
-#  207, 208, 209, 210)
-
-#one_strat <- simulate_and_analyze(sim_values = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
-#                                                 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 
-#                                                 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 129, 131, 132, 134, 136, 137, 139, 141, 142, 144, 146, 147, 149, 151, 152, 153, 154, 155, 156, 157, 158, 
-#                                                 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 
-#                                                 201, 202, 203, 204, 205, 206, 207, 208, 209, 210), arg.obs = arg.obs)
-#
-#
-#
-#two_strat$mean_censoring_percentage
-#one_strat$mean_censoring_percentage
-#
-## Convert the list to a matrix, where each column is a vector from the list
-#two_final_stage_matrix <- do.call(rbind, two_strat$final_stage_counts)
-#
-## Sum each row (i.e., sum across all first terms, second terms, etc.)
-#two_stage_sums <- colSums(two_final_stage_matrix)
-#
-## Convert the list to a matrix, where each column is a vector from the list
-#one_final_stage_matrix <- do.call(rbind, one_strat$final_stage_counts)
-#
-## Sum each row (i.e., sum across all first terms, second terms, etc.)
-#one_stage_sums <- colSums(one_final_stage_matrix)
-#
-## Sample data for stage sums
-#x_values <- 1:n.stages  # Stages 1 to 10
-#
-## Set up the plotting area with two rows
-#par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))  # Adjust margins as needed
-#
-## Top bar plot for "two"
-#barplot(two_stage_sums, names.arg = x_values, col = "skyblue", 
-#        main = "Stage Sums for 'Two'", xlab = "Stages", ylab = "Frequency", ylim = c(0, max(two_stage_sums)))
-#
-## Bottom bar plot for "one"
-#barplot(one_stage_sums, names.arg = x_values, col = "lightcoral", 
-#        main = "Stage Sums for 'One'", xlab = "Stages", ylab = "Frequency", ylim = c(0, max(one_stage_sums)))
-#
-#

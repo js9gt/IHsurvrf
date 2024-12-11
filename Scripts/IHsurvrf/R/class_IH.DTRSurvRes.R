@@ -17,15 +17,6 @@ setClass(Class = "DTRSurvRes",
            ## slot named value that stores ANY type
            "Forest2" = "ANY",
 
-           ## slot named value that stores ANY type
-           "Forest3" = "ANY",
-
-           ## slot named value that stores ANY type
-           "Forest4" = "ANY",
-
-           ## slot named value that stores ANY type
-           "Forest5" = "ANY",
-
            ## slot named "params" that stores another class called "Parameters" created in another file class_Parameters.R
            "params" = "Parameters",
 
@@ -39,9 +30,6 @@ setClass(Class = "DTRSurvRes",
 
            ## this stores the number of iterations until the forest reaches convergence
            "n_it" = "ANY",
-
-           ## this stores the matrix of the average differences between the survival curves for patients between iterations
-           "avgKM_diff" = "matrix",
 
            ## we will need to call different slots in the matrix to be used as cutoffs
 
