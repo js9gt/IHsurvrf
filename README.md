@@ -20,7 +20,7 @@ devtools::install_github("js9gt/IHsurvrf/Scripts/IHsurvrf")
 
 Then, Load the package in R by running: `library(IHsurvrf)`
 
-Method 2: The package can also be installed after downloading the tar.gz file, located [here][github.com/js9gt/IHsurvrf/Scripts/IHsurvrf_0.1.0.tar.gz]. The following steps detail how to install the tar.gz file:
+Method 2: The package can also be installed after downloading the tar.gz file, located [here](github.com/js9gt/IHsurvrf/Scripts/IHsurvrf_0.1.0.tar.gz). The following steps detail how to install the tar.gz file:
 
 1.  Load R version 4.4.0 in Linux using the bash command: `module load r/4.4.0`
 2.  Install the tar.gz file in R by running: `install.packages('[location of .tar.gz file]/IHsurvrf_0.1.0.tar.gz', repos = NULL, type = 'source')`
@@ -39,8 +39,8 @@ Finally, the package requires a variable representing patient IDs to be labeled 
 
 ## Simulation Studies:
 
-R code to generate multistage data and evaluate the use of our method can be found [here][github.com/js9gt/IHsurvrf/tree/main/Scripts/Data%20Simulations].
+R code to generate multistage data and evaluate the use of our method can be found [here](github.com/js9gt/IHsurvrf/tree/main/Scripts/Data%20Simulations).
 
 ## Data Application Code:
 
-It should first be noted, that to our knowledge, there are no current value function estimators for the survival setting when the number of stages is large. This is an open research area. Therefore, we demonstrate the use of our method using standard IPCW with 3 stages maximum. Though this does not display the strength of our method, which was intended for a large number of stages, it demonstrates a proof-of-concept of our method. The example code can be found [here][github.com/js9gt/RL_IBS].
+It should first be noted, that to our knowledge, there are no current value function estimators for the survival setting when the number of stages is large. This is an open research area. Therefore, we demonstrate the use of our method using standard IPCW with 3 stages maximum. Though this does not display the strength of our method, which was intended for a large number of stages, it demonstrates a proof-of-concept of our method. The example code can be found [here](https://github.com/js9gt/RL_IBS).
