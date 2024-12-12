@@ -367,34 +367,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
   if (sum(elig) == 0L)
     stop("no cases have complete data", call. = FALSE)
 
-  # Check if sum(elig) < 3
-#  if (sum(elig) < 5) {
-#    return(new(
-#      Class = "DTRSurvStep",
-#      "txName" = "A",
-#      "txLevels" = c(0, 1),
-#      "model" = mod,
-#      "survRF" = NA,
-#      "eligibility" = T,
-#
-#      ## predicted values for all treatment levels
-#      "valueAllTx" = list(0, 0),
-#
-#      ## optimal treatment recommendations extracted
-#      "optimal" = new("Optimal",
-#                      optimalTx = c(0),  # Initial value for optimalTx slot
-#                      optimalY = matrix(0, nrow = 2, ncol = 2),  # Initial value for optimalY slot
-#                      type = "mean"),
-#
-#      ## adding a new slot to retrieve the appending probabilities for each stage
-#      "stageappend" = matrix(0, nrow = 2, ncol = 2),
-#
-#      ## logical if we have enough patients in the stage to move on
-#      ## TRUE means we don't
-#      "sumElig" = TRUE
-#
-#    ))
-#  }
 
   ## displays message indicating the number of cases that are still eligible for analysis at this stage
 
@@ -451,76 +423,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
 
     } } else {
 
-#      {
-#      # PriorStep is not NULL when q < Q
-#      ### priorStep is of class DTRSurvStep AKA the results from the prior step of the analysis
-#      #
-#      # the number of timepoints
-#      # .NTimes() is a getter method defined for Parameters objects
-#
-#      ## retrieve the number of timepoints from the params object
-#      ## defined in class_TimeInfo.R
-#
-#      nTimes <- .NTimes(object = params)
-#
-#      # create an empty matrix for all previously eligible cases
-#
-#      ## initializes a survival matrix called "survMatrix" with 0's
-#
-#      survMatrix <- matrix(data = 0.0,
-#                           nrow = nTimes,
-#                           ncol = nrow(x = x))
-#
-#      ## sets the first row to 1.0
-#
-#      survMatrix[1L,] <- 1.0
-#
-#      ## updates survMatrix with survival functions estimated from the previous step
-#      ## priorStep: A DTRSurvStep object. The analysis from a previous step
-#
-#      # retrieve estimated OPTIMAL survival function from previous step
-#      ## then accesses the "eligibility" slot (logical) to select only the columns where the patient is still eligible
-#      ## replace these with the estimated optimal value from the"optimal" slot of the "priorStep" object
-#      ## transpose the output of .OptimalY to align with the structure: AKA number of rows = timepoints
-#      ## when it’s retrieved with .OptimalY shows up as rows = pts, and columns = timepoints, so we just transpose it back to its normal shape
-#      ## .OptimalY defined in class_Optimal.R
-#      ## .OptimalY acts on optimal slot of priorStep (class DTRSurvStep)-- this comes from the .PredictAll()
-#      ## optimal slot is  object of class optimal
-#      ## .OptimalY acts to return the optimalY slot
-#
-#      survMatrix[, priorStep@eligibility] <-
-#        t(.OptimalY(object = priorStep@optimal))
-#
-#      # shift the survival function down in time (T_i - Tq) and
-#      # transform to a probability mass vector for only those
-#      # eligible for this stage
-#      # .shiftMat is an internal function defined in shiftMat.R
-#
-#      ## transforms the survival functions in survMatrix to probability mass format for the current stage
-#      ## shifts the survival function based on the observed survival times
-#      ## this uses the survival matrix updated with the eligible patients & their optimal times from the last stage
-#
-#      pr <- .shiftMat(
-#        timePoints = .TimePoints(object = params),
-#
-#        ## extracts columns from survMatrix corresponding to cases that are eligible
-#        ## this is a matrix matrix where each column represents survival function for an individual
-#        survMatrix = survMatrix[, elig, drop = FALSE],
-#
-#        ## extracts survival times corresponding to eligible cases
-#        ## this is how much to shift survival function for each individual
-#        shiftVector = response[elig],
-#
-#        ## probably transforming survival times into probabilities?
-#        surv2prob = TRUE
-#      )
-#
-#      ## sets very small values in pr to 0
-#
-#      pr[abs(pr) < 1e-8] <- 0.0
-#
-#    }
-#  } else
     # Use the input value of "pr" for further calculations
 
     pr <- inputpr
@@ -607,14 +509,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
 
 
 
-  # calculate the estimated values for all treatment levels
-  # .PredictAll() is a method; called here for objects of class SurvRF (or SurvRF stratified), which
-  # is defined in file class_SurvRF.R line 318
-
-
-  ## method with data.frame calculates value for new data from SurvRF object
-  ## .PredictAll returns list object containing survFunc, mean, and? survProb
-
   resV <- .PredictAll(
     ## survival RF model stored in "result" is passed as an input
     ## has info containing list of individual trees (trees), aggregated results from forest (forest), variables,
@@ -633,33 +527,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
     txName = txName,
     txLevels = txLevels
   )
-
-
-  ## this .PredictAll() sets all cases to receive first treatment, then uses input formula and newdata to make predictions
-  ## uses .Predict()-- class_SurvRF.R line 176 to output: USING THE INPUT "newdata" of the eligible patients
-  ## makes predictions based on first tree using .predictSurvTree():
-  ## the tree has already been fit on the data, so we find the number of nodes in the tree
-  ## traverse through the tree with the patients using the trained tree cutoffs to determined if they go left or right
-  ## also, get the predicted mean and survival probability for each patient based on the terminal node they belong to
-  ## predMean and predSurvProb
-  ## then loops through the rest of the trees
-  ## then for each tree, we add the predicted results form the survival function, mean, survival probability
-  ## we divide by the total number of trees to get predicted values for each patient
-  ## OUTPUT: forest-averaged predictions of survival function, mean survival, survival probability
-  ## as part of output, get the survival function and convert that into a list
-  ## iterate through rest of the treatment levels & set all cases to receive that treatment, use input formula and newdata to predic
-  ## uses .Predict() to output:
-  ## using the same method, OUTPUT: forest-averaged predictions of survival function, mean survival, survival probability
-  ## as part of the output, get the survival function for the i-th treatment level
-  ## also get the mean and survival probabilities by binding them in columns:
-  ## so, we have mean from first treatment, mean frm second treatment, etc. in columns
-  ## we also do this for survival probability
-
-  ## next, we use .optimal() to calculate the optimal treatment based on the predictions (output = opt)
-  ## depends on what the criteria for optimizing is (mean survival prob), mean survival prob and then survival probability, survival probability
-  ## identify which element of what you're looking at (mean survival prob, surv prob) and return the prediction w/ maximum critieria
-
-  ## we return a list of the predicted mean, survival probability, survival function, and the optimal treatment (output = predicted)
 
 
   ## create a new object of class"DTRSurvStep"
@@ -694,49 +561,6 @@ PredDTRSurvStep <- function(object, newdata, ..., params, findOptimal) {
   return(result)
 
 }
-
-#-------------------------------------------------------------------------------
-# Internal function to find the mean values of maximum expected survival times across treatment levels
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-## defines an internal function .meanValue
-## returns mean values of expected survival times and survival probabilities
-## used in dtrSurv.R
-
-#.meanValue <- function(object, ...) {
-#  ## initializes empty list
-#  res <- list()
-#
-#  ## find the mean of maximum expected survival times across treatment levels
-#  # returns the mean of the expected survival times & adds them to the result in a new element "Et"
-#  res[[ "Et" ]] <-  mean(x = apply(
-#
-#    ## access "mean" component of the valueAllTx slot which stores value of each tree for each treatment level
-#    X = object@valueAllTx$mean,
-#
-#    ##apply the "max" function across the margin of the mean matrix/array to apply across rows
-#    ## AKA for each row (individual),take maximum value across all columns (treatment options), then calculate the mean
-#    MARGIN = 1L,
-#    FUN = max))
-#
-#  ## if survival probabilities are available,
-#  ## checks the "survProb" comonent of the valueAllTx slot
-#
-#  if (!is.null(object@valueAllTx$survProb)) {
-#
-#    ## also calculate their means
-#    res[[ "St" ]] <-  mean(x = apply(X = object@valueAllTx$survProb,
-#                                     MARGIN = 1L,
-#                                     FUN = max))
-#  }
-#
-#  ## return results as a list
-#  return( res )
-#}
-
-
-
 
 
 

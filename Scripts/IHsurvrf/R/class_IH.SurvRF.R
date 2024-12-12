@@ -192,9 +192,7 @@ setMethod(f = ".Predict",
             ## predict value for the first tree
 
             # predict for first tree
-            # .predictSurvTree() is an internal function defined in predictSurvTree.R
-
-            #browser()
+            # .predictSurvTree() is an internal function defined in IH.predictSurvTree.R
 
             newResult <- .predictSurvTree(x = newdata,
                                           params = params,
@@ -205,11 +203,6 @@ setMethod(f = ".Predict",
 
 
                                           nodes = object@trees[[ 1L ]])
-
-            #browser()
-
-            ## create counter to set tree index to 2
-            ## loop through the rest of the trees
 
             iTree <- 2L
             while (iTree <= nTree) {
@@ -385,10 +378,8 @@ setMethod(f = ".PredictAll",
                      ## the results from the tree-averaged predictions
                      predicted, txLevels) {
 
-  ## uses .CriticalValueCriterion which is initialized in class_CriticalValue.R as a generic
-  ## also sued in class_CriticalValueMean.R and class_CriticalValueSurvival.R
-  ## this returns "mean" for CriticalValueMean objects, and surv.mean for CriticalValueSurvival objects of type mean
-  ##                    also returns surv.prob for CriticalValueSurvival objects of type prob
+  ## uses .CriticalValueCriterion which is initialized in class_IH.CriticalValue.R as a generic
+  ## this returns "mean" for CriticalValueMean objects
 
   crit <- .CriticalValueCriterion(params)
 
@@ -420,63 +411,6 @@ setMethod(f = ".PredictAll",
 
     ## if the criterion returned is surv.mean,
 
-  } else if (crit == "surv.mean") {
-    # identify which element
-    # first, mean survvial probability; if ties, then use mean survival time to break tie
-
-
-    ## iterates over each row (observation) in predicted$mean and finds the treatment level maximizing the mean survival time for each observation
-
-    ## specifies how to break ties when multiple treatemnts result in the same maximum mean survival time
-    ## if there are ties, the tie breaking method uses the input tieMethod for "params"
-
-
-    optTx <- apply(X = predicted$mean,
-                   MARGIN = 1L,
-                   FUN = .whichMax,
-                   tieMethod = params@tieMethod)
-
-
-    # index for which the survival probability is max
-    ## first, look at mean survival probability
-
-    tmp <- apply(X = predicted$survProb,
-                 MARGIN = 1L,
-
-                 ## defined at the bottom
-
-                 FUN = .whichMax,
-
-                 ## if there's a tie in survival probability, this will contain NA
-                 tieMethod = "NA")
-
-    # for those that are not tied in survival probability, replace mean survival time
-    # with mean survival probability
-    ## giving survival probability precedence in resolving ambiguities or ties in mean survival time
-
-    ## it tmp not NA means there's no tie (there's a clear maximumO)
-    isna <- is.na(x = tmp)
-
-    ## updates the index of optTx (best mean survival times) for values where there IS a tie
-    ## then, look at the mean survival times that are maximum
-    optTx[!isna] <- tmp[!isna]
-
-
-    ## if the criterion is surv.prob,
-
-  } else if (crit == "surv.prob") {
-
-    ## iterates over each row (observation) in predicted$survProb and finds the treatment level maximizing the expected survival probability for each observation
-
-
-    # identify which element contains the maximum expected survival probability
-    optTx <- apply(X = predicted$survProb,
-                   MARGIN = 1L,
-
-                   ## defined at the bottom
-
-                   FUN = .whichMax,
-                   tieMethod = params@tieMethod)
   }
 
   ## initializes a matrix "optSv" to store survival functions that correspond to the optimal treatment for each observation

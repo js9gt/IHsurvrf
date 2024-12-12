@@ -109,10 +109,6 @@
                   ## specifies the R package associated with the fortran code
                   PACKAGE = "IHsurvrf")
 
-  ## checks if the "params" critical value is a mean or a probability that matches either of surv.mean or surv.prob
-  ## ouputs a logical vector
-
-  isSurv <- .CriticalValueCriterion(params) %in% c("surv.mean", "surv.prob")
 
   ## construct a list to store matrices and results
   valueObj <- list()
@@ -125,10 +121,6 @@
 
   ## storing the res$predMean
   valueObj[[ "mean" ]] <- res$predMean
-
-  ## checks if analysis involves survival probabilities using a logical defined earlier
-  ## if isSurv is TRUE, store the predicted survival probabilities for each observation
-  if (isSurv) valueObj[[ "survProb" ]] <- res$predSurvProb
 
   return( valueObj )
 

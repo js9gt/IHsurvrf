@@ -1,7 +1,5 @@
 
-# use this to generate propensity score
-#source("C21.sim_params.R")
-### UPDATE: 20Mar2024, propensity score is now generated as a global variable in the simulation_run.R setting
+
 
 ## Function starts with w/ these @return which shows what the function is supposed to output
 ## This serves as documentation fo the function
@@ -32,35 +30,6 @@
 #' @return cumulative.time: a proportion of tau (so that our rates don't get too small)= sum of previous visits / tau
 
 
-## no longer:
-# #' @return treatment.time: Uk: time to next visit (treatment time)
-
-
-#################
-##   Inputs    ##
-#################
-
-# nstage = initialize at 0
-# cumulative.length = initialize at 0
-# terminal.stage
-# an at.risk marker (not at risk = NA values)
-# prior_vis_length = initialize at 0
-
-# Parameters for the failure time distribution (Tk)
-#a1 <- -0.3
-#b1 <- 0.1
-#z1<- -0.3
-#p1 <- -1
-#g1 <- -0.2
-#r1 <- -0.8
-
-# Parameters for the time to next visit distribution
-#a2 <- 1.2
-#b2 <- -0.05
-#z2 <- -2.5
-#p2 <- 0.1
-#g2 <- -2
-#r2 <- -1
 
 one_stage <- function(
     ## nstages is number of previous stages
@@ -77,8 +46,6 @@ one_stage <- function(
   a2 = 1.2, b2 = -0.05, c2 = 0.1, z2 = -2.5, p2 = 0.1, g2 = -2, h2 = 0.6, r2 = -1,
   a3 = 1.2, b3 = -0.05, c3 = 0.1, z3 = -2.5, p3 = 0.1, g3 = -2, h3 = 0.6, r3 = -1,
   tau = 50,
-  #dimensions of covariates for state vector generated-- 20MAR2024 not needed bc p is a global variable now
-  #p = 1,
   ## a logical for if we want to include censoring (besides administrative censoring)
   ## this is used as an input into multistage sims
   censoringyesno = TRUE,
@@ -121,9 +88,6 @@ one_stage <- function(
       if (policyTF == FALSE) {
       ## generates predicted probability of treatment for each patient as a vector, inputting generated state
       propensity_scores = predictedPropensity(state1 = state1, state2 = state2)
-
-      ## allow action to be -1 or 1 instead of 0 and 1 so that there's a treatment effect
-      ## suppressWarnings(rbinom(1, 1, propensity_scores) * 2 - 1)
 
       action = rbinom(1, 1, propensity_scores)
       

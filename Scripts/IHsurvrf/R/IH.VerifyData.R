@@ -11,7 +11,7 @@
 
 
 
-## used in dtrSurv.R script
+## used in IH.dtrSurv.R script
 
 ## create  new generic function called ".VerifyData"
 

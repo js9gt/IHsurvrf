@@ -13,7 +13,7 @@
 
 
 ## create a new generic function called .VerifyModels
-## used in dtrSurv.R
+## used in IH.dtrSurv.R
 
 setGeneric(name = ".VerifyModels",
            def = function(models, ...) { standardGeneric(".VerifyModels") })
@@ -63,34 +63,6 @@ setMethod(f = ".VerifyModels",
                                      deparse(expr = models), "\n", e$message)
                              return( NULL )
                            })
-
-
-            #### AN EXAMPLE:
-            ## Your data
-            #dt <- data.frame("Y" = sample(1:400, 100, TRUE),
-            #                 "D" = rbinom(100, 1, 0.7),
-            #                 "A" = rbinom(100, 1, 0.5),
-            #                 "X" = rnorm(100),
-            #                 "Z" = as.factor(sample(1:5, 100, TRUE)))
-            #
-            ## Your model formula
-            #models <- Surv(Y, D) ~ X + A + Z
-            #
-            ## Visualization of the tryCatch block
-            #mf <- tryCatch(
-            #  expr = model.frame(
-            #    formula = models,
-            #    data = dt,
-            #    na.action = na.pass
-            #  ),
-            #  error = function(e) {
-            #    message("Unable to create model frame for model ", deparse(expr = models), "\n", e$message)
-            #    return(NULL)
-            #  }
-            #)
-            #
-
-            ## if the model frame (created above) is null, and there is more than one decision point,
 
 
             if (is.null(x = mf) && nDP > 1L) {
@@ -232,11 +204,11 @@ rmCov <- function(
 ## EXAMPLE:
 
 ## Example data names
-#dataNames <- c("Y.1", "Y.2", "Y.3", "Y.4", "X.1", "X.2", "X.3", "X.4", "Z.1", "Z.2", "Z.3", "Z.4")
+#dataNames <- c("Y_1", "Y_2", "Y_3", "Y_4", "X_1", "X_2", "X_3", "X_4", "Z_1", "Z_2", "Z_3", "Z_4")
 #
 ## Parameters
 #label <- "Y"          # Label to be removed
-#stageLabel <- "."      # Stage label
+#stageLabel <- "_"      # Stage label
 #nDP <- 4               # Number of decision points
 #
 ## Call the rmCov function, removes the label of the name entirely,so now we don't see any Y's at all
@@ -273,9 +245,6 @@ commonFormula <- function(models, ...,
   ## create LHS of the model for each decision point
   ## combines survival and event indicator variables with each decision point identifier using "stageLabel" to denote dif decision points
 
-  ## If you had two stages, AND you used previous time, this is the result you would get:
-  # Surv(Y.1,D.1)~A.1+X.1
-  # Surv(Y.2,D.2)~A.2+X.2+I(Y.1)
 
   # create lhs of models
   resp <- paste0("Surv(", yLabel, stageLabel, 1L:nDP, ",",

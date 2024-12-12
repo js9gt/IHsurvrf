@@ -17,9 +17,9 @@
                            tau,
                            timePoints) {
 
-  ## in VerifyCriticalValue.R script to make sure input criticalValue is of the correct class(?)
+  ## in IH.VerifyCriticalValue.R script to make sure input criticalValue is of the correct class(?)
 
-  # ensure criticalValue is one of {'mean', 'surv.prob', 'surv.mean'}.
+  # ensure criticalValue is {'mean'}.
   # Methods return the original character possibly modified to be lower case.
 
   criticalValue <- .VerifyCriticalValue(criticalValue = criticalValue)

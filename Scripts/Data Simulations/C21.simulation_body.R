@@ -45,8 +45,6 @@ arg.obs <- arg.IHsurvrf <- arg.obs.no.censor <- arg.trt1 <- arg.trt0 <- arg.true
     ### for no censoring argument, we will change this part to FALSE: for everything except "observed"
       censoringyesno = TRUE,
 
-    ## for inputting dif policies used to generate data
-    ## this is a DTRSurv object
     policy = NULL,
     summary = TRUE
 
@@ -58,10 +56,6 @@ arg.obs$censoringyesno <- TRUE
 
 ## setting n.sample attribute of ll these objects (created above) to "n.eval"
 #### n.eval is a default setting read into C21.simulation_run
-#### this is the number of samples per simulation
-### Q: why do do we overwrite this from n to n.eval?
-## observed data still has the regular number of samples-- I think this is "training data" so we have more samples
-
 ## only arg.obs still has the original number of samples
 arg.obs.no.censor$n.sample <- arg.IHsurvrf$n.sample <- arg.trt1$n.sample <- arg.trt0$n.sample <- arg.trueopt$n.sample <-
   n.eval
@@ -116,8 +110,6 @@ obs.data.rep <- do.call(simulate_patients, arg.obs.no.censor)
 ## observed value for mean = take mean of the total event time (across all patients)
 ## in this case, the critical value will be null
 ## this is the observed policy from the data we generated
-## if criterion is "surv.prob", "surv.mean", count the proportion of elements >= crit.value (ignoring NAs)
-## crit.value is put at 5 (5 year survival rate) in C21.simulation_run.R
 
 ## this observed policy is based on n.eval number of reps to calculate a single value of observed policy
 ## we do this for the number of stages set to ss-- this is already accounted for in the cumulative.event.time
@@ -151,15 +143,12 @@ rm(obs.data.rep); gc()
 cat ("2. IHsurvrf \n")
 
 ## skip.IHsurvrf is set in C21.simulation_run.R (default is TRUE)
-## if !skip.IHsurvrf == TRUE, execute the code inside the block (meaning, skip.IHsurvrf = FALSE)
 if (!skip.IHsurvrf) {
   cat ("  2. IHsurvrf - Policy estimation \n")
 
   # Generate the formulas for each stage-- NOTE that this formula is the same across ALL stages
   models = Surv(`T`, delta) ~ A + baseline1 + baseline2 + state1 + state2 + prior.visit.length + cumulative.time + nstages + action.1.count + action.0.count
 
-
-  ##### CHECK THESE ARGUMENTS
 
   ## create new list of arguments to use IHsurvrf
   ## used the observed data generated earlier (once it's in observable form)
@@ -170,9 +159,7 @@ if (!skip.IHsurvrf) {
                   ## list of models generated above for each stage
                   models = models,
                   ## use the observed lengths of the previous stages in the current stage's model as covariates
-                  ## we don't need this as our data simulations currently track the cumulative time
-                  #usePrevTime = FALSE,
-                  ## maximum study length, set as 10 in C21.simulation_run.R
+                  ## maximum study length
                   tau = tau,
                   ## distribution to draw timepoints from
                   timePoints = "uni",
@@ -203,7 +190,6 @@ if (!skip.IHsurvrf) {
                   randomSplit = 0.2,
 
                   ## number of trees to grow
-                  ## for normal sims set to 300
                   nTree = 300,
 
                   ## maximum number of covariates to consider-- a vector of covars for each decision point
@@ -218,27 +204,22 @@ if (!skip.IHsurvrf) {
                   stageLabel = "_",
                   
                   #########
-                  ######### NOTE: we need to change this nstrata if we want to test different things
+                  ######### NOTE: we need to change this nstrata if we want to use 1 strata vs 2 strata
                   nstrata = 2,
                   windowsize = 10)
 
   ## setting a different seed
   set.seed(sim*10000 + 5)
 
-  ## feed arguments to dtrSurv() function: loops through each of the stages using Q-learning, using the predicted optimal from the previous stage and carrying it back
-  ## the result should be the predicted optimal
   optimal.IHsurvrf <- do.call(IHsurvrf, c(arg.IHsurvrf2, list(nodeSize = nodesize, minEvent = mindeath )))
 
   ## if the first element of the class == try-error, this value will be TRUE
   IHsurvrf.error <- class(optimal.IHsurvrf)[1] == "try-error"
 
-  ##if csk.error is FALSE (code works properly), then assign the results of the dtrSurv() which are optimal, to the "policy" slot of arg.csk
-  ## this is of class DTRSurv
+  ##if csk.error is FALSE (code works properly), then assign the results of the IHsurvrf() which are optimal, to the "policy" slot
   arg.IHsurvrf$policy <- if (!IHsurvrf.error) optimal.IHsurvrf
 
 
-
-  ## remove the results from dtrSurv()
   rm(optimal.IHsurvrf); gc()
 
   ############### evaluating the results of the estimated policy: we used the observed data with 100 patients (or whatever n is) to train the RF
@@ -261,11 +242,8 @@ if (!skip.IHsurvrf) {
         ## observed value for mean = take mean of the total event time (across all patients)
         ## in this case, the critical value will be null
         ## this is the observed policy from the data we generated
-        ## if criterion is "surv.prob", "surv.mean", count the proportion of elements >= crit.value (ignoring NAs)
-        ## crit.value is put at 5 (5 year survival rate) in C21.simulation_run.R
 
         ## calculate value function of the new generated data-- generated based on predicted optimal policy
-        ## this should acount for ss as one of the inputs in arg.IHsurvrf which truncates the summary data to only look at 1:ss stages
         if (!IHsurvrf.error) result["IHsurvrf"] <- val.fn(IHsurvrf.data.rep$summary$cumulative.event.time)
 
         ## tt(2, reset = TRUE): resets timer for later measurements, and retreives the elapsed time in terms of mins for the time it takes to estimate and evaluate the policy
@@ -287,9 +265,6 @@ if (!skip.IHsurvrf) {
 
 
 cat ("3. Estimation - Treatment 1 Only \n")
-## all pts treated identically regardless of their characterstics
-## chosen regime yields most favorable outcomes across pt population based on model predictions
-## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
 if (!skip.trt1) {
 
   ## create an object of claass "trt1" to input as the policy
@@ -301,7 +276,7 @@ if (!skip.trt1) {
 
   cat ("  3. Treatment 1 only (zero-order model) - Evaluation \n")
   set.seed(sim*10000 + 10)
-  ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
+  ## simulate multistage data using the policy where everyone gets trt 1
   trt1.data.rep <- do.call(simulate_patients, arg.trt1)
 
   result["trt1"] <- val.fn(trt1.data.rep$summary$cumulative.event.time)
@@ -312,21 +287,18 @@ if (!skip.trt1) {
 }
 
 cat ("4. Estimation - Treatment 0 Only \n")
-## all pts treated identically regardless of their characterstics
-## chosen regime yields most favorable outcomes across pt population based on model predictions
-## it can be seen as equivalent to the standard of care (aka every pt receives standard of care)
 if (!skip.trt0) {
 
-  ## create an object of claass "trt1" to input as the policy
+  ## create an object of claass "trt0" to input as the policy
   trt0 <- structure(0, class = "trt0")
 
-  ## add the input policy which is "trt1"
+  ## add the input policy which is "trt0"
   arg.trt0$policy <- trt0
 
 
   cat ("  3. Treatment 0 only (zero-order model) - Evaluation \n")
   set.seed(sim*10000 + 10)
-  ## simulate multistage data using the estimated policy (trained tree) from the ZOM above
+  ## simulate multistage data where everyone gets trt 0
   trt0.data.rep <- do.call(simulate_patients, arg.trt0)
 
   result["trt0"] <- val.fn(trt0.data.rep$summary$cumulative.event.time)
@@ -340,13 +312,7 @@ if (!skip.trt0) {
 
 ### saving and cleaning
 print(result)
-
-## mean of each column
-#print(apply(result, 2, mean, na.rm = TRUE))
-#saveRDS(result, filename.tmp) # saving the temporary results
 gc()
-# }
-
 return(result)
 }
 

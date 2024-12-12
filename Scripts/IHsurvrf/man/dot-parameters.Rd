@@ -2,12 +2,7 @@
 % Please edit documentation in R/class_IH.Parameters.R
 \name{.parameters}
 \alias{.parameters}
-\title{object, must be one of \{"quad", "uni", "exp"\} indicating the distribution
-from which the time points are to be calculated. For character input,
-input 'nTimes' must also be provided. If a numeric vector, the
-time points to be used. If 0 is not the first value, it will be
-concatenated by the software.
-############## not sure if we need this}
+\title{object, must be one of \{"quad", "uni", "exp"\} indicating the distribution}
 \usage{
 .parameters(
   timePoints,
@@ -30,9 +25,4 @@ concatenated by the software.
 }
 \description{
 object, must be one of \{"quad", "uni", "exp"\} indicating the distribution
-from which the time points are to be calculated. For character input,
-input 'nTimes' must also be provided. If a numeric vector, the
-time points to be used. If 0 is not the first value, it will be
-concatenated by the software.
-############## not sure if we need this
 }

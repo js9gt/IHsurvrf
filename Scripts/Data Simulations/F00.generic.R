@@ -3,8 +3,6 @@
 ### multi-stage data preprocessing to append stage names
 #######################################################
 
-## data to test on generated in F02.multistage_sim.R
-## a <- output2observable(pts)
 
 ## Convert multi-stage dataset, "output" into observable format for analysis
 

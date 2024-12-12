@@ -3,7 +3,7 @@
 #
 # methods are not exported and are for internal convenience only
 #
-# ensures that 'splitRule' is one of {'logrank', 'mean'}.
+# ensures that 'splitRule' is {'mean'}.
 #
 # successful methods return the original character object with possible
 #  modification to make all lower case

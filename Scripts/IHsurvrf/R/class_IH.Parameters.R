@@ -78,11 +78,6 @@ setMethod(f = "initialize",
 .parameters <- function(
     # A character object or a numeric vector object. If a character
     #'   object, must be one of \{"quad", "uni", "exp"\} indicating the distribution
-    #'   from which the time points are to be calculated. For character input,
-    #'   input 'nTimes' must also be provided. If a numeric vector, the
-    #'   time points to be used. If 0 is not the first value, it will be
-    #'   concatenated by the software.
-    #'   ############## not sure if we need this
     timePoints,
 
     # study legnth
@@ -139,7 +134,7 @@ setMethod(f = "initialize",
     ## numeric. Stratified random split coefficient.
     stratifiedSplit) {
 
-  ## calls a function ".timeInfo" in class_TimeInfo.R script that returns info about specified time points, tau, nTime
+  ## calls a function ".timeInfo" in class_IH.TimeInfo.R script that returns info about specified time points, tau, nTime
 
 
   # initialize TimeInfo
@@ -155,20 +150,13 @@ setMethod(f = "initialize",
   cv <- tolower(criticalValue)
 
   ## .criticalValue function in criticalValue.R
-  ## initializes a critical value object of either "CriticalValueMean" or "CriticalValueSurvival" based on input "survivalTime" parameter
-
-  # initialize CriticalValue which verifies inputs and
-  # function returns an object of class CriticalValueMean or
-  #   CriticalValueSurvival depending on input survivalTime
-  ## CriticalValueSurvival would output "sIndex" and "sFraction" to be used in tSurvTree to calculate survival probability
-  ## these values are used in setUpBasics
-  ## class CriticalValueMean or CriticalValueSurvival
+  ## initializes a critical value object of "CriticalValueMean"
 
   criticalValue <- .criticalValue(criticalValue = criticalValue)
 
 
 
-  ## .treeType function in class_TreeType.R script
+  ## .treeType function in class_IH.TreeType.R script
   ## stores information about tree structure, splitting critiera,
 
   # initialize tree type info
@@ -203,8 +191,7 @@ setMethod(f = "initialize",
     stratifiedSplit = stratifiedSplit)
 
 
-    ## otherwise, return "Parameters_Mean" class
-    ## CriticalValueMean class initiated in class_CriticalValueMean.R Script
+    ## otherwise, "Parameters_Mean" class
 
     return( new(Class = "Parameters_Mean",
                 timeInfo,

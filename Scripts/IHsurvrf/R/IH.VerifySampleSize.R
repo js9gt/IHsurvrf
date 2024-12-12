@@ -10,7 +10,7 @@
 # successful methods return a numeric vector object
 #
 
-## used in dtrSurv.R script
+## used in IH.dtrSurv.R script
 
 ## create a new generic method called ".VerifySampleSize"
 setGeneric(name = ".VerifySampleSize",

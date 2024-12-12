@@ -11,19 +11,6 @@
 # @param pr A matrix object {nt x n}. Probability mass vector of survival
 #   function
 #
-# @param pr2 A matrix object {nt x n}. Used to calculate at-risk subjects for RE
-#   which has multiple records per subject
-#
-# @param pr2_surv A matrix object {nt_surv x n}. Used to calculate at-risk subjects for death during RE
-#   which has one record per subject
-#
-# @param ord_causeind A response-ordered vector of cause status (for CR). Needed for
-#   Gray's Test for node-splitting. 0 = censored, 1 = priority cause, 2 = any other causes.
-#   Vector of 0s for RE or CR where test is not Gray's test.
-#
-# @param ord_response An ordered vector of response (for CR). Needed for
-#   Gray's Test for node-splitting. Vector of 0s for RE or CR where test is not Gray's test.
-#
 # @param params A Parameters object. All information that regulates tree and
 #   specifies analysis preferences.
 #
@@ -146,9 +133,9 @@
   # delta: 1 = not censored, 0 = censored
   # mTry: integer; max number of covars to use for splitting
   # sampleSize: initeger; number of samples to draw for each tree
-  # from params: input vals into dtrSurv --> input into .dtrSurvStep --> input into .survRF
+  # from params: input vals into IHsurvrf --> input into .dtrSurvStep --> input into .survRF
   ##### nCat: calculated through nlevels () in base R
-  # nTree: input into dtrSurv
+  # nTree: input into IHsurvrf
   ##### maxNodes: calculated based on input sample size
 
 
@@ -185,8 +172,8 @@
 
   ## grows the survival forest over "nTrees" which is a global variable which will need to be declared
   ## the inputs just set the dimensions
-  ## also use input "replace" from dtrSurv.R as a global variable
-  ## also use input "stratifiedSplit" from dtrSurv.R as a global variable
+  ## also use input "replace" from IH.dtrSurv.R as a global variable
+  ## also use input "stratifiedSplit" from IH.dtrSurv.R as a global variable
 
   survTree <- .Fortran(
     "survTree",
@@ -299,10 +286,8 @@
   crit <- .CriticalValueCriterion(params)
 
 
-  ## if this type is "surv.mean" or "surv.prob" we retrieve the survival probability
-  #     - surv.prob = mean survival probability at time “evalTime”
-  # surv.mean = hybrid; first use mean survival probability, then if there are ties use the mean survival time to identify optimality
-  if (crit %in% c("surv.mean", "surv.prob")) {
+  ## if this type is "surv.mean" we retrieve the survival probability
+  if (crit %in% c("surv.mean")) {
     forest[["survProb"]] <- survTree$forestSurvProb
   }
 

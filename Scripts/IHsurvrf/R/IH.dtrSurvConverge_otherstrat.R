@@ -9,12 +9,6 @@ IHdtrConv_otherstrata <- function(data,
                       prev_probs){
 
 
-  ######
-  ###### NOTE: also input long_data & output long data
-
-  ###########
-  ########### have a stage-wise eligibility matrix so that each patient has same # stages
-  ########### for patients who are not eligible, their matrices should just be 0
 
 
   ## using the long data that was input

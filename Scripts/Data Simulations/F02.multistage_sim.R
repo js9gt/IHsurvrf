@@ -45,14 +45,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
   ## if prior visit length is 0, then replicate the value until it matches the length of n.sample
   if (length(prior.visit.length) == 1) prior.visit.length = rep(prior.visit.length, n.sample)
 
-  #### create TF variable for usage of policy to be plugged into single stage sims
-  ## this tells us whether or not to use propensity score to generate action vs one that's input
-  ## input meaning the optimal policy from a method:
-  ## if a policy is null, then policyTF == FALSE
-  ## if a policy is input, then policyTF == TRUE
-  #policyTF <- !is.null(policy)
-
-
 
 
   require(dplyr)
@@ -381,9 +373,6 @@ simulate_patients <- function(..., n.sample, max_stages, tau,
     at.risk <- (stage.output[, "gamma"] == 0 & stage.output[, "delta"] == 1)
     
     
-    #### calculating the difference in treatment
-    ####
-    ####
     
     # Compute the absolute difference
     absolute_difference <- abs(stage.output1[, "event.time"] - stage.output2[, "event.time"])

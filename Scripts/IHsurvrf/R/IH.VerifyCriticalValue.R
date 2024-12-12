@@ -4,13 +4,13 @@
 #
 # methods are not exported and are only for internal convenience
 #
-# ensures that 'criticalValue' is one of {'mean', 'surv.prob', 'surv.man'}.
+# ensures that 'criticalValue' is {'mean'}.
 #
 # successful methods return the original character possibly modified to be
 # all lower case.
 
 
-## function used in criticalValue.R
+## function used in IH.criticalValue.R
 
 
 ## create a new generic function called ".VerifyCriticalValue"
