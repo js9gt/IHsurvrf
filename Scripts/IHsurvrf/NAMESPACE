@@ -2,6 +2,7 @@
 
 export(IHsurvrf)
 export(PredDTRSurvStep)
+exportMethods(predict)
 import(dplyr)
 import(methods)
 import(parallel)

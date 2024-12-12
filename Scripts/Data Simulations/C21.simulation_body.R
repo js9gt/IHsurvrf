@@ -1,6 +1,5 @@
 
 library(parallel)
-
 library(IHsurvrf)
 
 setwd("~/survrf/Scripts/Data Simulations")

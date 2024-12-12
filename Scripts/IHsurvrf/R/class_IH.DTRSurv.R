@@ -32,25 +32,29 @@ setClass(Class = "DTRSurv",
            "prev_probs"= "matrix"))
 
 
-
-#' Prediction Method: used in data generation process after estimation, when we want evaluation
-#'
 #' Method to estimate the value for new data or to retrieve estimated value for
 #'  training data
 #'
-#' param object A DTRSurv object. The object returned by a call to dtrSurv().
+#' @param object A DTRSurv object. The object returned by a call to dtrSurv().
 #'
-#' param ... Ignored. Used to require named inputs.
+#' @param ... Ignored. Used to require named inputs.
 #'
-#' param newdata NULL or a data.frame object. If NULL, this method retrieves
+#' @param newdata NULL or a data.frame object. If NULL, this method retrieves
 #'   the estimated value for the training data. If a data.frame, the
 #'   value is estimated based on the data provided.
 #'
-#' param stage An integer object. The stage for which predictions are desired.
 #'
-#' param findOptimal A logical object. If TRUE, the value is estimated for
+#' @param findOptimal A logical object. If TRUE, the value is estimated for
 #'   all treatment options and that leading to the maximum value for each
 #'   individual is used to estimate the value.
+#'
+#' @export
+#' @name predict
+#' @aliases predict,DTRSurv-method
+#' @returns a list object containing a matrix of the predicted survival function
+#'   (survFunc), the estimated mean survuval (mean), and the estimated
+#'   survival probability (if critical value is surv.mean or surv.prob)
+#' @examples
 #'
 #'
 #' dt <- data.frame("Y_1" = sample(1:100,100,TRUE), "Y_2" = sample(101:200,100,TRUE),
