@@ -51,8 +51,6 @@ MODULE IH_INNERS
     ! censoring indicator 1 = not censored
   INTEGER, DIMENSION(:), ALLOCATABLE, SAVE :: deltaAll
 
-        ! propensity score for sampled cases
-  !INTEGER, DIMENSION(:), ALLOCATABLE, SAVE :: propensityALL
 
   ! -------------------------------------------------------!
 
@@ -76,8 +74,6 @@ MODULE IH_INNERS
   REAL(dp), DIMENSION(:,:), ALLOCATABLE, SAVE :: xAll
     ! probability mass vector of survival function for all cases
   REAL(dp), DIMENSION(:,:), ALLOCATABLE, SAVE :: prAll
-    ! vector of propensity scores for all patients/stages
-  !REAL(dp), DIMENSION(:,:), ALLOCATABLE, SAVE :: propensityAll
 
     ! -------------------------------------------------------!
 
@@ -264,7 +260,6 @@ END FUNCTION sampleWithOutReplace
 
 ! define a subroutine called "tfindSplit"
 ! subroutine: program unit that performs a specific task or a set of task but doesn't return a value
-! delete input "propensity"
 
 SUBROUTINE tfindSplit(nCases, casesIn, nv, varsIn, &
                     & splitVar, cutoffBest, splitFound, casesOut, nCuts, lft)
@@ -309,7 +304,6 @@ SUBROUTINE tfindSplit(nCases, casesIn, nv, varsIn, &
   REAL(dp), DIMENSION(1:nt) :: eventsLeft, eventsRight, numJ, pd1, pd2, Rcum
   REAL(dp), DIMENSION(1:nCases) :: xSorted
   REAL(dp), DIMENSION(:,:), ALLOCATABLE :: prl, prr
-  !REAL(dp), DIMENSION(:,:), ALLOCATABLE :: propensityLeft, propensityRight
 
   ! logical variables are declared to handle boolean values, create an allocatable array called "singles"
 
@@ -606,43 +600,30 @@ leftCases = cases(1:(splitLeft-1))
 rightCases = cases(splitLeft:nCases)
 
 ! get probabilities of cases in left node ("prl") and right node ("prr")
-! also get propensity of cases in left node and right node
 
 prl = pr(leftCases,:)
-!propensityLeft = propensity(leftCases,:)
 prr = pr(rightCases,:)
-!propensityRight = propensity(rightCases,:)
 
 
 
 ! calculate number of events in left and right nodes based on separated cases
 ! thisis done by summing the product of probabilities * delta
-! we include an adjustment by the propensity score
 
 eventsLeft = sum(prl * &
                  & spread(dSorted(1:(splitLeft-1)), 2, nt), DIM = 1)
 
-                 !! merge(prl/propensityLeft, 0.d0, propensityLeft == 0.d0) * &
-                 !! & spread(dSorted(1:(splitLeft-1)), 2, nt)
-
 eventsRight = sum(prr * &
                  & spread(dSorted(splitLeft:nCases), 2, nt), DIM = 1)
 
-                 !! sum(merge(prr/propensityRight, 0.d0, propensityRight == 0.d0) * &
-                 !! & spread(dSorted(splitLeft:nCases), 2, nt), DIM = 1)
 
 
 ! the sum of probabilities for the left and right cases
-! we adjust these by the propensity score
 
 pd1 = sum( prl, DIM = 1)
 
-! sum( merge(prl/propensityLeft, 0.d0, propensityLeft == 0.d0), DIM = 1)
 
 pd2 = sum( prr, DIM = 1)
-! sum( merge(prr/propensityRight, 0.d0, propensityRight == 0.d0), DIM = 1)
 
-! at risk initialized to number of cases for the first time point (j = 1)
 
 atRiskLeft(1) = splitLeft - 1
 atRiskRight(1) = nCases - splitLeft + 1
@@ -680,15 +661,11 @@ END DO
 
       pd1 = prr(cnt,:)
 
-      ! merge(prr(cnt,:)/propensityRight(cnt,:), 0.d0, propensityRight(cnt,:) == 0.d0)
 
       cnt = cnt + 1
 
       ! number of events for the j-th case
-      ! this is adjusted by the propensity score
      D = prr(cnt,:) * delta(cases(j))
-
-     ! D = merge(prr(cnt,:) / propensityRight(cnt,:), 0.d0, propensityRight(cnt,:) == 0.d0 ) * delta(cases(j))
 
       ! initializes cumulative risk at the first time point to 0
 
@@ -706,7 +683,6 @@ END DO
         IF (pd1(k-1) .GT. 1d-8) THEN
 
         ! then update the cumulative risk at the current time point by adding prob at previous time point
-        ! note: these are already adjusted for propensity score, so we don't need to adjust them again
           Rcum(k) = Rcum(k-1) + pd1(k-1)
 
           ! otherwise the prob isn't greater than threshold so no change in cumulative risk at current time point
@@ -719,7 +695,6 @@ END DO
 
 ! calculate the complement of the cumulative risk t each time point
 ! gives number at risk at each time point (the proportion)
-! note, that each rcum is inherently adjusted by propensity score since the probabilities are propensity adjusted
 
 Rcum = 1.d0 - Rcum
 ! number at risk
@@ -736,7 +711,6 @@ atRiskRight = atRiskRight - Rcum
 
 ! add the jth case to the left node
 ! add the number of events for the j-th case ("D") to total number of events in left node
-! note that D is already propensity adjusted, as are the eventsLeft
 
 eventsLeft = eventsLeft + D
 
@@ -751,7 +725,6 @@ IF (xSorted(j) .GE. (xSorted(j+1) - 1d-8)) CYCLE
 ! calculate test statistic
 
 ! call a subroutine called "meanSplit" to calculate TS based on mean split rule
-! we note that these inputs are all propensity adjusted
 
 CALL meanSplit(atRiskLeft, atRiskRight, eventsLeft, eventsRight, valuej)
 
@@ -959,17 +932,16 @@ END SUBROUTINE tfindSplit
 
 !! takes 3 inputs: number of time points, number at risk at each time point, number of events (failures) at each point,
 
-! propensity at the end was deleted
 SUBROUTINE kaplan(ns, nj, oj, z)
   IMPLICIT NONE
 
   ! array representing # of time points
   INTEGER, INTENT(IN) :: ns
 
-  ! array representing number at risk at each time point (already weighted by propensity score)
+  ! array representing number at risk at each time point
   REAL(dp), DIMENSION(1:ns), INTENT(IN) :: nj
 
-  ! number of events at each time point (already weighted by propensity score)
+  ! number of events at each time point
   REAL(dp), DIMENSION(1:ns), INTENT(IN) :: oj
 
   ! array where the Kaplan-Meier estimator will be stored
@@ -982,7 +954,6 @@ SUBROUTINE kaplan(ns, nj, oj, z)
   ! local arrays for weighted at-risk and events
   REAL(dp), DIMENSION(1:ns) :: Y_w, d_w
 
-  ! weight the number at risk and events by the propensity score (delta * propensity)
   Y_w = nj
   d_w = oj
 
@@ -1010,8 +981,6 @@ END SUBROUTINE
 
   ! ************************** subroutine: meanSplit ************************************** !
   ! ** this is used in subroutine "tfindSplit"
-
-  !!!!!!! create a new subroutine called "meanSplit"
 
 ! Truncated Mean test
 ! N1j: real(:), at risk in group 1
@@ -1042,12 +1011,10 @@ SUBROUTINE meanSplit(N1j, N2j, O1j, O2j, Z)
   REAL(dp), DIMENSION(1:nt) :: E1, E2
 
   !! call "kaplan" subroutine to calculate KM estimates for group 1
-  ! deleted "propensity1" input
   CALL kaplan(nt, N1j, O1j, E1)
 
   !! call "kaplan" subroutine to call KM estimates for group 2
 
-  ! deleted "propensity2" input
   CALL kaplan(nt, N2j, O2j, E2)
 
   !! calculate the truncated mean test-statistic:
@@ -1074,7 +1041,6 @@ END SUBROUTINE
 !! outputs: estimated survival function and estimated mean survival time
 !   survFunc: real(:), the estimated survival function
 !   mean: real, the estimated mean survival
-! deleted input "propensity"
 SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
 
   ! ensures all variables must be explicitly declared
@@ -1091,7 +1057,6 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
   INTEGER :: i
 
   REAL(dp), DIMENSION(1:nt) :: Nj, Oj, Rb
-  ! initialize propensity score input
 
   ! initialize values of "survFunc" and "mean" as 0
 
@@ -1102,29 +1067,13 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
   ! {nt}
 
   ! sums the elements of the "pr" array along the first dimension AKA cumulative number of at-risk cases
-          !! this is now adjusted by propensity score (each case is a probability, and each adjusted by prop score)
   ! select all the time points of the pr array for the rows specified by "casesIn"
   ! extracts the subset of probabilities corresponding to the chosen cases
   ! NOTE: "pr" is not defined in this subroutine
-  ! NOTE: "propensity" is also not defined in this subroutine, but pr and propensity are the same size
 
-  ! Calculate Rb while accounting for zeros in the propensity
+  ! Calculate Rb
   Rb = sum(pr(casesIn, :), DIM = 1)
 
-  ! sum(merge(pr(casesIn, :) / propensity(casesIn, :), 0.d0, propensity(casesIn, :) == 0.d0), DIM = 1)
-
-
-    !!!!!!!
-    !!!!!!! Adding print statement
-    !!!!!!!
-
-    !! Print values of variables
-    !print *, "Number of at risk cases at each time point:"
-    !print *, "Rb =", Rb
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
 
   ! initialize Nj(1) with the number of cases at the first time point
 
@@ -1135,7 +1084,6 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
 
   ! calculate number of cases at risk at each subsequent time point
   ! subtract cumulative at-risk cases form the previous total
-  ! this doesn't need to be weighted by the propensity score, since the Rb part is weighted
 
     Nj(i) = Nj(i-1) - Rb(i-1)
 
@@ -1148,11 +1096,7 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
   DO i = 1, nt
 
   ! calculate the number of events by summing (delta * probability for each indiv at that time point)
-  ! we need to adjust the probability of the number of events by the corresponding propensity
     Oj(i) = sum((pr(casesIn, i)*delta(casesIn)))
-
-    ! sum(merge(((pr(casesIn, i)*delta(casesIn))/propensity(casesIn, i)), 0.d0, propensity(casesIn, i) == 0.d0))
-
 
   END DO
 
@@ -1165,8 +1109,7 @@ SUBROUTINE calcValueSingle(nCases, casesIn,survFunc, mean)
   ! Nj: number at risk-- dimension 1:ns
   ! Oj: number of events-- dimension 1:ns
   ! survFunc: array where the KM estimator is stored ("z")
-  ! we rely on "kaplan" to handle the propensity score calculations individually, so we don't need to weight Nj or Oj
-! now, the input values into the KM function are already weighted by the propensity score
+
   CALL kaplan(nt, Nj, Oj, survFunc)
 
   ! mean survival time
@@ -1187,11 +1130,9 @@ END SUBROUTINE
 ! use as covariate values for splitting
 ! nCases integer, number of cases under consideration
 ! casesIn, integer(:), cases under consideration
-! propensity
 ! kv, integer, covariate under consideration
 ! array, real(:), covariate vector as mean survival times
 
-! delete input "propensity"
 SUBROUTINE getCovariate(nCases, casesIn, kv, array)
 
 ! ensures all variables must be explicitly declared
@@ -1250,7 +1191,6 @@ SUBROUTINE getCovariate(nCases, casesIn, kv, array)
     ! use size(ind) = nCases: as number of elements in indizes of subset
     ! ind = casesIn: indices of subset for which value is calculated
     ! outputs are "survFunc" and "mean"
-  ! delete input "subsetPropensity"
     CALL calcValueSingle(size(ind), ind, survFunc, mean)
 
     ! update the "array" with the mean survival time for individuals in current subset
@@ -1355,9 +1295,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       ! select the delta corresponding to the random pt index
       delta = deltaAll(xrand)
 
-      ! select the propensity score corresponding to the random pt index
-      !propensity = propensityAll(xrand)
-
 
 
       !! NOTE: xAll, prAll, deltaAll are not inputs here, but they will be defined when this subroutine is called later
@@ -1373,7 +1310,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       x = xAll(xrand,:)
       pr = prAll(xrand,:)
       delta = deltaAll(xrand)
-      !propensity = propensityAll(xrand)
 
       ! if replacement not allowed AND total cases = samp size,
 
@@ -1385,7 +1321,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       x = xAll
       pr = prAll
       delta = deltaAll
-      !propensity = propensityAll
 
       ! end if statement about sampling with/without relacement
     END IF
@@ -1401,13 +1336,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     srs = stratifiedSplit / REAL(np)
 
     ! indices for all cases
-
-    ! Calculate the total number of replications
-    ! total_cases = SUM(propensity)-- prop score, but we can incorporate this directly
-
-    ! initialize arrays to store indices for cases
-    !indices = (/(i,i=1,total_cases)/)-- for prop score; but we can incorporate this directly
-    !indices = (/(i,i=1,n)/)
 
      indices = (/(i,i=1,n)/)
 
@@ -1425,31 +1353,9 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       ! call the "calcValueSingle" subroutine which returns an estimated survival function and mean survival time as output
     ! n = nCases: as number of elements in indices of subset (number of cases)
-    ! ----- this becomes the sum of the propensity scores which has the replications-- if this is 1, then we just have n
     ! indices = casesIn: indices of subset for which value is calculated (number of events)
 
-
-    ! ---------------- to do: input the propensity score (same dimensions as delta) ------------------ !
-    !- we need to replicate n, indices, and pr based on the propensity score
-    !- NOTE: that pr is already replicated based on the input
-
-    !print *, "number of samples-replicated = ", total_cases
-
-
     CALL calcValueSingle(n, indices, survFunc(:,1), mean(1))
-
-    !!!!!!!
-    !!!!!!! Adding print statement
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "calcValueSingle for first node:"
-    !print *, "surv function and mean surv time =", survFunc(:,1)
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
-
 
     ! if the "isSurvival" flag is TRUE,
 
@@ -1537,18 +1443,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
       ! then take the array of indices representing all cases
       ind = jdex(stm(k,1):stm(k,2))
 
-    !!!!!!!
-    !!!!!!! Adding print statement for indices in current node
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "Indices for cases in current node:"
-    !print *, "indices =", ind
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
-
       ! compares count of times a variable ws used in a split cstat(:,k) with a threshold floor(srs * sum(cStat(:,k))
       ! cstat(:, k) = column of array for current node "k"
       ! represents count of how many times each varaible has been used in a split for the entire tree we are in up to the current time point (k-th node)
@@ -1587,8 +1481,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 !     otherwise
 !   nCuts : integer, the number of cutoff values returned
 !   lft : integer, the number of cases in the left node
-
-! we note, that propensity scores are incorporated WITHIN tfindSplit based on the probabilities
 
 
       CALL tfindSplit(size(ind), ind, size(pind), pind, splitVar, cutoffBest, &
@@ -1675,18 +1567,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       leftCases = jdex(stm(ncur,1):stm(ncur,2))
 
-    !!!!!!!
-    !!!!!!! Adding print statement for indices in current left node
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "Indices for cases in current left node:"
-    !print *, "indices =", leftCases
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
-
 
       ! get basic node information for left daughter
 
@@ -1696,23 +1576,9 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     ! size(leftCases) = nCases: as number of elements in indices of subset (number of cases)
     ! leftCases = casesIn: indices of subset for which value is calculated (number of events)
 
-    ! --------- NOTE: we need to input the selected propensity scores from the correct indices (same number as nCases) ------------ !
-
       CALL calcValueSingle(size(leftCases), leftCases, survFunc(:,ncur), &
                          & mean(ncur))
 
-
-    !!!!!!!
-    !!!!!!! Adding print statement for indices in surival function for left daughter node
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "survival function and mean survival time for left daughter node:"
-    !print *, "values =", survFunc(:,ncur)
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
 
       ! if isSurvival is true,
 
@@ -1785,42 +1651,11 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
 
       rightCases = jdex(stm(ncur,1):stm(ncur,2))
 
-
-    !!!!!!!
-    !!!!!!! Adding print statement for indices in right daughter node
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "indices of cases in right daughter node:"
-    !print *, "indices =", rightCases
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
-
-
-      ! delete input propensityright since calcvaluesingle already adjusts for propensity scores
       ! calculate survival function and mean survival time for right node
-
-
-          ! --------- NOTE: we need to input the selected propensity scores from the correct indices (same number as nCases) ------------ !
 
 
       CALL calcValueSingle(size(rightCases), rightCases, survFunc(:,ncur), &
                          & mean(ncur))
-
-
-    !!!!!!!
-    !!!!!!! Adding print statement for survival function in right node
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "survival function and mean survival in right daughter node:"
-    !print *, "values =", survFunc(:,ncur)
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
 
       ! if "isSurvival" is TRUE
 
@@ -1962,18 +1797,6 @@ SUBROUTINE tsurvTree(forestSurvFunc, forestMean, forestSurvProb)
     ! store survival function values for each node of current tree
 
     trees(iTree)%survFunc = survFunc(:,1:ncur)
-
-    !!!!!!!
-    !!!!!!! Adding print statement for each node's survival function
-    !!!!!!!
-
-    ! Print values of variables
-    !print *, "survival function values for each node of current tree:"
-    !print *, "survival func for each node =", survFunc(:,1:ncur)
-
-    !!!!!!!
-    !!!!!!!
-    !!!!!!!
 
     ! store mean survival time for each node of the current tree
     trees(iTree)%mean = mean(1:ncur)
@@ -2335,7 +2158,6 @@ END SUBROUTINE setUpBasics
 ! t_np, integer, the number of covariates
 ! t_x, real(:), the covariates
 ! t_pr, real(:), the probability mass vector of survival function
-! t_propensity real(:) the propensity scores
 ! t_delta, integer(:), the indicator of censoring
 ! t_mTry, integer, the maximum number of covariates to try for splitting
 ! t_nCat, integer(:), the number of categories in each covariate
@@ -2361,8 +2183,6 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta,t_mTry, t_nCat,  t_sampleSi
   REAL(dp), DIMENSION(1:t_n*t_np), INTENT(IN) :: t_x
   REAL(dp), DIMENSION(1:nt*t_n), INTENT(IN) :: t_pr
 
-  ! the propensity score should be the same dimension as delta: one at each time point
-  ! INTEGER, DIMENSION(1:t_n), INTENT(IN) :: t_propensity
   INTEGER, DIMENSION(1:t_n), INTENT(IN) :: t_delta
   INTEGER, INTENT(IN) :: t_mTry
   INTEGER, DIMENSION(1:t_np), INTENT(IN) :: t_nCat
@@ -2380,7 +2200,6 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta,t_mTry, t_nCat,  t_sampleSi
   ! check if memory has already been allocated for these arrays (global)
   ! if so, then deallocate them them to free up memory
 
-! note this should have propensityAll
   IF (isAllocated) THEN
     DEALLOCATE(xAll, prAll, deltaAll, nCat, forest%survFunc, forest%mean,  &
              & forest%survProb, trees)
@@ -2396,8 +2215,6 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta,t_mTry, t_nCat,  t_sampleSi
   ! prAll will hold probability mass vector of survival function
   ALLOCATE(prAll(1:nAll, 1:nt))
 
-  ! propensityAll will hold propensity scores for all patients & stages
-  !ALLOCATE(propensityAll(1:nAll))
 
   ! deltaAll will hold indicator of censoring
   ALLOCATE(deltaAll(1:nAll))
@@ -2417,10 +2234,6 @@ SUBROUTINE setUpInners(t_n, t_np, t_x, t_pr, t_delta,t_mTry, t_nCat,  t_sampleSi
 
   ! probability mass vector from input t_pr
   prAll = reshape(t_pr, (/nAll,nt/))
-
-
-    ! propensity score from input t_propensity
-  !propensityAll = t_propensity
 
 
   ! censoring indicator from t_delta
